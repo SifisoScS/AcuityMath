@@ -22,6 +22,28 @@ jobs:
     name: verify
     runs-on: ubuntu-latest
 
+    # The schema declares foreign keys, cascades and unique constraints, and a
+    # declaration is only a claim until a real engine enforces it. `node:sqlite`
+    # would not do: the schema uses MySQL enums and ON DELETE clauses that a
+    # portable dialect cannot express, so the test would be checking a different
+    # schema than the one that ships.
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: acuitymath
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/acuitymath
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +67,18 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # Under its own name for the same reason as the gate below: a schema
+      # failure and a content failure are different problems and a reviewer
+      # should be able to tell which one happened without opening a log.
+      #
+      # This step is also the only place the migration is ever applied to a real
+      # database. It fails hard rather than skipping when DATABASE_URL is
+      # missing — a suite that skips itself in CI reports green while covering
+      # nothing, which is how the donor engine shipped three defects that its
+      # seeds only revealed on first execution.
+      - name: Schema and migration
+        run: pnpm test:integration
 
       # Runs first, and under its own name, so a content failure is legible from
       # the checks list without opening a log. `pnpm test` also covers the

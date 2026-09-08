@@ -11,7 +11,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts', 'drizzle/**/*.test.ts'],
     // The generator invariants draw a 6,720-problem sample. That is a few
     // seconds of real work, and well past Vitest's 5s default.
     testTimeout: 30_000,
