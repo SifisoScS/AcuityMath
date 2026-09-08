@@ -1,0 +1,29 @@
+{
+  "sample_size": 6720,
+  "sympy_verified_count": 5848,
+  "verified_by_kind": {
+    "early-add": 344,
+    "early-bond": 464,
+    "elem-frac": 573,
+    "elem-geom": 595,
+    "elem-mult": 512,
+    "high-calc": 571,
+    "high-quad": 558,
+    "high-trig": 551,
+    "mid-integers": 564,
+    "mid-linear": 561,
+    "mid-slope": 555
+  },
+  "unverifiable_by_kind": {
+    "early-pat": 872
+  },
+  "reachability_unchecked": {
+    "high-trig:GENERAL_CALCULATION_SLIP": 667,
+    "high-trig:INVERTED_FRACTION": 102,
+    "high-trig:RECIPROCAL_MISAPPLIED": 209,
+    "high-trig:SIGN_ERROR": 675
+  },
+  "failure_count": 0,
+  "failures": {},
+  "passed": true
+}

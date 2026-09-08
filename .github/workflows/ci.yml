@@ -1,0 +1,113 @@
+name: CI
+
+# The problem generator produces an unbounded number of questions, so no human
+# reviews its output. Nothing else in this pipeline can tell you that a
+# generated answer is wrong, that two options are the same number wearing
+# different text, or that a distractor is tagged with a misconception which
+# cannot produce it. That is what the first job below exists for.
+#
+# See docs/GENERATOR_INTEGRITY.md for the invariants and the defects that went
+# undetected until the gate was first run.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "graft-*"
+      - "feature/**"
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+
+    # The schema declares foreign keys, cascades and unique constraints, and a
+    # declaration is only a claim until a real engine enforces it. `node:sqlite`
+    # would not do: the schema uses MySQL enums and ON DELETE clauses that a
+    # portable dialect cannot express, so the test would be checking a different
+    # schema than the one that ships.
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: acuitymath
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/acuitymath
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # action-setup reads `packageManager` from package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # The mathematical half of the integrity gate is SymPy. It is a hard
+      # dependency, not an optional extra: without it the gate would report
+      # "structurally fine" on a generator emitting wrong answers.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install SymPy
+        run: python -m pip install --disable-pip-version-check sympy==1.13.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Under its own name for the same reason as the gate below: a schema
+      # failure and a content failure are different problems and a reviewer
+      # should be able to tell which one happened without opening a log.
+      #
+      # This step is also the only place the migration is ever applied to a real
+      # database. It fails hard rather than skipping when DATABASE_URL is
+      # missing — a suite that skips itself in CI reports green while covering
+      # nothing, which is how the donor engine shipped three defects that its
+      # seeds only revealed on first execution.
+      - name: Schema and migration
+        run: pnpm test:integration
+
+      # Runs first, and under its own name, so a content failure is legible from
+      # the checks list without opening a log. `pnpm test` also covers the
+      # structural half; the duplicate run costs a few seconds and buys a signal
+      # a reviewer can read at a glance — and only this step runs SymPy.
+      #
+      # This step has no exception for "minor changes". Every defect it first
+      # caught — a bond to 5 offering "1" twice, a 6x3 garden whose area and
+      # perimeter are both 18, a slope offered as both `-1` and `1/-1` — came
+      # from code that looked obviously correct.
+      - name: Generator integrity gate
+        run: pnpm audit:generator
+
+      - name: Typecheck
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      # The sample and the validation report are what make a failure
+      # investigable: the reviewer gets the exact 6,720 problems the gate saw,
+      # not a reconstruction. Uploaded on failure only, to keep green runs cheap.
+      - name: Upload generator artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generator-sample-and-report
+          path: data/
+          retention-days: 14
