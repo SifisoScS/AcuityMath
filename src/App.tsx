@@ -1,0 +1,1424 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useEffect } from 'react';
+import {
+  UserProfile,
+  NavigationTab,
+  MathLesson,
+  TeacherAssignment,
+  NotificationItem,
+  OfflineSyncState,
+  ParentAnalytics,
+  AgeTier
+} from './types';
+import {
+  INITIAL_PROFILES,
+  INITIAL_ANALYTICS,
+  INITIAL_ASSIGNMENTS,
+  INITIAL_NOTIFICATIONS,
+  getSavedItem,
+  saveItem
+} from './utils/storage';
+import { INITIAL_LESSONS, AGE_TIER_META } from './data/curriculumData';
+import { OfflineSyncBanner } from './components/OfflineSyncBanner';
+import { StudentDashboard } from './components/StudentDashboard';
+import { CurriculumView } from './components/CurriculumView';
+import { ParentDashboard } from './components/ParentDashboard';
+import { TeacherDashboard } from './components/TeacherDashboard';
+import { RewardsView } from './components/RewardsView';
+import { ScratchpadView } from './components/ScratchpadView';
+import { LandingPage } from './components/LandingPage';
+import { CategoryLandingPage } from './components/CategoryLandingPage';
+import { AgeSpecificPage } from './components/AgeSpecificPage';
+import { CATEGORY_DETAILS, AGE_PROFILES } from './data/ageCurriculumData';
+import { InteractiveLessonModal } from './components/InteractiveLessonModal';
+import { RewardsModal } from './components/RewardsModal';
+import { NotificationsModal } from './components/NotificationsModal';
+import { ProfileSwitchModal } from './components/ProfileSwitchModal';
+import { ParentPinModal } from './components/ParentPinModal';
+import { CoppaConsentModal } from './components/CoppaConsentModal';
+import { ScreenTimeLockModal } from './components/ScreenTimeLockModal';
+import { StudentQrCardModal } from './components/StudentQrCardModal';
+import { ManipulativesHub } from './components/manipulatives/ManipulativesHub';
+import { DistrictAdminDashboard } from './components/DistrictAdminDashboard';
+import { PlacementQuestModal } from './components/PlacementQuestModal';
+import { PlacementQuestPromptModal } from './components/PlacementQuestPromptModal';
+import { BilingualGlossaryModal } from './components/BilingualGlossaryModal';
+import { apiService } from './services/api';
+import {
+  Home,
+  LayoutDashboard,
+  GraduationCap,
+  LineChart,
+  Users,
+  Trophy,
+  PenTool,
+  Clock,
+  Volume2,
+  Eye,
+  Type,
+  Bell,
+  ChevronRight,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Menu,
+  X,
+  QrCode,
+  Compass,
+  Building2,
+  Languages
+} from 'lucide-react';
+import { playClickSound, speakText, stopSpeaking } from './utils/audio';
+
+export default function App() {
+  // Profiles state
+  const [profiles, setProfiles] = useState<UserProfile[]>(() =>
+    getSavedItem<UserProfile[]>('profiles', INITIAL_PROFILES)
+  );
+
+  // Active profile
+  const [activeProfileId, setActiveProfileId] = useState<string>(() =>
+    getSavedItem<string>('active_profile_id', 'user-maya')
+  );
+
+  const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0];
+
+  // Active navigation tab (default to landing/home page)
+  const [activeTab, setActiveTab] = useState<NavigationTab>('home');
+
+  // Selected stage category & age for dedicated landing pages
+  const [selectedCategoryTier, setSelectedCategoryTier] = useState<AgeTier>('early');
+  const [selectedAge, setSelectedAge] = useState<number>(8);
+
+  // Lessons
+  const [lessons] = useState<MathLesson[]>(INITIAL_LESSONS);
+
+  // Parent Analytics map
+  const [analyticsMap, setAnalyticsMap] = useState<Record<string, ParentAnalytics>>(() =>
+    getSavedItem<Record<string, ParentAnalytics>>('analytics', INITIAL_ANALYTICS)
+  );
+
+  // Teacher Assignments
+  const [assignments, setAssignments] = useState<TeacherAssignment[]>(() =>
+    getSavedItem<TeacherAssignment[]>('assignments', INITIAL_ASSIGNMENTS)
+  );
+
+  // Notifications
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() =>
+    getSavedItem<NotificationItem[]>('notifications', INITIAL_NOTIFICATIONS)
+  );
+
+  // Offline Sync State
+  const [syncState, setSyncState] = useState<OfflineSyncState>(() =>
+    getSavedItem<OfflineSyncState>('sync_state', {
+      isOffline: false,
+      pendingActions: [],
+      syncLogs: [
+        {
+          id: 'log-1',
+          action: 'Initial Cloud Profile Sync',
+          timestamp: 'Just now',
+          status: 'synced'
+        }
+      ],
+      lastSyncedAt: 'Just now'
+    })
+  );
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Accessibility flags
+  const [highContrast, setHighContrast] = useState(false);
+  const [dyslexicFont, setDyslexicFont] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+
+  // Sidebar visibility state: open by default on desktop, closed on mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Modals
+  const [activeLesson, setActiveLesson] = useState<MathLesson | null>(null);
+  const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // Phase 1: Security, Persistent Cloud Data & COPPA
+  const [authenticatedRoles, setAuthenticatedRoles] = useState<Record<string, boolean>>({});
+  const [isParentPinOpen, setIsParentPinOpen] = useState(false);
+  const [targetProtectedRole, setTargetProtectedRole] = useState<'parent' | 'teacher'>('parent');
+  const [targetProtectedTab, setTargetProtectedTab] = useState<NavigationTab | null>(null);
+  const [targetProtectedProfile, setTargetProtectedProfile] = useState<UserProfile | null>(null);
+
+  const [isCoppaModalOpen, setIsCoppaModalOpen] = useState(false);
+  const [hasCoppaConsent, setHasCoppaConsent] = useState(true);
+
+  const [isScreenLocked, setIsScreenLocked] = useState(false);
+  const [lockedTimeData, setLockedTimeData] = useState({ todayMinutes: 45, limitMinutes: 45 });
+
+  const [isQrCardModalOpen, setIsQrCardModalOpen] = useState(false);
+  const [qrStudentData, setQrStudentData] = useState<{
+    name: string;
+    age: number;
+    avatar: string;
+    tier: string;
+    pin: string;
+    qrToken: string;
+    pictureSequence: string[];
+  } | null>(null);
+
+  // Quick-Wins: Placement Quest & Bilingual Vocabulary Scaffolding
+  const [isPlacementQuestOpen, setIsPlacementQuestOpen] = useState(false);
+  const [showPlacementPrompt, setShowPlacementPrompt] = useState(false);
+  const [isGlossaryModalOpen, setIsGlossaryModalOpen] = useState(false);
+
+  // Automated Placement Quest First-Login Onboarding Prompt
+  useEffect(() => {
+    if (activeProfile.role === 'student' && !activeProfile.diagnosticComplete) {
+      const key = `dismissed_placement_prompt_${activeProfile.id}`;
+      if (!sessionStorage.getItem(key)) {
+        const timer = setTimeout(() => {
+          setShowPlacementPrompt(true);
+        }, 900);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      setShowPlacementPrompt(false);
+    }
+  }, [activeProfile.id, activeProfile.role, activeProfile.diagnosticComplete]);
+
+  // Bootstrap from Cloud Database on initialization
+  useEffect(() => {
+    apiService.getBootstrap().then(data => {
+      if (data && data.coppaStatus) {
+        setHasCoppaConsent(data.coppaStatus.isCompliant);
+      }
+    });
+  }, []);
+
+  // Server-Authoritative Screen Time Heartbeat
+  useEffect(() => {
+    if (activeProfile.role !== 'student') return;
+
+    // Initial check
+    apiService.sendHeartbeat(activeProfile.id, 0).then(res => {
+      if (res) {
+        setAnalyticsMap(prev => {
+          const existing = prev[activeProfile.id] || INITIAL_ANALYTICS['user-maya'];
+          return {
+            ...prev,
+            [activeProfile.id]: {
+              ...existing,
+              totalTimeMinutes: res.todayMinutesSpent,
+              screenTimeLimitMinutes: res.screenTimeLimitMinutes
+            }
+          };
+        });
+        if (res.isLocked) {
+          setIsScreenLocked(true);
+          setLockedTimeData({
+            todayMinutes: res.todayMinutesSpent,
+            limitMinutes: res.screenTimeLimitMinutes
+          });
+        }
+      }
+    });
+
+    const interval = setInterval(async () => {
+      const res = await apiService.sendHeartbeat(activeProfile.id, 60);
+      if (res) {
+        setAnalyticsMap(prev => {
+          const existing = prev[activeProfile.id] || INITIAL_ANALYTICS['user-maya'];
+          return {
+            ...prev,
+            [activeProfile.id]: {
+              ...existing,
+              totalTimeMinutes: res.todayMinutesSpent,
+              screenTimeLimitMinutes: res.screenTimeLimitMinutes
+            }
+          };
+        });
+        if (res.isLocked) {
+          setIsScreenLocked(true);
+          setLockedTimeData({
+            todayMinutes: res.todayMinutesSpent,
+            limitMinutes: res.screenTimeLimitMinutes
+          });
+        }
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [activeProfile.id, activeProfile.role]);
+
+  // Save changes to localStorage
+  useEffect(() => {
+    saveItem('profiles', profiles);
+  }, [profiles]);
+
+  useEffect(() => {
+    saveItem('active_profile_id', activeProfileId);
+  }, [activeProfileId]);
+
+  useEffect(() => {
+    saveItem('assignments', assignments);
+  }, [assignments]);
+
+  useEffect(() => {
+    saveItem('notifications', notifications);
+  }, [notifications]);
+
+  useEffect(() => {
+    saveItem('sync_state', syncState);
+  }, [syncState]);
+
+  useEffect(() => {
+    saveItem('analytics', analyticsMap);
+  }, [analyticsMap]);
+
+  // Screen time tracking
+  const currentAnalytics = analyticsMap[activeProfile.id] || analyticsMap['user-maya'] || {
+    totalTimeMinutes: 42,
+    screenTimeLimitMinutes: 45
+  };
+  const remainingMinutes = Math.max(0, currentAnalytics.screenTimeLimitMinutes - currentAnalytics.totalTimeMinutes);
+  const isNearScreenLimit = remainingMinutes <= 5;
+
+  // Handle student lesson completion
+  const handleLessonComplete = (results: {
+    lessonId: string;
+    xpEarned: number;
+    coinsEarned: number;
+    accuracy: number;
+    newLevel: number;
+    newElo: number;
+  }) => {
+    const updatedProfiles = profiles.map(p => {
+      if (p.id === activeProfile.id) {
+        const nextXp = p.xp + results.xpEarned;
+        const nextCoins = p.coins + results.coinsEarned;
+        return {
+          ...p,
+          xp: nextXp,
+          coins: nextCoins,
+          dynamicLevel: results.newLevel,
+          eloRating: results.newElo,
+          completedLessonsCount: p.completedLessonsCount + 1,
+          accuracyRate: Math.round((p.accuracyRate + results.accuracy) / 2)
+        };
+      }
+      return p;
+    });
+    setProfiles(updatedProfiles);
+
+    // Submit attempt to server database
+    apiService.submitAttempt(activeProfile.id, {
+      lessonId: results.lessonId,
+      lessonTitle: activeLesson?.title || 'Mathematics Lesson',
+      scorePercent: results.accuracy,
+      timeSpentSecs: 180,
+      coinsEarned: results.coinsEarned,
+      xpEarned: results.xpEarned
+    }).catch(err => console.warn('[App] Offline queue fallback for attempt:', err));
+
+    // Sync action queue handling
+    const actionDesc = `Lesson Completed (+${results.xpEarned} XP, +${results.coinsEarned} Coins, Lvl ${results.newLevel})`;
+
+    if (syncState.isOffline) {
+      setSyncState(prev => ({
+        ...prev,
+        pendingActions: [
+          ...prev.pendingActions,
+          {
+            id: `action-${Date.now()}`,
+            actionType: 'LESSON_COMPLETE',
+            payload: results,
+            timestamp: new Date().toLocaleTimeString()
+          }
+        ]
+      }));
+    } else {
+      setSyncState(prev => ({
+        ...prev,
+        lastSyncedAt: new Date().toLocaleTimeString(),
+        syncLogs: [
+          {
+            id: `log-${Date.now()}`,
+            action: actionDesc,
+            timestamp: new Date().toLocaleTimeString(),
+            status: 'synced'
+          },
+          ...prev.syncLogs.slice(0, 15)
+        ]
+      }));
+    }
+
+    // Add milestone notification if level increased
+    if (results.newLevel > activeProfile.dynamicLevel) {
+      const newNotif: NotificationItem = {
+        id: `notif-${Date.now()}`,
+        title: 'Level Up Celebration! 🎉',
+        message: `${activeProfile.name} reached Level ${results.newLevel} with an updated ELO rating of ${results.newElo}!`,
+        type: 'milestone',
+        timestamp: 'Just now',
+        read: false
+      };
+      setNotifications(prev => [newNotif, ...prev]);
+    }
+  };
+
+  // Offline toggle
+  const handleToggleOfflineMode = (offline: boolean) => {
+    setSyncState(prev => ({
+      ...prev,
+      isOffline: offline
+    }));
+    if (!offline && syncState.pendingActions.length > 0) {
+      triggerCloudSync();
+    }
+  };
+
+  // Trigger cloud sync
+  const triggerCloudSync = () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+
+    if (syncState.pendingActions.length > 0) {
+      apiService.syncBatch(syncState.pendingActions.map(act => ({
+        type: act.actionType,
+        payload: act.payload,
+        studentId: activeProfile.id
+      }))).catch(err => console.warn('[App] Batch sync error:', err));
+    }
+
+    setTimeout(() => {
+      const syncedCount = syncState.pendingActions.length;
+      const now = new Date().toLocaleTimeString();
+
+      const newLogs = syncState.pendingActions.map(act => ({
+        id: `log-${Date.now()}-${act.id}`,
+        action: `Synced to Server: ${act.actionType} (${act.timestamp})`,
+        timestamp: now,
+        status: 'synced' as const
+      }));
+
+      setSyncState(prev => ({
+        ...prev,
+        isOffline: false,
+        pendingActions: [],
+        lastSyncedAt: now,
+        syncLogs: [...newLogs, ...prev.syncLogs].slice(0, 20)
+      }));
+
+      setIsSyncing(false);
+
+      if (syncedCount > 0) {
+        setNotifications(prev => [
+          {
+            id: `notif-${Date.now()}`,
+            title: 'Offline Progress Synced to Cloud DB! ☁️',
+            message: `Successfully synchronized ${syncedCount} offline milestones to the AcuityMath persistent database.`,
+            type: 'sync',
+            timestamp: 'Just now',
+            read: false
+          },
+          ...prev
+        ]);
+      }
+    }, 1200);
+  };
+
+  // Profile update
+  const handleUpdateActiveUser = (updated: Partial<UserProfile>) => {
+    setProfiles(prev =>
+      prev.map(p => (p.id === activeProfile.id ? { ...p, ...updated } : p))
+    );
+  };
+
+  // Add new assignment
+  const handleAddAssignment = (newAssignment: TeacherAssignment) => {
+    setAssignments(prev => [newAssignment, ...prev]);
+  };
+
+  // Notification dispatch
+  const handleSendStudentNotification = (studentName: string, assignmentTitle: string) => {
+    const newNotif: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      title: `Assignment Notice for ${studentName}`,
+      message: `Mr. Henderson assigned "${assignmentTitle}". Check your assignments tab!`,
+      type: 'assignment',
+      timestamp: 'Just now',
+      read: false
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+  };
+
+  // Screen time update from parent
+  const handleUpdateScreenTime = (studentId: string, minutes: number) => {
+    setAnalyticsMap(prev => {
+      const existing = prev[studentId] || INITIAL_ANALYTICS['user-maya'];
+      return {
+        ...prev,
+        [studentId]: {
+          ...existing,
+          screenTimeLimitMinutes: minutes
+        }
+      };
+    });
+  };
+
+  // Stage change handler
+  const handleSelectAgeTier = (tier: AgeTier) => {
+    playClickSound();
+    handleUpdateActiveUser({ tier });
+    if (ttsEnabled) {
+      const meta = AGE_TIER_META[tier];
+      speakText(`Switched to ${meta.label} for ages ${meta.ageRange}`);
+    }
+  };
+
+  // Tab navigation helper with Server PIN Guard for Parent/Teacher sections
+  const handleNavigate = (tab: NavigationTab) => {
+    playClickSound();
+    if ((tab === 'parent' || tab === 'teacher') && !authenticatedRoles[tab]) {
+      setTargetProtectedRole(tab as 'parent' | 'teacher');
+      setTargetProtectedTab(tab);
+      setTargetProtectedProfile(null);
+      setIsParentPinOpen(true);
+      setIsMobileSidebarOpen(false);
+      return;
+    }
+    setActiveTab(tab);
+    setIsMobileSidebarOpen(false);
+  };
+
+  // Open specific Category Landing Page
+  const handleOpenCategory = (tier: AgeTier) => {
+    playClickSound();
+    setSelectedCategoryTier(tier);
+    setActiveTab('category');
+    setIsMobileSidebarOpen(false);
+    if (ttsEnabled) {
+      const meta = CATEGORY_DETAILS[tier];
+      speakText(`Viewing ${meta.title} landing page for ${meta.ageRange}`);
+    }
+  };
+
+  // Open specific Age Page (Ages 3 through 18)
+  const handleOpenAge = (ageNum: number) => {
+    playClickSound();
+    setSelectedAge(ageNum);
+    const tier = AGE_PROFILES[ageNum]?.tier || 'elementary';
+    setSelectedCategoryTier(tier);
+    setActiveTab('age');
+    setIsMobileSidebarOpen(false);
+    if (ttsEnabled) {
+      const p = AGE_PROFILES[ageNum];
+      speakText(`Viewing Age ${ageNum} page: ${p?.title || ''}`);
+    }
+  };
+
+  // Start learning session from category or age page
+  const handleStartLearningWithAge = (tier: AgeTier, specificAge?: number) => {
+    playClickSound();
+    handleSelectAgeTier(tier);
+    if (specificAge && activeProfile.role === 'student') {
+      handleUpdateActiveUser({ age: specificAge, tier });
+    }
+    setActiveTab('student');
+    setIsMobileSidebarOpen(false);
+  };
+
+  // TTS audio toggle
+  const handleToggleTTS = () => {
+    playClickSound();
+    const next = !ttsEnabled;
+    setTtsEnabled(next);
+    if (next) {
+      speakText(`Text to speech activated on AcuityMath. Active profile is ${activeProfile.name}, Level ${activeProfile.dynamicLevel}.`);
+    } else {
+      stopSpeaking();
+    }
+  };
+
+  const studentProfiles = profiles.filter(p => p.role === 'student');
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const pageTitleMap: Record<NavigationTab, { title: string; subtitle: string }> = {
+    home: {
+      title: 'Welcome to AcuityMath',
+      subtitle: 'Adaptive Mathematical Learning Ecosystem for Ages 3 to 18'
+    },
+    category: {
+      title: CATEGORY_DETAILS[selectedCategoryTier]?.title || 'Category Stage',
+      subtitle: `${CATEGORY_DETAILS[selectedCategoryTier]?.ageRange || ''} · ${CATEGORY_DETAILS[selectedCategoryTier]?.subtitle || ''}`
+    },
+    age: {
+      title: AGE_PROFILES[selectedAge]?.title || `Age ${selectedAge}`,
+      subtitle: `${AGE_PROFILES[selectedAge]?.gradeLevel || ''} · ${AGE_PROFILES[selectedAge]?.subtitle || ''}`
+    },
+    student: {
+      title: 'Dashboard',
+      subtitle: `Welcome back, ${activeProfile.name} ⭐`
+    },
+    curriculum: {
+      title: 'Curriculum Explorer',
+      subtitle: 'Comprehensive mathematical progression across all stages'
+    },
+    labs: {
+      title: 'Virtual Math Labs & Manipulatives',
+      subtitle: 'Concrete ➔ Representational ➔ Abstract tactile learning'
+    },
+    parent: {
+      title: 'Parent Analytics',
+      subtitle: 'Real-time performance velocity, screen time & mastery oversight'
+    },
+    teacher: {
+      title: 'Teacher Command',
+      subtitle: 'Classroom roster management & custom task assignment'
+    },
+    district: {
+      title: 'District Command Center',
+      subtitle: 'Multi-campus mathematics pacing, CCSS alignment & LMS grade passback orchestration'
+    },
+    rewards: {
+      title: 'Rewards Vault',
+      subtitle: 'Unlockable avatars, milestone badges & star economy'
+    },
+    scratchpad: {
+      title: 'Digital Scratchpad',
+      subtitle: 'Mathematical workspace with symbol stamping and snapshot export'
+    }
+  };
+
+  return (
+    <div
+      className={`h-screen w-full overflow-hidden flex flex-col lg:flex-row transition-colors duration-200 ${
+        highContrast ? 'contrast-125 bg-black text-white' : 'bg-slate-50 text-slate-900'
+      } ${dyslexicFont ? 'font-fredoka tracking-wide' : ''}`}
+    >
+      {/* Mobile Drawer Backdrop */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          onClick={() => {
+            playClickSound();
+            setIsMobileSidebarOpen(false);
+          }}
+        />
+      )}
+
+      {/* ===== SIDEBAR NAVIGATION ===== */}
+      <aside
+        className={`
+          bg-white border-r border-slate-200 p-5 flex flex-col justify-between shrink-0 shadow-xs z-40
+          transition-all duration-300 ease-in-out
+          fixed inset-y-0 left-0 w-72 h-full overflow-y-auto lg:static lg:h-full lg:overflow-y-auto
+          ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${isSidebarOpen ? 'lg:w-64 lg:flex' : 'lg:hidden'}
+        `}
+      >
+        <div>
+          {/* Brand Logo & Close/Hide Toggle */}
+          <div className="flex items-center justify-between pb-5 border-b border-slate-200 mb-5">
+            <div
+              onClick={() => handleNavigate('home')}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 text-white flex items-center justify-center font-black text-xl shadow-md shadow-indigo-100">
+                ∑
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-base tracking-tight text-slate-900">
+                    Acuity<span className="text-indigo-600">Math</span>
+                  </span>
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded">
+                    v2.4
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-400 font-bold block">Adaptive Math 3–18</span>
+              </div>
+            </div>
+
+            {/* Collapse/Close Toggle */}
+            <button
+              onClick={() => {
+                playClickSound();
+                setIsSidebarOpen(false);
+                setIsMobileSidebarOpen(false);
+              }}
+              className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+              title="Hide sidebar"
+              aria-label="Hide sidebar"
+            >
+              <PanelLeftClose className="w-5 h-5 hidden lg:block" />
+              <X className="w-5 h-5 lg:hidden" />
+            </button>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="space-y-1">
+            <button
+              onClick={() => handleNavigate('home')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'home'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </button>
+
+            {/* Stages & Categories */}
+            <div className="pt-2 pb-1">
+              <div className="px-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                Stages (Ages 3–18)
+              </div>
+              <div className="space-y-0.5">
+                {[
+                  { tier: 'early' as AgeTier, label: 'Early Sprouts', ages: '3–6', icon: '🌱' },
+                  { tier: 'elementary' as AgeTier, label: 'Math Navigators', ages: '7–10', icon: '🚀' },
+                  { tier: 'middle' as AgeTier, label: 'Algebra Voyagers', ages: '11–14', icon: '⚡' },
+                  { tier: 'high' as AgeTier, label: 'STEM Pioneers', ages: '15–18', icon: '🌌' }
+                ].map(cat => {
+                  const isCatActive =
+                    (activeTab === 'category' && selectedCategoryTier === cat.tier) ||
+                    (activeTab === 'age' && AGE_PROFILES[selectedAge]?.tier === cat.tier);
+                  return (
+                    <button
+                      key={cat.tier}
+                      onClick={() => handleOpenCategory(cat.tier)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                        isCatActive
+                          ? 'bg-indigo-50 text-indigo-700 font-extrabold border border-indigo-200/80 shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold bg-slate-50 px-1.5 py-0.5 rounded">
+                        {cat.ages}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <div className="px-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                Platform Views
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleNavigate('student')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'student'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Dashboard</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate('curriculum')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'curriculum'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span>Curriculum</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate('labs')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'labs'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Compass className="w-4 h-4" />
+                <span>Math Labs (CRA)</span>
+              </div>
+              <span
+                className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider ${
+                  activeTab === 'labs'
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-emerald-100 text-emerald-800'
+                }`}
+              >
+                Lab
+              </span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate('parent')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'parent'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <LineChart className="w-4 h-4" />
+              <span>Parent Analytics</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate('teacher')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'teacher'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Teacher</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate('district')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'district'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Building2 className="w-4 h-4" />
+                <span>District Hub</span>
+              </div>
+              <span
+                className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider ${
+                  activeTab === 'district'
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-indigo-100 text-indigo-800'
+                }`}
+              >
+                P4
+              </span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate('rewards')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'rewards'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <Trophy className="w-4 h-4" />
+              <span>Rewards Vault</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate('scratchpad')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                activeTab === 'scratchpad'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <PenTool className="w-4 h-4" />
+              <span>Scratchpad</span>
+            </button>
+
+            {/* Quick-Win 1: Placement Quest (Adaptive Diagnostic) */}
+            {activeProfile.role === 'student' && (
+              <button
+                onClick={() => {
+                  playClickSound();
+                  setIsPlacementQuestOpen(true);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                  !activeProfile.diagnosticComplete
+                    ? 'bg-amber-500 text-white shadow-xs animate-pulse'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+                title="Adaptive 7-Item Diagnostic Benchmark (3PL IRT)"
+              >
+                <div className="flex items-center gap-3">
+                  <Compass className="w-4 h-4 text-amber-300" />
+                  <span>Placement Quest</span>
+                </div>
+                <span
+                  className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider ${
+                    !activeProfile.diagnosticComplete
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-emerald-100 text-emerald-800'
+                  }`}
+                >
+                  {!activeProfile.diagnosticComplete ? 'Start' : 'Calibrated'}
+                </span>
+              </button>
+            )}
+
+            {/* Quick-Win 2: Bilingual Vocabulary Scaffolding */}
+            <button
+              onClick={() => {
+                playClickSound();
+                setIsGlossaryModalOpen(true);
+              }}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-900 transition cursor-pointer group"
+              title="Dual-Language Math Glossary with Audio Pronunciation (English/Español)"
+            >
+              <div className="flex items-center gap-3">
+                <Languages className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
+                <span>Dual Vocab</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-indigo-100 text-indigo-800 uppercase tracking-wider">
+                EN/ES
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Sidebar Footer: Profile Card & PIN */}
+        <div className="pt-4 border-t border-slate-200 mt-6 space-y-2">
+          <button
+            onClick={() => {
+              playClickSound();
+              setIsProfileModalOpen(true);
+            }}
+            className="w-full flex items-center gap-3 p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200/80 transition cursor-pointer border border-slate-200/80 text-left"
+            title="Switch User Profile"
+          >
+            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-xl shadow-xs shrink-0">
+              {activeProfile.avatar}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-extrabold text-slate-900 truncate">
+                {activeProfile.name}
+              </div>
+              <div className="text-[10px] text-indigo-600 font-bold">
+                {activeProfile.role === 'student' ? `Level ${activeProfile.dynamicLevel}` : activeProfile.role}
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+          </button>
+
+          <div className="flex items-center justify-center gap-1.5 text-[10px] font-semibold text-slate-400">
+            <ShieldAlert className="w-3 h-3" />
+            <span>Parent/Teacher PIN: ●●●●</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* ===== MAIN CONTENT AREA ===== */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Offline Banner */}
+        <div className="shrink-0">
+          <OfflineSyncBanner
+            syncState={syncState}
+            onToggleOfflineMode={handleToggleOfflineMode}
+            onTriggerSync={triggerCloudSync}
+            isSyncing={isSyncing}
+          />
+        </div>
+
+        {/* Topbar */}
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 py-3.5 shrink-0 z-20 shadow-xs flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {/* Toggle Sidebar Button */}
+            <button
+              onClick={() => {
+                playClickSound();
+                if (window.innerWidth < 1024) {
+                  setIsMobileSidebarOpen(prev => !prev);
+                } else {
+                  setIsSidebarOpen(prev => !prev);
+                }
+              }}
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer flex items-center gap-2 border border-slate-200 shrink-0"
+              title={
+                (window.innerWidth < 1024 ? isMobileSidebarOpen : isSidebarOpen)
+                  ? 'Hide sidebar'
+                  : 'Open sidebar'
+              }
+              aria-label="Toggle navigation sidebar"
+            >
+              {(window.innerWidth < 1024 ? isMobileSidebarOpen : isSidebarOpen) ? (
+                <PanelLeftClose className="w-4 h-4 text-slate-600" />
+              ) : (
+                <PanelLeftOpen className="w-4 h-4 text-indigo-600" />
+              )}
+              <span className="text-xs font-bold hidden sm:inline text-slate-700">
+                {(window.innerWidth < 1024 ? isMobileSidebarOpen : isSidebarOpen)
+                  ? 'Hide Menu'
+                  : 'Open Menu'}
+              </span>
+            </button>
+
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                {pageTitleMap[activeTab].title}
+              </h1>
+              <p className="text-xs font-semibold text-slate-400">
+                {pageTitleMap[activeTab].subtitle}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Child QR / Picture Login Badge */}
+            {activeProfile.role === 'student' && (
+              <button
+                onClick={() => {
+                  playClickSound();
+                  setQrStudentData({
+                    name: activeProfile.name,
+                    age: activeProfile.age || 8,
+                    avatar: activeProfile.avatar,
+                    tier: activeProfile.tier,
+                    pin: activeProfile.pin || '1234',
+                    qrToken: `ACUITY_STUDENT_QR_${activeProfile.name.toUpperCase()}_${activeProfile.id}`,
+                    pictureSequence: ['⭐', '🚀', '🍎']
+                  });
+                  setIsQrCardModalOpen(true);
+                }}
+                className="px-2.5 py-1.5 rounded-full border border-indigo-200 bg-indigo-50/90 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                title="View / Print Child Login QR & Picture Passcode Badge"
+              >
+                <QrCode className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden md:inline">Login Badge</span>
+              </button>
+            )}
+
+            {/* COPPA & FERPA Compliance Indicator */}
+            <button
+              onClick={() => {
+                playClickSound();
+                setIsCoppaModalOpen(true);
+              }}
+              className={`px-2.5 py-1.5 rounded-full border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs ${
+                hasCoppaConsent
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                  : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 animate-pulse'
+              }`}
+              title="Child Data Safeguards (COPPA VPC Certified & Zero PII Mode)"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">COPPA Verified</span>
+            </button>
+
+            {/* Screen Time Badge */}
+            <span
+              className={`px-3 py-1.5 rounded-full border text-xs font-bold flex items-center gap-1.5 shadow-xs ${
+                isNearScreenLimit
+                  ? 'border-rose-300 bg-rose-50 text-rose-700 animate-pulse'
+                  : 'border-slate-200 bg-white text-slate-700'
+              }`}
+            >
+              <Clock className={`w-3.5 h-3.5 ${isNearScreenLimit ? 'text-rose-600' : 'text-slate-500'}`} />
+              <span>
+                {Math.round(currentAnalytics.totalTimeMinutes)} / {currentAnalytics.screenTimeLimitMinutes}m
+              </span>
+            </span>
+
+            {/* Quick-Win 2: Bilingual Glossary Quick Button */}
+            <button
+              onClick={() => {
+                playClickSound();
+                setIsGlossaryModalOpen(true);
+              }}
+              className="px-2.5 py-1.5 rounded-full border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              title="Dual-Language Math Vocabulary Glossary (EN/ES)"
+            >
+              <Languages className="w-3.5 h-3.5 text-indigo-600" />
+              <span className="text-[11px] font-extrabold">ES/EN</span>
+            </button>
+
+            {/* Accessibility Toggles: TTS, Contrast, Dys */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
+              <button
+                onClick={handleToggleTTS}
+                className={`p-1.5 rounded-full transition cursor-pointer ${
+                  ttsEnabled ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-200'
+                }`}
+                title={ttsEnabled ? 'Disable TTS' : 'Enable TTS'}
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => {
+                  playClickSound();
+                  setHighContrast(prev => !prev);
+                }}
+                className={`p-1.5 rounded-full transition cursor-pointer ${
+                  highContrast ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-200'
+                }`}
+                title="Toggle High Contrast"
+              >
+                <Eye className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => {
+                  playClickSound();
+                  setDyslexicFont(prev => !prev);
+                }}
+                className={`p-1.5 rounded-full transition cursor-pointer ${
+                  dyslexicFont ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-200'
+                }`}
+                title="Toggle High Readability Font"
+              >
+                <Type className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Notifications Bell */}
+            <button
+              onClick={() => {
+                playClickSound();
+                setIsNotificationsOpen(true);
+              }}
+              className="relative p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition cursor-pointer text-slate-600"
+              title="Notifications & Milestones"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-2 ring-white animate-pulse" />
+              )}
+            </button>
+          </div>
+        </header>
+
+        {/* View Main Content Container - Independent Scroll Container */}
+        <div className="flex-1 overflow-y-auto flex flex-col min-h-0 w-full">
+          <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+            {activeTab === 'home' && (
+              <LandingPage
+                onNavigate={tab => setActiveTab(tab)}
+                onSelectProfile={p => {
+                  setActiveProfileId(p.id);
+                  if (p.role === 'parent') setActiveTab('parent');
+                  else if (p.role === 'teacher') setActiveTab('teacher');
+                  else setActiveTab('student');
+                }}
+                onSelectAgeTier={tier => {
+                  handleSelectAgeTier(tier);
+                }}
+                onOpenCategoryPage={handleOpenCategory}
+                onOpenAgePage={handleOpenAge}
+                profiles={profiles}
+                activeProfile={activeProfile}
+              />
+            )}
+
+            {activeTab === 'category' && (
+              <CategoryLandingPage
+                currentTier={selectedCategoryTier}
+                onSelectTier={tier => setSelectedCategoryTier(tier)}
+                onSelectAge={handleOpenAge}
+                onNavigate={setActiveTab}
+                onSelectLesson={lesson => setActiveLesson(lesson)}
+                onStartLearning={handleStartLearningWithAge}
+                lessons={lessons}
+                activeProfile={activeProfile}
+              />
+            )}
+
+            {activeTab === 'age' && (
+              <AgeSpecificPage
+                age={selectedAge}
+                onSelectAge={handleOpenAge}
+                onSelectCategory={handleOpenCategory}
+                onNavigate={setActiveTab}
+                onStartLearning={handleStartLearningWithAge}
+                activeProfile={activeProfile}
+                lessons={lessons}
+              />
+            )}
+
+            {activeTab === 'student' && (
+              <StudentDashboard
+                user={activeProfile}
+                lessons={lessons}
+                assignments={assignments}
+                onSelectLesson={lesson => setActiveLesson(lesson)}
+                onOpenRewards={() => setActiveTab('rewards')}
+                onUpdateDifficulty={newLevel => {
+                  handleUpdateActiveUser({ dynamicLevel: newLevel });
+                }}
+                onUpdateUserProfile={handleUpdateActiveUser}
+                screenTimeMinutes={currentAnalytics.totalTimeMinutes}
+                screenTimeLimit={currentAnalytics.screenTimeLimitMinutes}
+                onOpenScratchpad={() => setActiveTab('scratchpad')}
+                onOpenAgePage={handleOpenAge}
+                onNavigate={setActiveTab}
+                onOpenPlacementQuest={() => setIsPlacementQuestOpen(true)}
+                onOpenGlossary={() => setIsGlossaryModalOpen(true)}
+              />
+            )}
+
+            {activeTab === 'curriculum' && (
+              <CurriculumView
+                lessons={lessons}
+                onSelectLesson={lesson => setActiveLesson(lesson)}
+                currentStudentTier={activeProfile.tier}
+              />
+            )}
+
+            {activeTab === 'labs' && (
+              <ManipulativesHub 
+                activeProfile={activeProfile} 
+                onOpenGlossary={() => setIsGlossaryModalOpen(true)}
+              />
+            )}
+
+            {activeTab === 'parent' && (
+              <ParentDashboard
+                students={studentProfiles}
+                analyticsMap={analyticsMap}
+                onUpdateScreenTime={handleUpdateScreenTime}
+                onOpenCoppaModal={() => setIsCoppaModalOpen(true)}
+              />
+            )}
+
+            {activeTab === 'teacher' && (
+              <TeacherDashboard
+                students={studentProfiles}
+                assignments={assignments}
+                onAddAssignment={handleAddAssignment}
+                onSendStudentNotification={handleSendStudentNotification}
+              />
+            )}
+
+            {activeTab === 'district' && (
+              <DistrictAdminDashboard
+                onBackToStudent={() => setActiveTab('student')}
+                onDispatchNotification={(title, message) => {
+                  handleSendStudentNotification(studentProfiles[0]?.id || 'std-1', `${title}: ${message}`);
+                }}
+              />
+            )}
+
+            {activeTab === 'rewards' && (
+              <RewardsView
+                user={activeProfile}
+                onUpdateUser={handleUpdateActiveUser}
+              />
+            )}
+
+            {activeTab === 'scratchpad' && (
+              <ScratchpadView />
+            )}
+          </main>
+
+          {/* Footer */}
+          <footer className="bg-white border-t border-slate-200 py-4 px-6 text-center text-xs text-slate-400 mt-auto shrink-0">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+              <span>
+                AcuityMath Adaptive Learning Platform • Dynamic Multi-Tier Math Architecture (Ages 3–18)
+              </span>
+              <div className="flex items-center gap-3 text-[11px] font-semibold text-slate-400">
+                <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                  <ShieldCheck className="w-3 h-3" /> COPPA / FERPA Certified
+                </span>
+                <span>•</span>
+                <span>Authoritative Screen Heartbeat</span>
+                <span>•</span>
+                <span>Cloud Synced</span>
+              </div>
+            </div>
+          </footer>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {activeLesson && (
+        <InteractiveLessonModal
+          lesson={activeLesson}
+          user={activeProfile}
+          onClose={() => setActiveLesson(null)}
+          onLessonComplete={handleLessonComplete}
+        />
+      )}
+
+      {isRewardsModalOpen && (
+        <RewardsModal
+          user={activeProfile}
+          onClose={() => setIsRewardsModalOpen(false)}
+          onUpdateUser={handleUpdateActiveUser}
+        />
+      )}
+
+      {isNotificationsOpen && (
+        <NotificationsModal
+          notifications={notifications}
+          onClose={() => setIsNotificationsOpen(false)}
+          onMarkAllAsRead={() => {
+            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+          }}
+          onClearNotifications={() => setNotifications([])}
+          onToggleRead={id => {
+            setNotifications(prev =>
+              prev.map(n => (n.id === id ? { ...n, read: !n.read } : n))
+            );
+          }}
+        />
+      )}
+
+      {isProfileModalOpen && (
+        <ProfileSwitchModal
+          profiles={profiles}
+          activeProfile={activeProfile}
+          onSelectProfile={p => {
+            if ((p.role === 'parent' || p.role === 'teacher') && !authenticatedRoles[p.role]) {
+              setTargetProtectedRole(p.role);
+              setTargetProtectedProfile(p);
+              setTargetProtectedTab(p.role as NavigationTab);
+              setIsParentPinOpen(true);
+              return;
+            }
+            setActiveProfileId(p.id);
+            if (p.role === 'parent') setActiveTab('parent');
+            else if (p.role === 'teacher') setActiveTab('teacher');
+            else setActiveTab('student');
+          }}
+          onAddNewStudent={newP => {
+            setProfiles(prev => [...prev, newP]);
+            setActiveProfileId(newP.id);
+            setActiveTab('student');
+          }}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
+
+      {/* Phase 1 Security & Compliance Modals */}
+      <ParentPinModal
+        isOpen={isParentPinOpen}
+        targetRole={targetProtectedRole}
+        onSuccess={() => {
+          setAuthenticatedRoles(prev => ({ ...prev, [targetProtectedRole]: true }));
+          if (targetProtectedProfile) {
+            setActiveProfileId(targetProtectedProfile.id);
+          }
+          if (targetProtectedTab) {
+            setActiveTab(targetProtectedTab);
+          }
+          setIsParentPinOpen(false);
+          setIsProfileModalOpen(false);
+        }}
+        onClose={() => {
+          setIsParentPinOpen(false);
+          setTargetProtectedProfile(null);
+          setTargetProtectedTab(null);
+        }}
+      />
+
+      <CoppaConsentModal
+        isOpen={isCoppaModalOpen}
+        onClose={() => setIsCoppaModalOpen(false)}
+        parentName="Sarah Jenkins"
+        parentEmail="sarah.jenkins@example.com"
+        hasConsented={hasCoppaConsent}
+        onConsentUpdated={() => {
+          setHasCoppaConsent(true);
+          apiService.getBootstrap().then(data => {
+            if (data && data.students) {
+              setProfiles(prev => {
+                const nonStudents = prev.filter(p => p.role !== 'student');
+                return [...nonStudents, ...data.students];
+              });
+            }
+          });
+        }}
+        students={studentProfiles.map(s => ({ id: s.id, name: s.name, age: s.age || 8 }))}
+      />
+
+      <ScreenTimeLockModal
+        isOpen={isScreenLocked}
+        studentName={activeProfile.name}
+        todayMinutes={lockedTimeData.todayMinutes}
+        limitMinutes={lockedTimeData.limitMinutes}
+        studentId={activeProfile.id}
+        onUnlocked={() => {
+          setIsScreenLocked(false);
+          // Refresh analytics after unlocking
+          apiService.sendHeartbeat(activeProfile.id, 0).then(res => {
+            if (res) {
+              setAnalyticsMap(prev => {
+                const existing = prev[activeProfile.id] || INITIAL_ANALYTICS['user-maya'];
+                return {
+                  ...prev,
+                  [activeProfile.id]: {
+                    ...existing,
+                    totalTimeMinutes: res.todayMinutesSpent,
+                    screenTimeLimitMinutes: res.screenTimeLimitMinutes
+                  }
+                };
+              });
+            }
+          });
+        }}
+      />
+
+      {qrStudentData && (
+        <StudentQrCardModal
+          isOpen={isQrCardModalOpen}
+          onClose={() => {
+            setIsQrCardModalOpen(false);
+            setQrStudentData(null);
+          }}
+          student={qrStudentData}
+        />
+      )}
+
+      {/* Automated Placement Quest Prompt on First Student Login */}
+      {showPlacementPrompt && (
+        <PlacementQuestPromptModal
+          isOpen={showPlacementPrompt}
+          user={activeProfile}
+          onStartQuest={() => {
+            setShowPlacementPrompt(false);
+            sessionStorage.setItem(`dismissed_placement_prompt_${activeProfile.id}`, 'true');
+            setIsPlacementQuestOpen(true);
+          }}
+          onDismiss={() => {
+            setShowPlacementPrompt(false);
+            sessionStorage.setItem(`dismissed_placement_prompt_${activeProfile.id}`, 'true');
+          }}
+        />
+      )}
+
+      {/* Quick-Win 1: Placement Quest Modal (7-Item Adaptive 3PL IRT Benchmark) */}
+      {isPlacementQuestOpen && (
+        <PlacementQuestModal
+          user={activeProfile}
+          onClose={() => setIsPlacementQuestOpen(false)}
+          onCompletePlacement={updates => {
+            handleUpdateActiveUser({
+              ...updates,
+              diagnosticComplete: true
+            });
+            setIsPlacementQuestOpen(false);
+          }}
+        />
+      )}
+
+      {/* Quick-Win 2: Bilingual Math Vocabulary Modal (English / Spanish) */}
+      <BilingualGlossaryModal
+        isOpen={isGlossaryModalOpen}
+        onClose={() => setIsGlossaryModalOpen(false)}
+        initialTier={activeProfile.tier}
+      />
+    </div>
+  );
+}

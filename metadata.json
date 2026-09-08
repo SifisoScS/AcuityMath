@@ -1,0 +1,6 @@
+{
+  "name": "AcuityMath Adaptive Learning Platform",
+  "description": "Dynamic age-adaptive math learning ecosystem spanning ages 3-18 with Socratic AI coaching, IRT psychometrics, virtual manipulatives, institutional LMS integration (Google Classroom & Canvas LTI 1.3), and district-wide administration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
