@@ -1,0 +1,17 @@
+# esbuild and protobufjs place platform binaries in postinstall scripts, and
+# pnpm 11 refuses to run those without explicit approval — `pnpm install` exits
+# 1, so `pnpm build` never gets the chance to fail on its own.
+#
+# The spelling matters and is easy to get wrong. `pnpm.onlyBuiltDependencies` in
+# package.json is no longer read at all; `onlyBuiltDependencies` as a list in
+# this file is silently ignored by 11.21; `only-built-dependencies[]` in .npmrc
+# is silently ignored too. Only the `allowBuilds` map below is honoured, and a
+# local install will appear to accept the others because it short-circuits on
+# "Already up to date" and never re-evaluates. Verify any change to this file
+# with a cold `pnpm install --frozen-lockfile` in an empty directory.
+#
+# Written by `pnpm approve-builds esbuild @google/genai protobufjs`.
+allowBuilds:
+  '@google/genai': true
+  esbuild: true
+  protobufjs: true
