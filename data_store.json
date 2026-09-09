@@ -1,0 +1,211 @@
+{
+  "users": [
+    {
+      "id": "parent_sarah_1",
+      "name": "Sarah Jenkins",
+      "email": "sarah.jenkins@example.com",
+      "role": "parent",
+      "pinHash": "1234",
+      "coppaConsent": {
+        "granted": true,
+        "consentedAt": "2026-09-02T09:54:04.029Z",
+        "method": "email_plus_verification",
+        "parentSignature": "Sarah Jenkins (Verified Parent)"
+      },
+      "createdAt": "2026-08-10T09:54:04.032Z"
+    },
+    {
+      "id": "teacher_marcus_1",
+      "name": "Marcus Sterling",
+      "email": "m.sterling@elementary.edu",
+      "role": "teacher",
+      "pinHash": "4321",
+      "coppaConsent": {
+        "granted": true,
+        "consentedAt": "2026-07-11T09:54:04.032Z",
+        "method": "signed_form",
+        "parentSignature": "Institutional FERPA Agreement - Oakridge District"
+      },
+      "createdAt": "2026-07-11T09:54:04.032Z"
+    }
+  ],
+  "students": [
+    {
+      "id": "student_1",
+      "name": "Maya",
+      "age": 4,
+      "tier": "early",
+      "avatar": "🌱",
+      "coins": 240,
+      "streakDays": 4,
+      "dynamicLevel": 2,
+      "screenTimeLimitMinutes": 30,
+      "todayMinutesSpent": 8,
+      "isLocked": false,
+      "pin": "1111",
+      "qrToken": "ACUITY_STUDENT_QR_MAYA_EARLY_001",
+      "pictureSequence": [
+        "🍎",
+        "⭐",
+        "🎈"
+      ],
+      "totalAttempts": 14,
+      "masteryRating": 88,
+      "parentAccountId": "parent_sarah_1"
+    },
+    {
+      "id": "student_2",
+      "name": "Leo",
+      "age": 8,
+      "tier": "elementary",
+      "avatar": "🚀",
+      "coins": 410,
+      "streakDays": 7,
+      "dynamicLevel": 4,
+      "screenTimeLimitMinutes": 45,
+      "todayMinutesSpent": 16,
+      "isLocked": false,
+      "pin": "2222",
+      "qrToken": "ACUITY_STUDENT_QR_LEO_ELEM_002",
+      "pictureSequence": [
+        "🚀",
+        "🪐",
+        "⚡"
+      ],
+      "totalAttempts": 29,
+      "masteryRating": 92,
+      "parentAccountId": "parent_sarah_1"
+    },
+    {
+      "id": "student_3",
+      "name": "Sophia",
+      "age": 12,
+      "tier": "middle",
+      "avatar": "⚡",
+      "coins": 680,
+      "streakDays": 12,
+      "dynamicLevel": 6,
+      "screenTimeLimitMinutes": 60,
+      "todayMinutesSpent": 22,
+      "isLocked": false,
+      "pin": "3333",
+      "qrToken": "ACUITY_STUDENT_QR_SOPHIA_MID_003",
+      "pictureSequence": [
+        "⚡",
+        "📐",
+        "🌌"
+      ],
+      "totalAttempts": 41,
+      "masteryRating": 95,
+      "parentAccountId": "parent_sarah_1"
+    },
+    {
+      "id": "student_4",
+      "name": "Alexander",
+      "age": 16,
+      "tier": "high",
+      "avatar": "🌌",
+      "coins": 920,
+      "streakDays": 18,
+      "dynamicLevel": 8,
+      "screenTimeLimitMinutes": 90,
+      "todayMinutesSpent": 35,
+      "isLocked": false,
+      "pin": "4444",
+      "qrToken": "ACUITY_STUDENT_QR_ALEX_HIGH_004",
+      "pictureSequence": [
+        "🌌",
+        "∑",
+        "🔬"
+      ],
+      "totalAttempts": 56,
+      "masteryRating": 94,
+      "parentAccountId": "parent_sarah_1"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "att_1",
+      "studentId": "student_2",
+      "lessonId": "elem_frac_1",
+      "lessonTitle": "Fraction Foundations: Pizza Party",
+      "scorePercent": 100,
+      "timeSpentSecs": 240,
+      "coinsEarned": 35,
+      "xpEarned": 80,
+      "completedAt": "2026-09-09T07:54:04.032Z"
+    },
+    {
+      "id": "att_2",
+      "studentId": "student_1",
+      "lessonId": "early_counting_1",
+      "lessonTitle": "Apple Harvest: Counting 1 to 5",
+      "scorePercent": 95,
+      "timeSpentSecs": 180,
+      "coinsEarned": 25,
+      "xpEarned": 50,
+      "completedAt": "2026-09-09T04:54:04.032Z"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "asg_1",
+      "title": "Fraction Equal Shares Workout",
+      "description": "Partition 3 shapes into quarters and halves with at least 80% accuracy.",
+      "tier": "elementary",
+      "targetStudentId": "student_2",
+      "targetStudentName": "Leo (Age 8)",
+      "assignedBy": "Mr. Marcus Sterling",
+      "dueDate": "Tomorrow, 5:00 PM",
+      "status": "pending",
+      "rewardCoins": 50,
+      "createdAt": "2026-09-09T09:54:04.032Z"
+    },
+    {
+      "id": "asg_2",
+      "title": "Early Numbers & Fruit Collection",
+      "description": "Count fruits in the interactive basket up to 5.",
+      "tier": "early",
+      "targetStudentId": "student_1",
+      "targetStudentName": "Maya (Age 4)",
+      "assignedBy": "Mom (Sarah Jenkins)",
+      "dueDate": "Friday",
+      "status": "pending",
+      "rewardCoins": 30,
+      "createdAt": "2026-09-09T09:54:04.032Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_1",
+      "title": "Server Sync Activated",
+      "message": "AcuityMath Phase 1 Cloud Security and Database Engine is active.",
+      "time": "Just now",
+      "read": false,
+      "type": "system",
+      "targetRole": "all"
+    },
+    {
+      "id": "notif_2",
+      "title": "COPPA Consent Active",
+      "message": "Parental verification is recorded for Maya and Leo under US COPPA standards.",
+      "time": "1h ago",
+      "read": false,
+      "type": "alert",
+      "targetRole": "parent"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "log_init",
+      "timestamp": "2026-09-09T09:54:04.032Z",
+      "action": "DATABASE_INITIALIZATION",
+      "performedBy": "system",
+      "details": {
+        "version": "Phase 1.0 Cloud Engine",
+        "targetAudience": "Ages 3-18"
+      }
+    }
+  ],
+  "activeSessions": {}
+}

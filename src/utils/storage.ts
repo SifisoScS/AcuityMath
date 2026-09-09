@@ -1,5 +1,6 @@
 import { UserProfile, ParentAnalytics, TeacherAssignment, NotificationItem, OfflineSyncState, AgeTier } from '../types';
 import { INITIAL_ACHIEVEMENTS } from '../data/curriculumData';
+import { tierForAge } from '../services/tiers';
 
 export const INITIAL_PROFILES: UserProfile[] = [
   {
@@ -252,11 +253,15 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   }
 ];
 
+/**
+ * @deprecated Import `tierForAge` from `services/tiers` instead.
+ *
+ * Kept as a re-export so the existing call sites keep working while they move.
+ * The bands themselves now live in one place, because there were two of them and
+ * they disagreed — see `services/tiers.ts`.
+ */
 export function determineTierForAge(age: number): AgeTier {
-  if (age <= 6) return 'early';
-  if (age <= 10) return 'elementary';
-  if (age <= 14) return 'middle';
-  return 'high';
+  return tierForAge(age);
 }
 
 /**
