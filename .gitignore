@@ -11,3 +11,8 @@ coverage/
 # and uploaded by CI when the gate fails. The validation report beside it is
 # committed: it is the record of what passed, and its diff is reviewable.
 data/generator-sample.json
+
+# Runtime state of the legacy JSON store in server/db.ts. Written on first
+# request and specific to whoever ran the server; it is not shared state and
+# leaves with that module when the client moves to /trpc.
+data_store.json

@@ -24,6 +24,7 @@ import { relations } from 'drizzle-orm';
 import {
   boolean,
   date,
+  decimal,
   index,
   int,
   json,
@@ -260,10 +261,22 @@ export const problems = mysqlTable(
      * `dangerouslySetInnerHTML` and an XSS surface in an app used by children.
      */
     visual: json('visual').$type<Record<string, unknown>>(),
-    /** 3PL item parameters. Null on authored items not yet calibrated. */
-    irtDiscrimination: varchar('irt_discrimination', { length: 12 }),
-    irtDifficulty: varchar('irt_difficulty', { length: 12 }),
-    irtPseudoGuessing: varchar('irt_pseudo_guessing', { length: 12 }),
+    /**
+     * 3PL item parameters. Null on authored items not yet calibrated.
+     *
+     * DECIMAL rather than a string, so the precision is a fact about the column
+     * instead of a convention each writer has to remember. These began as
+     * `varchar(12)` and the generator promptly produced an item difficulty of
+     * `-0.29000000000000004` — twenty characters of binary floating-point noise
+     * from `-0.2 + theta * 0.3` — which the insert rejected outright. Three
+     * decimal places is already finer than any of these parameters is known to.
+     *
+     * Drizzle returns DECIMAL as a string, which is the point: it cannot drift
+     * back into a float on the way out.
+     */
+    irtDiscrimination: decimal('irt_discrimination', { precision: 5, scale: 3 }),
+    irtDifficulty: decimal('irt_difficulty', { precision: 6, scale: 3 }),
+    irtPseudoGuessing: decimal('irt_pseudo_guessing', { precision: 4, scale: 3 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   table => [index('problems_concept_idx').on(table.conceptId), index('problems_source_idx').on(table.source)],
@@ -408,10 +421,14 @@ export const conceptMasteryHistory = mysqlTable(
  * The learner's current 3PL ability estimate — the state `AdaptiveEngine` reads
  * and writes.
  *
- * Theta and the standard error are stored as strings to avoid binary floating
- * point drifting a value that is compared for convergence. MySQL DECIMAL through
- * Drizzle returns a string anyway; making that explicit stops a `number` cast
+ * Theta and the standard error are DECIMAL, not float: they are compared for
+ * convergence, and binary floating point makes that comparison unreliable.
+ * Drizzle returns DECIMAL as a string, which also stops a `number` cast
  * appearing later and quietly reintroducing the drift.
+ *
+ * The scales are the precision these values are actually known to. Theta is
+ * clamped to [-3, 3] and rounded to three places by `AdaptiveEngine`; storing
+ * more would be recording noise as though it were measurement.
  */
 export const learnerAbility = mysqlTable(
   'learner_ability',
@@ -420,9 +437,9 @@ export const learnerAbility = mysqlTable(
     learnerId: int('learner_id')
       .notNull()
       .references(() => learners.id, { onDelete: 'cascade' }),
-    theta: varchar('theta', { length: 12 }).notNull().default('0'),
-    standardError: varchar('standard_error', { length: 12 }).notNull().default('0.85'),
-    dynamicLevel: varchar('dynamic_level', { length: 8 }).notNull().default('5.5'),
+    theta: decimal('theta', { precision: 6, scale: 3 }).notNull().default('0'),
+    standardError: decimal('standard_error', { precision: 5, scale: 3 }).notNull().default('0.85'),
+    dynamicLevel: decimal('dynamic_level', { precision: 4, scale: 2 }).notNull().default('5.5'),
     eloRating: int('elo_rating').notNull().default(1200),
     historyCount: int('history_count').notNull().default(0),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
@@ -438,8 +455,8 @@ export const learnerAbilityHistory = mysqlTable(
     learnerId: int('learner_id')
       .notNull()
       .references(() => learners.id, { onDelete: 'cascade' }),
-    theta: varchar('theta', { length: 12 }).notNull(),
-    standardError: varchar('standard_error', { length: 12 }).notNull(),
+    theta: decimal('theta', { precision: 6, scale: 3 }).notNull(),
+    standardError: decimal('standard_error', { precision: 5, scale: 3 }).notNull(),
     eloRating: int('elo_rating').notNull(),
     recordedAt: timestamp('recorded_at').defaultNow().notNull(),
   },
