@@ -18,12 +18,12 @@
  * there and its absence is the bug.
  */
 
-import { drizzle, type MySql2Database } from 'drizzle-orm/mysql2';
-import { migrate } from 'drizzle-orm/mysql2/migrator';
 import { and, eq, sql } from 'drizzle-orm';
-import mysql from 'mysql2/promise';
+import type { MySql2Database } from 'drizzle-orm/mysql2';
+import type mysql from 'mysql2/promise';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { createTestDatabase, type TestDatabase } from '../server/test-support/database';
 import * as schema from './schema';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -40,43 +40,21 @@ if (IN_CI && !DATABASE_URL) {
 const describeWithDb = DATABASE_URL ? describe : describe.skip;
 
 describeWithDb('schema against MySQL', () => {
+  let harness: TestDatabase;
   let connection: mysql.Connection;
   let db: MySql2Database<typeof schema>;
 
   beforeAll(async () => {
-    connection = await mysql.createConnection({ uri: DATABASE_URL!, multipleStatements: true });
-    db = drizzle(connection, { schema, mode: 'default' });
-    await migrate(db, { migrationsFolder: './drizzle/migrations' });
-    await resetTables();
+    // Its own database, so a fixture seeded by another suite running in
+    // parallel cannot appear in these assertions.
+    harness = await createTestDatabase('schema');
+    connection = harness.connection;
+    db = harness.db;
+    await harness.reset();
   }, 60_000);
 
-  /**
-   * Empties every table the suite writes to.
-   *
-   * The suite runs twice in one CI job — once as its own named step, and again
-   * inside `pnpm test` — against the same database. Without this the second run
-   * fails on a duplicate primary key and reports a schema defect that is really
-   * a test-hygiene one. It also makes a local re-run against a persistent
-   * database work, which is the difference between a suite people run and one
-   * they avoid.
-   *
-   * Foreign key checks are suspended for the truncation because the tables form
-   * a cycle-free graph that would otherwise have to be emptied in exactly the
-   * right order — a list that silently rots as tables are added.
-   */
-  async function resetTables() {
-    const [rows] = await connection.query<mysql.RowDataPacket[]>(
-      "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name <> '__drizzle_migrations'",
-    );
-    await connection.query('SET FOREIGN_KEY_CHECKS = 0');
-    for (const { name } of rows) {
-      await connection.query(`TRUNCATE TABLE \`${name}\``);
-    }
-    await connection.query('SET FOREIGN_KEY_CHECKS = 1');
-  }
-
   afterAll(async () => {
-    await connection?.end();
+    await harness?.close();
   });
 
   /** A guardian with four children, mirroring the profiles the app ships with. */
