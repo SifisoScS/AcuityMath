@@ -29,7 +29,20 @@ import App from './App';
  */
 beforeEach(() => {
   window.localStorage.clear();
+  window.sessionStorage.clear();
+
+  // The app offers a placement quest 900ms after load, and it covers the page.
+  // Suppressing it here is what makes these tests deterministic: waiting for a
+  // timer that may or may not have fired yet is a race, and it made the
+  // navigation tests fail roughly two runs in three.
+  //
+  // The prompt itself is characterised in its own test below, where the key is
+  // deliberately left unset.
+  window.sessionStorage.setItem(`dismissed_placement_prompt_${DEFAULT_PROFILE_ID}`, '1');
 });
+
+/** The profile the app selects when nothing has been stored. */
+const DEFAULT_PROFILE_ID = 'user-maya';
 
 const nav = () => screen.getByRole('navigation');
 
@@ -91,6 +104,33 @@ describe('navigation', () => {
         .filter(button => button.getAttribute('aria-current') === 'page');
       expect(marked).toHaveLength(1);
     });
+  });
+});
+
+describe('the placement quest prompt', () => {
+  it('offers itself to a learner who has not been placed', async () => {
+    // Found by running the app rather than by reading it. It appears 900ms
+    // after load, covers the page, and is suppressed for the rest of the
+    // session once dismissed.
+    window.sessionStorage.clear();
+    render(<App />);
+
+    const prompt = await screen.findByRole('dialog', { name: /placement quest/i }, { timeout: 4000 });
+    expect(prompt).toBeInTheDocument();
+    expect(within(prompt).getByRole('button', { name: /explore dashboard/i })).toBeInTheDocument();
+  });
+
+  it('stays away once dismissed for the session', async () => {
+    const user = userEvent.setup();
+    window.sessionStorage.clear();
+    render(<App />);
+
+    const prompt = await screen.findByRole('dialog', { name: /placement quest/i }, { timeout: 4000 });
+    await user.click(within(prompt).getByRole('button', { name: /explore dashboard/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: /placement quest/i })).not.toBeInTheDocument(),
+    );
   });
 });
 
