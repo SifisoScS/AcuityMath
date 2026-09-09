@@ -11,10 +11,14 @@
  * file asserts the titles and standards here are the ones the generator actually
  * emits — so a change to either side fails rather than drifting.
  *
- * These are not the whole curriculum. The donor engine's 1,132 verified problems
- * bring their own 51 concepts when they are imported, and will sit alongside
- * these rather than replacing them: generated content gives unlimited practice
- * at a variant, authored content gives depth.
+ * These are not the whole curriculum. The imported corpus brings 51 concepts of
+ * its own, and these sit alongside them rather than replacing them: generated
+ * content gives unlimited practice at a variant, authored content gives depth.
+ *
+ * Their `sortOrder` starts at 9000, past every imported strand, so that a
+ * learner meets written questions before generated ones. The two ranges
+ * overlapped at first, and a nine-year-old was offered a generated fraction
+ * before ever seeing `unit-fractions` — the corpus was seeded and invisible.
  */
 
 import type { AgeTier } from '../../src/services/tiers';
@@ -31,21 +35,21 @@ export interface GeneratorConcept {
 }
 
 export const GENERATOR_CONCEPTS: readonly GeneratorConcept[] = [
-  { id: 'early-bond', title: 'Number Bonds & Compositions', strand: 'foundations', tier: 'early', standardCode: 'CCSS.MATH.PK.OA.1', sortOrder: 10 },
-  { id: 'early-add', title: 'Early Addition Concepts', strand: 'foundations', tier: 'early', standardCode: 'CCSS.MATH.K.OA.2', sortOrder: 20 },
-  { id: 'early-pat', title: 'Algebraic Thinking & Patterns', strand: 'foundations', tier: 'early', standardCode: 'CCSS.MATH.PK.G.1', sortOrder: 30 },
+  { id: 'early-bond', title: 'Number Bonds & Compositions', strand: 'foundations', tier: 'early', standardCode: 'CCSS.MATH.PK.OA.1', sortOrder: 9010 },
+  { id: 'early-add', title: 'Early Addition Concepts', strand: 'foundations', tier: 'early', standardCode: 'CCSS.MATH.K.OA.2', sortOrder: 9020 },
+  { id: 'early-pat', title: 'Algebraic Thinking & Patterns', strand: 'foundations', tier: 'early', standardCode: 'CCSS.MATH.PK.G.1', sortOrder: 9030 },
 
-  { id: 'elem-frac', title: 'Fractions & Equivalence', strand: 'fractions-to-algebra', tier: 'elementary', standardCode: 'CCSS.MATH.4.NF.1', sortOrder: 40 },
-  { id: 'elem-mult', title: 'Multi-Digit Operations & Place Value', strand: 'number-and-operations', tier: 'elementary', standardCode: 'CCSS.MATH.4.NBT.5', sortOrder: 50 },
-  { id: 'elem-geom', title: 'Geometric Measurement & Area', strand: 'geometry', tier: 'elementary', standardCode: 'CCSS.MATH.3.MD.7', sortOrder: 60 },
+  { id: 'elem-frac', title: 'Fractions & Equivalence', strand: 'fractions-to-algebra', tier: 'elementary', standardCode: 'CCSS.MATH.4.NF.1', sortOrder: 9040 },
+  { id: 'elem-mult', title: 'Multi-Digit Operations & Place Value', strand: 'number-and-operations', tier: 'elementary', standardCode: 'CCSS.MATH.4.NBT.5', sortOrder: 9050 },
+  { id: 'elem-geom', title: 'Geometric Measurement & Area', strand: 'geometry', tier: 'elementary', standardCode: 'CCSS.MATH.3.MD.7', sortOrder: 9060 },
 
-  { id: 'mid-linear', title: 'Linear Equations & Expressions', strand: 'algebra-1', tier: 'middle', standardCode: 'CCSS.MATH.7.EE.4', sortOrder: 70 },
-  { id: 'mid-integers', title: 'The Number System & Integers', strand: 'number-and-operations', tier: 'middle', standardCode: 'CCSS.MATH.7.NS.1', sortOrder: 80 },
-  { id: 'mid-slope', title: 'Linear Functions & Slope', strand: 'algebra-1', tier: 'middle', standardCode: 'CCSS.MATH.8.EE.6', sortOrder: 90 },
+  { id: 'mid-linear', title: 'Linear Equations & Expressions', strand: 'algebra-1', tier: 'middle', standardCode: 'CCSS.MATH.7.EE.4', sortOrder: 9070 },
+  { id: 'mid-integers', title: 'The Number System & Integers', strand: 'number-and-operations', tier: 'middle', standardCode: 'CCSS.MATH.7.NS.1', sortOrder: 9080 },
+  { id: 'mid-slope', title: 'Linear Functions & Slope', strand: 'algebra-1', tier: 'middle', standardCode: 'CCSS.MATH.8.EE.6', sortOrder: 9090 },
 
-  { id: 'high-quad', title: 'Quadratic Equations & Roots', strand: 'algebra-1', tier: 'high', standardCode: 'CCSS.MATH.HSA.REI.4', sortOrder: 100 },
-  { id: 'high-calc', title: 'Calculus & Instantaneous Rates', strand: 'calculus', tier: 'high', standardCode: 'AP.CALC.CHA.2', sortOrder: 110 },
-  { id: 'high-trig', title: 'Trigonometric Functions & Unit Circle', strand: 'trigonometry', tier: 'high', standardCode: 'CCSS.MATH.HSF.TF.3', sortOrder: 120 },
+  { id: 'high-quad', title: 'Quadratic Equations & Roots', strand: 'algebra-1', tier: 'high', standardCode: 'CCSS.MATH.HSA.REI.4', sortOrder: 9100 },
+  { id: 'high-calc', title: 'Calculus & Instantaneous Rates', strand: 'calculus', tier: 'high', standardCode: 'AP.CALC.CHA.2', sortOrder: 9110 },
+  { id: 'high-trig', title: 'Trigonometric Functions & Unit Circle', strand: 'trigonometry', tier: 'high', standardCode: 'CCSS.MATH.HSF.TF.3', sortOrder: 9120 },
 ];
 
 const BY_ID = new Map(GENERATOR_CONCEPTS.map(concept => [concept.id, concept]));

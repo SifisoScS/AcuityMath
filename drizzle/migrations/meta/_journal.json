@@ -15,6 +15,13 @@
       "when": 1788947115316,
       "tag": "0001_real_daimon_hellstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1788949111484,
+      "tag": "0002_serious_franklin_richards",
+      "breakpoints": true
     }
   ]
 }

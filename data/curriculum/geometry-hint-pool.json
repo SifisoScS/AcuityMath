@@ -1,0 +1,2059 @@
+{
+  "schema_version": "1.0.0",
+  "strand": "geometry",
+  "hint_count": 120,
+  "hints": [
+    {
+      "id": "angle-basics-hint-01",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch angle basics roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-02",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-03",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for angle basics, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-04",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-05",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of angle basics as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-06",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-07",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for angle basics first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-08",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-09",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-10",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate angle basics back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-11",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of angle basics from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "angle-basics-hint-12",
+      "concept_id": "angle-basics",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "angle-size-by-ray-length",
+        "straight-angle-as-right"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for angle basics as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-01",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch angle pairs roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-02",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-03",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for angle pairs, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-04",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-05",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of angle pairs as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-06",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-07",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for angle pairs first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-08",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-09",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-10",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate angle pairs back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-11",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of angle pairs from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "angle-pairs-hint-12",
+      "concept_id": "angle-pairs",
+      "prerequisite_knowledge_points": [
+        "angle-basics"
+      ],
+      "error_types": [
+        "complementary-supplementary-swap",
+        "vertical-angles-as-supplementary"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for angle pairs as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-01",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch triangle angle sum roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-02",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-03",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for triangle angle sum, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-04",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-05",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of triangle angle sum as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-06",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-07",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for triangle angle sum first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-08",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-09",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-10",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate triangle angle sum back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-11",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of triangle angle sum from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "triangle-angle-sum-hint-12",
+      "concept_id": "triangle-angle-sum",
+      "prerequisite_knowledge_points": [
+        "angle-pairs"
+      ],
+      "error_types": [
+        "angle-sum-as-360",
+        "exterior-angle-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for triangle angle sum as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-01",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch triangle classification roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-02",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-03",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for triangle classification, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-04",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-05",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of triangle classification as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-06",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-07",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for triangle classification first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-08",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-09",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-10",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate triangle classification back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-11",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of triangle classification from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "triangle-classification-hint-12",
+      "concept_id": "triangle-classification",
+      "prerequisite_knowledge_points": [
+        "angle-basics",
+        "triangle-angle-sum"
+      ],
+      "error_types": [
+        "side-count-ignores-angles",
+        "isosceles-as-equilateral"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for triangle classification as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-01",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch polygon perimeter roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-02",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-03",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for polygon perimeter, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-04",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-05",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of polygon perimeter as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-06",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-07",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for polygon perimeter first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-08",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-09",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-10",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate polygon perimeter back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-11",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of polygon perimeter from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "polygon-perimeter-hint-12",
+      "concept_id": "polygon-perimeter",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "perimeter-missing-side",
+        "perimeter-as-area"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for polygon perimeter as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-01",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch rectangle area roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-02",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-03",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for rectangle area, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-04",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-05",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of rectangle area as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-06",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-07",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for rectangle area first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-08",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-09",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-10",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate rectangle area back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-11",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of rectangle area from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "rectangle-area-hint-12",
+      "concept_id": "rectangle-area",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter"
+      ],
+      "error_types": [
+        "area-as-perimeter",
+        "adding-side-lengths"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for rectangle area as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-01",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch triangle area roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-02",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-03",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for triangle area, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-04",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-05",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of triangle area as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-06",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-07",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for triangle area first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-08",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-09",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-10",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate triangle area back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-11",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of triangle area from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "triangle-area-hint-12",
+      "concept_id": "triangle-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-classification"
+      ],
+      "error_types": [
+        "forgetting-half",
+        "slant-side-as-height"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for triangle area as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-01",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch composite area roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-02",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-03",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for composite area, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-04",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-05",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of composite area as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-06",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-07",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for composite area first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-08",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-09",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-10",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate composite area back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-11",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of composite area from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "composite-area-hint-12",
+      "concept_id": "composite-area",
+      "prerequisite_knowledge_points": [
+        "rectangle-area",
+        "triangle-area"
+      ],
+      "error_types": [
+        "double-counting-overlap",
+        "ignoring-cut-out"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for composite area as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-01",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch pythagorean theorem roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-02",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-03",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for pythagorean theorem, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-04",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-05",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of pythagorean theorem as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-06",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-07",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for pythagorean theorem first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-08",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-09",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-10",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate pythagorean theorem back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-11",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of pythagorean theorem from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "pythagorean-theorem-hint-12",
+      "concept_id": "pythagorean-theorem",
+      "prerequisite_knowledge_points": [
+        "triangle-classification",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "adding-legs-not-squares",
+        "hypotenuse-as-leg"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for pythagorean theorem as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-01",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Sketch circle measures roughly and label every measurement the question gives you before calculating anything.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-02",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question once more and underline the single measurement it actually asks for.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-03",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down the quantities you know for circle measures, each with its unit, before you choose a relationship.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-04",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Try your rule on a small figure you can count by hand. If it disagrees with the count, the rule needs changing, not the figure.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-05",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Think of circle measures as a rule about the figure's structure that stays true no matter how the figure is turned or scaled.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-06",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Redraw the figure on squared paper and count the units directly, then compare that count with your calculation.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-07",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Name the relationship for circle measures first, substitute the given numbers second, and simplify only at the end.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-08",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "Check whether your answer is a length, an area, or an angle. A mismatch in unit type usually points at the wrong relationship.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-09",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Ask what your method would give for a degenerate case, such as a zero-length side or a flat angle, and see whether it still makes sense.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-10",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Relate circle measures back to a rectangle you already understand: describe what was halved, added, or removed to get from that rectangle to this figure.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-11",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one fully labelled example of circle measures from start to finish, stating the relationship used at each line.",
+      "verified": true
+    },
+    {
+      "id": "circle-measures-hint-12",
+      "concept_id": "circle-measures",
+      "prerequisite_knowledge_points": [
+        "polygon-perimeter",
+        "rectangle-area"
+      ],
+      "error_types": [
+        "radius-diameter-swap",
+        "circumference-as-area"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Set out the relationship for circle measures as an equation, isolate the unknown on one side, and record the same operation on both sides.",
+      "verified": true
+    }
+  ]
+}

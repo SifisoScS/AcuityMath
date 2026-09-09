@@ -1,0 +1,1807 @@
+{
+  "schema_version": "1.0.0",
+  "strand": "foundations",
+  "hint_count": 108,
+  "hints": [
+    {
+      "id": "foundations-compare-size-hint-01",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Point at each shape in turn and name it out loud: this one, this one, this one. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-02",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 1,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question again and put your finger on the word that says which way to look: biggest or smallest, more or fewer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-03",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Ask about one shape at a time. Comparing three at once is more than a three-year-old can hold.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-04",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 1,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the shape they chose with your hand and ask the question again about the two that are left.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-05",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 1,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Bring in something real: two cups, two spoons, two piles of blocks. Ask the same question about those first.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-06",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put your finger on each shape and say the question again for that one alone: is this the one?",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-07",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Say what the question is really asking about: how much space it covers. Then ask it about each shape separately.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-08",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 1,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the answer keeps changing, the child is guessing rather than looking. Slow down and go back to two shapes.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-09",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 1,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably picking the middle one, or picking the opposite of what was asked. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-10",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 1,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Act it out away from the screen. Compare two of the same thing in the room, then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-11",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one all the way through out loud yourself, saying why each shape is or is not the answer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-size-hint-12",
+      "concept_id": "foundations-compare-size",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "size-inverted",
+        "size-middle-not-extreme"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Name how much space it covers first, check it on every shape, and only then choose. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-01",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Point at each stick in turn and name it out loud: this one, this one, this one. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-02",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question again and put your finger on the word that says which way to look: biggest or smallest, more or fewer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-03",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Ask about one stick at a time. Comparing three at once is more than a three-year-old can hold.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-04",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the stick they chose with your hand and ask the question again about the two that are left.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-05",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Bring in something real: two cups, two spoons, two piles of blocks. Ask the same question about those first.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-06",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put your finger on each stick and say the question again for that one alone: is this the one?",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-07",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Say what the question is really asking about: how far it runs from one end to the other. Then ask it about each stick separately.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-08",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the answer keeps changing, the child is guessing rather than looking. Slow down and go back to two sticks.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-09",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably picking the stick that reaches furthest across, or the fattest one. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-10",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Act it out away from the screen. Compare two of the same thing in the room, then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-11",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one all the way through out loud yourself, saying why each stick is or is not the answer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-length-hint-12",
+      "concept_id": "foundations-compare-length",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size"
+      ],
+      "error_types": [
+        "length-by-endpoint",
+        "length-by-thickness"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Name how far it runs from one end to the other first, check it on every stick, and only then choose. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-01",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Point at each row in turn and name it out loud: this one, this one, this one. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-02",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the question again and put your finger on the word that says which way to look: biggest or smallest, more or fewer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-03",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Ask about one row at a time. Comparing three at once is more than a three-year-old can hold.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-04",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the row they chose with your hand and ask the question again about the two that are left.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-05",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Bring in something real: two cups, two spoons, two piles of blocks. Ask the same question about those first.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-06",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put your finger on each row and say the question again for that one alone: is this the one?",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-07",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Say what the question is really asking about: how many things are in it. Then ask it about each row separately.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-08",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the answer keeps changing, the child is guessing rather than looking. Slow down and go back to two rows.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-09",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably picking the row that is spread out widest. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-10",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Act it out away from the screen. Compare two of the same thing in the room, then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-11",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one all the way through out loud yourself, saying why each row is or is not the answer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-compare-quantity-hint-12",
+      "concept_id": "foundations-compare-quantity",
+      "prerequisite_knowledge_points": [
+        "foundations-compare-size",
+        "foundations-compare-length"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Name how many things are in it first, check it on every row, and only then choose. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-01",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Touch each thing in the question picture and count out loud together: one, two, three. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-02",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 1,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Count the question picture again out loud, then say that last number once more. That is the number being looked for.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-03",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Take one group at a time. Holding three of them in mind at once is more than a three-year-old can do.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-04",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 1,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the group they chose with your hand and count the question picture again together, slowly.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-05",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 1,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Use real things. Put out that many buttons or blocks, then look for the group on screen that has the same.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-06",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put a finger on each thing as you say each number. One number, one thing, every time.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-07",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "What the question asks about is how many things are in it, and nothing else about the picture. Count each group on its own and say each total out loud.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-08",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 1,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the count comes out differently each time, the fingers and the words are out of step. Go back to three things and slow the counting right down.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-09",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 1,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably picking the group with the biggest things in it, or the one spread out widest. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-10",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 1,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Count real things away from the screen - stairs, spoons, steps to the door - then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-11",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Count one all the way through out loud yourself, touching each thing as you go, then say how many there were.",
+      "verified": true
+    },
+    {
+      "id": "foundations-subitise-to-3-hint-12",
+      "concept_id": "foundations-subitise-to-3",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-width",
+        "match-by-size"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Count the question picture, say the last number again, then check each group against it. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-01",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Touch each thing in the question picture and count out loud together: one, two, three. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-02",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Count the question picture again out loud, then say that last number once more. That is the number being looked for.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-03",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Take one group at a time. Holding three of them in mind at once is more than a three-year-old can do.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-04",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the group they chose with your hand and count the question picture again together, slowly.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-05",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Use real things. Put out that many buttons or blocks, then look for the group on screen that has the same.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-06",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put a finger on each thing as you say each number. One number, one thing, every time.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-07",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "What the question asks about is how many things are in it, and nothing else about the picture. Count each group on its own and say each total out loud.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-08",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the count comes out differently each time, the fingers and the words are out of step. Go back to three things and slow the counting right down.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-09",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably picking the group that takes up the most room. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-10",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Count real things away from the screen - stairs, spoons, steps to the door - then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-11",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Count one all the way through out loud yourself, touching each thing as you go, then say how many there were.",
+      "verified": true
+    },
+    {
+      "id": "foundations-count-to-5-hint-12",
+      "concept_id": "foundations-count-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3"
+      ],
+      "error_types": [
+        "match-by-width",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Count the question picture, say the last number again, then check each group against it. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-01",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Touch each thing in the question picture and count out loud together: one, two, three. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-02",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Count the question picture again out loud, then say that last number once more. That is the number being looked for.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-03",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Take one number at a time. Holding three of them in mind at once is more than a three-year-old can do.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-04",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the number they chose with your hand and count the question picture again together, slowly.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-05",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Use real things. Put out that many buttons or blocks, then look for the number on screen that has the same.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-06",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put a finger on each thing as you say each number. One number, one thing, every time.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-07",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "What the question asks about is how many things are drawn, and nothing else about the picture. Count each number on its own and say each total out loud.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-08",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the count comes out differently each time, the fingers and the words are out of step. Go back to three things and slow the counting right down.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-09",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably landing one above or one below the real number. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-10",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Count real things away from the screen - stairs, spoons, steps to the door - then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-11",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Count one all the way through out loud yourself, touching each thing as you go, then say how many there were.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-numeral-to-5-hint-12",
+      "concept_id": "foundations-match-numeral-to-5",
+      "prerequisite_knowledge_points": [
+        "foundations-subitise-to-3",
+        "foundations-count-to-5"
+      ],
+      "error_types": [
+        "off-by-one-undercount",
+        "off-by-one-overcount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Count the question picture, say the last number again, then check each number against it. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-01",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Point at each picture in turn and name it out loud. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-02",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 1,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Ask the question again and point at the picture it is asking about, so it is clear what is being compared.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-03",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Take one picture at a time. Weighing them all at once is more than a three-year-old can hold.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-04",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 1,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the one they chose with your hand and ask the question again about the two that are left.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-05",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 1,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Do it with real things first. Two spoons and a fork on the table is the same question.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-06",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put a finger on each one and say what it is out loud: circle, circle, square. Hearing the odd one helps.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-07",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "What the question asks about is the shape and the size together. Check that on each one, and only then choose.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-08",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 1,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the answer keeps changing, they are guessing rather than looking. Go back to two things and ask whether they are the same.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-09",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 1,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably matching on only one of the two, usually the shape. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-10",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 1,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Build the same thing away from the screen - socks, blocks, spoons - then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-11",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 1,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one all the way through out loud yourself, saying why each one is or is not the answer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-match-identical-hint-12",
+      "concept_id": "foundations-match-identical",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "match-by-shape-only",
+        "match-by-size-only"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 1,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Name the shape and the size together first, check it on every one, then choose. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-01",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Point at each shape in turn and name it out loud. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-02",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Ask the question again and point at the picture it is asking about, so it is clear what is being compared.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-03",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Take one shape at a time. Weighing them all at once is more than a three-year-old can hold.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-04",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the one they chose with your hand and ask the question again about the two that are left.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-05",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Do it with real things first. Two spoons and a fork on the table is the same question.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-06",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put a finger on each one and say what it is out loud: circle, circle, square. Hearing the odd one helps.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-07",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "What the question asks about is which shape it is, not how big it is. Check that on each one, and only then choose.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-08",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the answer keeps changing, they are guessing rather than looking. Go back to two things and ask whether they are the same.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-09",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably picking the odd size instead of the odd shape, or just picking an end one. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-10",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Build the same thing away from the screen - socks, blocks, spoons - then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-11",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one all the way through out loud yourself, saying why each one is or is not the answer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-odd-one-out-hint-12",
+      "concept_id": "foundations-odd-one-out",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical"
+      ],
+      "error_types": [
+        "odd-by-size",
+        "odd-by-position"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Name which shape it is, not how big it is first, check it on every one, then choose. Expect this to take several tries over several days.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-01",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Point at each shape in turn and name it out loud. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-02",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Ask the question again and point at the picture it is asking about, so it is clear what is being compared.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-03",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Take one shape at a time. Weighing them all at once is more than a three-year-old can hold.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-04",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Cover the one they chose with your hand and ask the question again about the two that are left.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-05",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Do it with real things first. Two spoons and a fork on the table is the same question.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-06",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Put a finger on each one and say what it is out loud: circle, circle, square. Hearing the odd one helps.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-07",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "What the question asks about is the order the two shapes take turns in. Check that on each one, and only then choose.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-08",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 3,
+      "content": "If the answer keeps changing, they are guessing rather than looking. Go back to two things and ask whether they are the same.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-09",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Their rule is probably repeating the last one they can see instead of carrying the turns on. Show a pair where that rule gives the wrong answer, and let them see it fail.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-10",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Build the same thing away from the screen - socks, blocks, spoons - then come back to the picture.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-11",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one all the way through out loud yourself, saying why each one is or is not the answer.",
+      "verified": true
+    },
+    {
+      "id": "foundations-pattern-abab-hint-12",
+      "concept_id": "foundations-pattern-abab",
+      "prerequisite_knowledge_points": [
+        "foundations-match-identical",
+        "foundations-odd-one-out"
+      ],
+      "error_types": [
+        "pattern-repeat-last",
+        "pattern-outside-unit"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 4,
+      "content": "Name the order the two shapes take turns in first, check it on every one, then choose. Expect this to take several tries over several days.",
+      "verified": true
+    }
+  ]
+}

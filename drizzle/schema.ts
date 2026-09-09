@@ -242,6 +242,14 @@ export const problems = mysqlTable(
       .notNull()
       .references(() => concepts.id, { onDelete: 'cascade' }),
     /**
+     * The id this problem had in the corpus it was imported from, or null for a
+     * generated one. It is what makes a re-import idempotent: the seed can tell
+     * a problem it already wrote from one it has not seen, without comparing
+     * prose. MySQL permits repeated NULLs in a unique index, so generated rows
+     * are unaffected by the constraint.
+     */
+    externalId: varchar('external_id', { length: 120 }),
+    /**
      * `generated` rows come from `ProblemGenerator` and carry the seed that
      * produced them, so a question a learner saw can be reproduced exactly.
      */
@@ -262,6 +270,25 @@ export const problems = mysqlTable(
      */
     visual: json('visual').$type<Record<string, unknown>>(),
     /**
+     * Authoring metadata, carried by imported content and null on generated
+     * items. `problemType` and `interleaved` are what a future retrieval
+     * schedule would read to mix transfer items into a practice run; discarding
+     * them at import would mean re-deriving pedagogy the authors already stated.
+     */
+    problemType: varchar('problem_type', { length: 40 }),
+    cognitiveLoad: smallint('cognitive_load'),
+    contextLabel: varchar('context_label', { length: 120 }),
+    variantIndex: smallint('variant_index'),
+    interleaved: boolean('interleaved').notNull().default(false),
+    /**
+     * The expression an independent checker verified this answer with, kept as
+     * provenance. It is not re-evaluated at runtime — the import gate is where
+     * that happens — but an answer nobody can trace back to a check is exactly
+     * the kind of content this project stopped trusting.
+     */
+    verificationExpression: text('verification_expression'),
+
+    /**
      * 3PL item parameters. Null on authored items not yet calibrated.
      *
      * DECIMAL rather than a string, so the precision is a fact about the column
@@ -279,7 +306,11 @@ export const problems = mysqlTable(
     irtPseudoGuessing: decimal('irt_pseudo_guessing', { precision: 4, scale: 3 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  table => [index('problems_concept_idx').on(table.conceptId), index('problems_source_idx').on(table.source)],
+  table => [
+    index('problems_concept_idx').on(table.conceptId),
+    index('problems_source_idx').on(table.source),
+    uniqueIndex('problems_external_idx').on(table.externalId),
+  ],
 );
 
 /**
@@ -313,10 +344,43 @@ export const hints = mysqlTable(
     body: text('body').notNull(),
     misconceptionCode: varchar('misconception_code', { length: 60 }),
     scaffoldLevel: smallint('scaffold_level').notNull().default(1),
+    /**
+     * What the learner appears to be experiencing — `confusion`, `slip`,
+     * `partial-understanding` and so on. The imported library is retrieved on
+     * this together with the scaffold level, so importing without it would land
+     * 572 hints that nothing can select between.
+     */
+    cognitiveState: varchar('cognitive_state', { length: 40 }),
+    /** Presentational: `concrete-example`, `question-prompt`, and similar. */
+    hintStyle: varchar('hint_style', { length: 40 }),
+    difficultyLevel: smallint('difficulty_level'),
     /** Only `verified` hints are ever shown; the column is the gate. */
     verified: boolean('verified').notNull().default(false),
   },
-  table => [index('hints_concept_idx').on(table.conceptId, table.scaffoldLevel)],
+  table => [
+    index('hints_concept_idx').on(table.conceptId, table.scaffoldLevel),
+    index('hints_state_idx').on(table.conceptId, table.cognitiveState),
+  ],
+);
+
+/**
+ * Which errors a hint addresses.
+ *
+ * A hint commonly targets two, so this is a table rather than a column. It is
+ * what lets a wrong answer diagnosed as a particular misconception retrieve the
+ * hint written for exactly that misconception, instead of a generic one for the
+ * concept.
+ */
+export const hintErrorModes = mysqlTable(
+  'hint_error_modes',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    hintId: int('hint_id')
+      .notNull()
+      .references(() => hints.id, { onDelete: 'cascade' }),
+    errorMode: varchar('error_mode', { length: 60 }).notNull(),
+  },
+  table => [uniqueIndex('hint_error_mode_idx').on(table.hintId, table.errorMode)],
 );
 
 // ---------------------------------------------------------------------------

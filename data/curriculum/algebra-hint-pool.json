@@ -1,0 +1,2539 @@
+{
+  "schema_version": "1.0.0",
+  "strand": "algebra-1",
+  "hint_count": 144,
+  "hints": [
+    {
+      "id": "algebra-variables-expressions-hint-01",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-02",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what variables and expressions gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-03",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-04",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-05",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-06",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try variables and expressions on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-07",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-08",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-09",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for variables and expressions as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-10",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-11",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace variables and expressions back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-variables-expressions-hint-12",
+      "concept_id": "algebra-variables-expressions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "coefficient-as-addend",
+        "substituting-after-operating"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of variables and expressions line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-01",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-02",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what combining like terms gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-03",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-04",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-05",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-06",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try combining like terms on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-07",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-08",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-09",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for combining like terms as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-10",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-11",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace combining like terms back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-combining-like-terms-hint-12",
+      "concept_id": "algebra-combining-like-terms",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "absorbing-the-constant"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of combining like terms line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-01",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-02",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what distributive property gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-03",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-04",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-05",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-06",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try distributive property on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-07",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-08",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-09",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for distributive property as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-10",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-11",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace distributive property back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-distributive-property-hint-12",
+      "concept_id": "algebra-distributive-property",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "distributing-to-first-term-only",
+        "sign-lost-on-negative-factor"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of distributive property line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-01",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-02",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what one-step equations gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-03",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-04",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-05",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-06",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try one-step equations on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-07",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-08",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-09",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for one-step equations as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-10",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-11",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace one-step equations back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-one-step-equations-hint-12",
+      "concept_id": "algebra-one-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "inverse-operation-confusion",
+        "operating-on-one-side-only"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of one-step equations line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-01",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-02",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what two-step equations gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-03",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-04",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-05",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-06",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try two-step equations on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-07",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-08",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-09",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for two-step equations as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-10",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-11",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace two-step equations back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-two-step-equations-hint-12",
+      "concept_id": "algebra-two-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-combining-like-terms"
+      ],
+      "error_types": [
+        "undoing-in-the-wrong-order",
+        "dividing-only-one-term"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of two-step equations line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-01",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-02",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what multi-step equations gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-03",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-04",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-05",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-06",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try multi-step equations on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-07",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-08",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-09",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for multi-step equations as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-10",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-11",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace multi-step equations back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-multi-step-equations-hint-12",
+      "concept_id": "algebra-multi-step-equations",
+      "prerequisite_knowledge_points": [
+        "algebra-two-step-equations",
+        "algebra-distributive-property"
+      ],
+      "error_types": [
+        "forgetting-to-distribute",
+        "moving-a-term-without-changing-sign"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of multi-step equations line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-01",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-02",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what introduction to inequalities gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-03",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-04",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-05",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-06",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try introduction to inequalities on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-07",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-08",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-09",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for introduction to inequalities as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-10",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-11",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace introduction to inequalities back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-inequalities-intro-hint-12",
+      "concept_id": "algebra-inequalities-intro",
+      "prerequisite_knowledge_points": [
+        "algebra-one-step-equations",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "not-flipping-the-sign",
+        "reading-an-inequality-as-an-equation"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of introduction to inequalities line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-01",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-02",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what exponents and powers gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-03",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-04",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-05",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-06",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try exponents and powers on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-07",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-08",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-09",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for exponents and powers as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-10",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-11",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace exponents and powers back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-exponent-rules-hint-12",
+      "concept_id": "algebra-exponent-rules",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions"
+      ],
+      "error_types": [
+        "multiplying-the-exponents",
+        "treating-a-power-as-a-product"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of exponents and powers line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-01",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-02",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what polynomial addition and subtraction gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-03",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-04",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-05",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-06",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try polynomial addition and subtraction on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-07",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-08",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-09",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for polynomial addition and subtraction as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-10",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-11",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace polynomial addition and subtraction back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-polynomial-arithmetic-hint-12",
+      "concept_id": "algebra-polynomial-arithmetic",
+      "prerequisite_knowledge_points": [
+        "algebra-combining-like-terms",
+        "algebra-exponent-rules"
+      ],
+      "error_types": [
+        "subtracting-without-distributing",
+        "adding-unlike-degrees"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of polynomial addition and subtraction line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-01",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-02",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what slope-intercept form gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-03",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-04",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-05",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-06",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try slope-intercept form on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-07",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-08",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-09",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for slope-intercept form as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-10",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-11",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace slope-intercept form back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-slope-intercept-hint-12",
+      "concept_id": "algebra-slope-intercept",
+      "prerequisite_knowledge_points": [
+        "algebra-variables-expressions",
+        "algebra-two-step-equations"
+      ],
+      "error_types": [
+        "run-over-rise",
+        "intercept-sign-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of slope-intercept form line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-01",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-02",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what graphing linear equations gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-03",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-04",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-05",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-06",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try graphing linear equations on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-07",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-08",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-09",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for graphing linear equations as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-10",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-11",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace graphing linear equations back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-graphing-linear-hint-12",
+      "concept_id": "algebra-graphing-linear",
+      "prerequisite_knowledge_points": [
+        "algebra-slope-intercept",
+        "algebra-one-step-equations"
+      ],
+      "error_types": [
+        "reading-x-as-y",
+        "slope-direction-reversed"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of graphing linear equations line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-01",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Read the statement again and point at the single term that changed between one line and the next.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-02",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 1,
+      "content": "Write down what systems by substitution gives you and what it asks for, on separate lines, before doing any arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-03",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Replace x with a small number such as 2 and see what each side of the statement becomes.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-04",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check the sign of every term you moved. A term that crosses the equals sign changes sign; a term that does not, does not.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-05",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Deal with the terms that do not contain x first, then the coefficient multiplying x.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-06",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Try systems by substitution on two different values of x and compare. If both give the same answer, the step you took did not depend on x at all.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-07",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Test your rule on a case designed to break it, such as a negative coefficient or a zero constant, and see whether it still holds.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-08",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Think of the equation as a balance: whatever you do to one side must happen to the other, or the two sides stop describing the same number.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-09",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the rule for systems by substitution as a general statement in letters first, then substitute your numbers into it.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-10",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Suppose your answer were right. Substitute it back into the original statement and carry the arithmetic through. Where the two sides disagree is where the rule broke.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-11",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Trace systems by substitution back to arithmetic you already trust: the same rule holds when every letter is replaced by a number, and the letters only record that it holds for all of them at once.",
+      "verified": true
+    },
+    {
+      "id": "algebra-systems-substitution-hint-12",
+      "concept_id": "algebra-systems-substitution",
+      "prerequisite_knowledge_points": [
+        "algebra-multi-step-equations",
+        "algebra-slope-intercept",
+        "algebra-graphing-linear"
+      ],
+      "error_types": [
+        "substituting-back-into-the-same-equation",
+        "stopping-at-one-variable"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 4,
+      "content": "Work one full example of systems by substitution line by line, writing beside each line which rule let you move from the line above.",
+      "verified": true
+    }
+  ]
+}

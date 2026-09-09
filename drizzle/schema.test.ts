@@ -70,6 +70,7 @@ const NOT_LEARNER_SCOPED = [
   'problems',
   'problem_distractors',
   'hints',
+  'hint_error_modes',
   'assignments',
 ] as const;
 
@@ -159,8 +160,13 @@ describe('referential integrity is the database"s job', () => {
       for (const column of config.columns) {
         const isReference = /_id$/.test(column.name) && column.name !== 'id';
         // `institution_id` has no table yet; it is filled by the LMS work that
-        // Graft D defers, and is documented as unconstrained until then.
-        if (isReference && column.name !== 'institution_id' && !constrained.has(column.name)) {
+        // Graft D defers, and is unconstrained until then.
+        //
+        // `external_id` is not a reference at all — it is the id a problem had
+        // in the corpus it was imported from, which is what makes a re-import
+        // idempotent. There is nothing in this database for it to point at.
+        const exempt = column.name === 'institution_id' || column.name === 'external_id';
+        if (isReference && !exempt && !constrained.has(column.name)) {
           missing.push(`${name}.${column.name}`);
         }
       }
