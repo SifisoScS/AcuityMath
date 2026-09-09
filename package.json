@@ -16,7 +16,8 @@
     "audit:generator": "tsx scripts/audit-generator.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "test:integration": "vitest run integration.test"
+    "test:integration": "vitest run integration.test",
+    "db:seed": "tsx scripts/seed-curriculum.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

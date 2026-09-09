@@ -35,16 +35,17 @@ Donor repository, read-only reference:
 | **B1** | Schema, migration, identity model | **Done**, merged to `main` (PR #3) |
 | **B2** | Answer pipeline, mastery curve, test isolation | **Done**, open in **PR #4** — not yet in `main` |
 | **B3a** | tRPC routers, practice loop API, tier unification | **Done**, open in **PR #5** |
-| **B3b** | `App.tsx` state lift, content seeding | **Next** |
+| **B3b** | Curriculum import, seed, practice loop on real content | **Done**, open in **PR #8** |
+| **B3c** | `App.tsx` state lift | **Next** — the last piece of Graft B |
 | **C** | Auth, de-Manusing, child access | Not started |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
-> **Merge order matters.** PR #4 (answer pipeline), then PR #5 (practice loop
-> API) which is branched from it. `main` currently has the schema but no
-> `recordAttempt`.
+> **Branch from `main`, and target `main`.** A stacked pull request merges into
+> its base branch, not into `main` — PR #5 was based on `graft-b-schema` and its
+> merge left `main` without the tRPC layer for an hour. PR #7 repaired it.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
-Working branch: `graft-b3-practice-loop`
+Working branch: `graft-b3b-curriculum-import`
 
 ---
 
@@ -75,12 +76,13 @@ generator integrity gate is written in them.
 
 | Command | What it does |
 | --- | --- |
-| `pnpm test` | Everything. 154 tests; integration suites skip without `DATABASE_URL` |
+| `pnpm test` | Everything. 199 tests; integration suites skip without `DATABASE_URL` |
 | `pnpm test:integration` | Only the suites needing a database |
 | `pnpm audit:generator` | Both halves of the content gate, writes `data/generator-validation.json` |
 | `pnpm lint` | `tsc --noEmit` |
 | `pnpm db:generate` | New migration from a schema change |
 | `pnpm db:migrate` | Apply migrations |
+| `pnpm db:seed` | Import the 1,132-problem curriculum. Idempotent |
 | `pnpm build` | Client bundle plus server bundle |
 
 CI runs these in order: schema/migration → generator gate → typecheck → test →
@@ -152,6 +154,24 @@ identically, so ids cannot be enumerated.
 in. `DEV_AUTH_EMAIL` resolves a user in development and throws if it is ever set
 in a production build.
 
+### ~~2. Seed real content~~ - done, PR #8
+
+`data/curriculum/` holds the four strands, in this repository rather than read
+from a sibling checkout. `pnpm db:seed` writes 51 concepts, 67 prerequisites,
+1,132 problems, 792 distractors and 572 hints in about two seconds, and is
+idempotent.
+
+`serveNextProblem` now prefers authored content and falls back to the generator
+when a concept's written problems run out — or when a learner's age has none,
+which is age 7.
+
+**The corpus carries no age metadata at all**, so `server/curriculum/ageBands.ts`
+is hand-authored: one reviewable table, 51 rows, reconciled against the source's
+own prerequisite graph. Coverage by age is pinned in a test:
+
+    3:5  4:9  5:9  6:6  7:0  8:3  9:8  10:7
+    11:6  12:14  13:25  14:20  15:13  16:8  17:3  18:1
+
 ### 1. Lift `App.tsx`
 
 **The largest single task in the whole migration.** `src/App.tsx` is 1,424 lines
@@ -218,6 +238,17 @@ concept seeded by the pipeline suite turned up in the schema suite's age-band
 assertion, and the failure read as a schema defect. `server/test-support/database.ts`
 gives each suite its own database. Do not "fix" this by serialising the files —
 that leaves the hazard for whoever forgets the flag.
+
+**Sort ranges collide silently.** Generated concepts were numbered 10-120 and
+imported strands 0-3000, so a nine-year-old was offered a generated fraction
+before ever seeing `unit-fractions` — the corpus was seeded and invisible.
+Generated concepts start at 9000 now, past every strand.
+
+**A prerequisite graph outranks a syllabus.** Several concepts sit later than a
+textbook would put them, because this corpus chains them that way — triangle
+classification behind the angle sum, expressions behind proportionality. Banding
+by convention instead would send a child to a roadmap step their age says they
+cannot take.
 
 **Decimal values need decimal columns.** The IRT parameters began as
 `varchar(12)` holding decimal strings, and the generator produced an item

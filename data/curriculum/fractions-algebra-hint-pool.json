@@ -1,0 +1,3446 @@
+{
+  "schema_version": "1.0.0",
+  "hint_count": 200,
+  "hints": [
+    {
+      "id": "unit-fractions-hint-01",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine unit fractions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-02",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-03",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-04",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of unit fractions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-05",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-06",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-07",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-08",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-09",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "unit-fractions-hint-10",
+      "concept_id": "unit-fractions",
+      "prerequisite_knowledge_points": [],
+      "error_types": [
+        "denominator-as-value",
+        "counting-non-units"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-01",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine equivalent fractions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-02",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-03",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-04",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of equivalent fractions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-05",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-06",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-07",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-08",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-09",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "equivalent-fractions-hint-10",
+      "concept_id": "equivalent-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions"
+      ],
+      "error_types": [
+        "scaling-one-part",
+        "denominator-mismatch"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-01",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine compare fractions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-02",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-03",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-04",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of compare fractions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-05",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-06",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-07",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-08",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-09",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "compare-fractions-hint-10",
+      "concept_id": "compare-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "larger-denominator-means-larger",
+        "cross-multiplication-order"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-01",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine add fractions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-02",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-03",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-04",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of add fractions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-05",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-06",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-07",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-08",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-09",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "add-fractions-hint-10",
+      "concept_id": "add-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "adding-denominators",
+        "missing-common-denominator"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-01",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine subtract fractions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-02",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-03",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-04",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of subtract fractions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-05",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-06",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 2,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-07",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 2,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-08",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 2,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-09",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 2,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "subtract-fractions-hint-10",
+      "concept_id": "subtract-fractions",
+      "prerequisite_knowledge_points": [
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "subtracting-denominators",
+        "borrowing-without-equivalence"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 2,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-01",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine multiply fractions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-02",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-03",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-04",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of multiply fractions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-05",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-06",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-07",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-08",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-09",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "multiply-fractions-hint-10",
+      "concept_id": "multiply-fractions",
+      "prerequisite_knowledge_points": [
+        "unit-fractions",
+        "equivalent-fractions"
+      ],
+      "error_types": [
+        "multiplying-only-numerators",
+        "canceling-wrong-factor"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-01",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine divide fractions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-02",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-03",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-04",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of divide fractions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-05",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-06",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-07",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-08",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-09",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "divide-fractions-hint-10",
+      "concept_id": "divide-fractions",
+      "prerequisite_knowledge_points": [
+        "multiply-fractions"
+      ],
+      "error_types": [
+        "dividing-numerators-only",
+        "forgetting-reciprocal"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-01",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine ratios with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-02",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-03",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-04",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of ratios as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-05",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-06",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-07",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-08",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-09",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "ratios-hint-10",
+      "concept_id": "ratios",
+      "prerequisite_knowledge_points": [
+        "compare-fractions"
+      ],
+      "error_types": [
+        "ratio-order-reversal",
+        "parts-vs-total-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-01",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine rates and unit rates with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-02",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-03",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-04",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of rates and unit rates as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-05",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-06",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-07",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-08",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-09",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "rates-hint-10",
+      "concept_id": "rates",
+      "prerequisite_knowledge_points": [
+        "ratios"
+      ],
+      "error_types": [
+        "unit-confusion",
+        "inverting-rate"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-01",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine proportional relationships with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-02",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-03",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-04",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of proportional relationships as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-05",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-06",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-07",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-08",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-09",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "proportionality-hint-10",
+      "concept_id": "proportionality",
+      "prerequisite_knowledge_points": [
+        "ratios",
+        "rates"
+      ],
+      "error_types": [
+        "additive-not-multiplicative",
+        "wrong-scale-factor"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-01",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine percent as rate with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-02",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-03",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-04",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of percent as rate as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-05",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-06",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-07",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-08",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-09",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "percent-hint-10",
+      "concept_id": "percent",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "percent-as-whole-number",
+        "base-quantity-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-01",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine evaluate expressions with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-02",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-03",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-04",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of evaluate expressions as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-05",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-06",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-07",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-08",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-09",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "expressions-hint-10",
+      "concept_id": "expressions",
+      "prerequisite_knowledge_points": [
+        "proportionality"
+      ],
+      "error_types": [
+        "operation-order",
+        "variable-as-label"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-01",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine distributive property with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-02",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-03",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-04",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of distributive property as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-05",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-06",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-07",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-08",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-09",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "distributive-property-hint-10",
+      "concept_id": "distributive-property",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "distributing-to-one-term",
+        "sign-distribution"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-01",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine combine like terms with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-02",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-03",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-04",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of combine like terms as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-05",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-06",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-07",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-08",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-09",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "like-terms-hint-10",
+      "concept_id": "like-terms",
+      "prerequisite_knowledge_points": [
+        "expressions",
+        "distributive-property"
+      ],
+      "error_types": [
+        "combining-unlike-terms",
+        "coefficient-sum-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-01",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine one-step equations with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-02",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-03",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-04",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of one-step equations as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-05",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-06",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-07",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-08",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-09",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "one-step-equations-hint-10",
+      "concept_id": "one-step-equations",
+      "prerequisite_knowledge_points": [
+        "like-terms"
+      ],
+      "error_types": [
+        "inverse-operation-error",
+        "balance-violation"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-01",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine two-step equations with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-02",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-03",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-04",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of two-step equations as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-05",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-06",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-07",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-08",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-09",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "two-step-equations-hint-10",
+      "concept_id": "two-step-equations",
+      "prerequisite_knowledge_points": [
+        "one-step-equations",
+        "distributive-property"
+      ],
+      "error_types": [
+        "wrong-reversal-order",
+        "constant-sign-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-01",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine linear inequalities with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-02",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-03",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-04",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of linear inequalities as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-05",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-06",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-07",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-08",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-09",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "inequalities-hint-10",
+      "concept_id": "inequalities",
+      "prerequisite_knowledge_points": [
+        "two-step-equations"
+      ],
+      "error_types": [
+        "forgetting-sign-flip",
+        "endpoint-confusion"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-01",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine coordinate patterns with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-02",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-03",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-04",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of coordinate patterns as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-05",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-06",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 3,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-07",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 3,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-08",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 3,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-09",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 3,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "coordinate-patterns-hint-10",
+      "concept_id": "coordinate-patterns",
+      "prerequisite_knowledge_points": [
+        "expressions"
+      ],
+      "error_types": [
+        "axis-order-reversal",
+        "signed-coordinate-error"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 3,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-01",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine linear tables with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-02",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-03",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-04",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of linear tables as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-05",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-06",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-07",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-08",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-09",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "linear-tables-hint-10",
+      "concept_id": "linear-tables",
+      "prerequisite_knowledge_points": [
+        "coordinate-patterns",
+        "two-step-equations"
+      ],
+      "error_types": [
+        "constant-difference-miss",
+        "input-output-reversal"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-01",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Draw or imagine linear models with a small, concrete example before using symbols.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-02",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Test your idea against a simple counter-example: change one quantity and check whether the relationship still holds.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-03",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Write the known quantities first, then apply the operation that keeps the equation or relationship balanced.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-04",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 4,
+      "content": "Think of linear models as a relationship that stays consistent even when the representation changes.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-05",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Point to the first step where your written work changes the quantity or structure unexpectedly.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-06",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 5,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Use one whole, split into equal parts, and name the part that the numerator counts.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-07",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 5,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 3,
+      "content": "Circle the operation closest to the unknown. Undo that operation first and record the same change on both sides.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-08",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 5,
+      "hint_style": "counter-example",
+      "scaffold_level": 4,
+      "content": "Ask whether your rule works for a boundary case such as zero, one, or an equal pair of quantities.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-09",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 5,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 1,
+      "content": "Translate the symbols into a sentence, solve the sentence, and translate the result back.",
+      "verified": true
+    },
+    {
+      "id": "linear-models-hint-10",
+      "concept_id": "linear-models",
+      "prerequisite_knowledge_points": [
+        "linear-tables",
+        "rates"
+      ],
+      "error_types": [
+        "slope-intercept-confusion",
+        "intercept-as-slope"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 5,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Check units, signs, and the order of quantities before checking arithmetic.",
+      "verified": true
+    }
+  ]
+}

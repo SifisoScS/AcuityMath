@@ -1,25 +1,32 @@
 /**
  * Choosing and persisting the next question.
  *
- * The generator produces an unlimited supply, but an attempt has to reference a
- * stored problem: a parent reviewing a session needs to see the question their
- * child actually answered, and a teacher looking at a misconception needs the
- * item that produced it. So a generated problem is written to the database at
- * the moment it is served, and the attempt points at that row.
+ * Two sources of content, and the choice between them is the substance of this
+ * file.
  *
- * This also means the corpus grows as it is used, and the items accumulate real
- * response data — which is what a future calibration pass would need to replace
- * the generator's declared IRT parameters with observed ones.
+ * **Authored** problems come from the imported curriculum: 1,132 items whose
+ * answers were verified with SymPy and whose wrong options were written by
+ * someone who knew which misconception each represents. They are finite.
+ *
+ * **Generated** problems come from `ProblemGenerator`: unlimited, parameterised,
+ * and verified by the integrity gate rather than by an author. They cover the
+ * ages the corpus does not — most of all age 7, where the imported curriculum
+ * has nothing at all.
+ *
+ * Authored content is preferred while any of it is unseen, because a written
+ * question is better than a generated one. The generator takes over when the
+ * authored well runs dry, which is what stops a learner meeting the same 180
+ * foundations problems forever.
  */
 
-import { and, desc, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, notInArray, sql } from 'drizzle-orm';
 
 import { AdaptiveEngine } from '../../src/services/adaptiveEngine';
 import { ProblemGenerator, type GeneratedMathProblem } from '../../src/services/problemGenerator';
 import { approximateAge, tierForAge, type AgeTier } from '../../src/services/tiers';
 import * as schema from '../../drizzle/schema';
 import type { Database } from '../db/client';
-import { conceptRow, conceptsForTier, GENERATOR_CONCEPTS } from './generatorConcepts';
+import { conceptRow, GENERATOR_CONCEPTS } from './generatorConcepts';
 
 export interface ServedProblem {
   problemId: number;
@@ -29,53 +36,44 @@ export interface ServedProblem {
   choices: string[];
   hint: string;
   difficulty: number;
-  visualType: string | null;
+  answerType: 'numeric' | 'multiple_choice' | 'text';
   visual: Record<string, unknown> | null;
   manipulativeHint: string | null;
   standardCode: string | null;
+  /** Which well this came from, so the client can label practice honestly. */
+  source: 'authored' | 'generated';
 }
+
+const GENERATOR_KINDS = new Set(GENERATOR_CONCEPTS.map(concept => concept.id));
 
 /**
  * Ensures every generator concept exists.
  *
- * Idempotent, and cheap enough to call on the serve path. The alternative —
- * a seed step run once by hand — is a step that gets missed, and the failure it
+ * Idempotent, and cheap enough to call on the serve path. The alternative — a
+ * seed step run once by hand — is a step that gets missed, and the failure it
  * produces is a foreign key violation halfway through a child's first session.
  */
 export async function ensureGeneratorConcepts(db: Database): Promise<void> {
-  const ids = GENERATOR_CONCEPTS.map(concept => concept.id);
-  const present = await db
-    .select({ id: schema.concepts.id })
-    .from(schema.concepts)
-    .where(inArray(schema.concepts.id, ids));
-
-  const missing = GENERATOR_CONCEPTS.filter(
-    concept => !present.some(row => row.id === concept.id),
-  );
-  if (missing.length === 0) return;
-
-  await db.insert(schema.concepts).values(missing.map(conceptRow)).onDuplicateKeyUpdate({
-    // Nothing to change — the insert exists to fill gaps, and a concurrent
-    // request that won the race has already written the same row.
-    set: { id: sql`id` },
-  });
+  // Writes all of them rather than only the absent ones, so that a database
+  // seeded before the sort range moved is corrected rather than left with the
+  // old values. Cheap: twelve rows.
+  await db
+    .insert(schema.concepts)
+    .values(GENERATOR_CONCEPTS.map(conceptRow))
+    .onDuplicateKeyUpdate({
+      set: {
+        sortOrder: sql`values(sort_order)`,
+        tier: sql`values(tier)`,
+        ageBandLow: sql`values(age_band_low)`,
+        ageBandHigh: sql`values(age_band_high)`,
+      },
+    });
 }
 
 export interface NextProblemOptions {
-  /**
-   * Concept to practise. Omitted means "whatever the tier offers", chosen by
-   * weakest mastery so a session works on what is least secure.
-   */
   conceptId?: string;
 }
 
-/**
- * Generates, stores and returns the next question for a learner.
- *
- * Difficulty follows the learner's current ability estimate rather than their
- * age alone, which is the whole point of holding a theta. A learner with no
- * ability row yet is seeded from their tier.
- */
 export async function serveNextProblem(
   db: Database,
   learner: typeof schema.learners.$inferSelect,
@@ -94,41 +92,37 @@ export async function serveNextProblem(
 
   const theta = ability ? Number(ability.theta) : AdaptiveEngine.createInitialProfile(age).theta;
 
-  const conceptId = options.conceptId ?? (await weakestConceptForTier(db, learner.id, tier));
-  const concept = GENERATOR_CONCEPTS.find(c => c.id === conceptId);
-  if (!concept) throw new Error(`No generator concept ${conceptId}`);
+  const conceptId = options.conceptId ?? (await chooseConcept(db, learner.id, age));
+  const authored = await takeAuthoredProblem(db, learner.id, conceptId, theta);
+  if (authored) return { ...authored, tier };
 
-  const generated = generateForConcept(concept.id, tier, theta);
-  const problemId = await persist(db, generated, concept.id);
-
-  return {
-    problemId,
-    conceptId: concept.id,
-    tier,
-    prompt: generated.question,
-    choices: generated.options,
-    hint: generated.hint,
-    difficulty: generated.difficulty ?? 5,
-    visualType: (generated.visualType as string) ?? null,
-    visual: (generated.visualData as Record<string, unknown>) ?? null,
-    manipulativeHint: generated.manipulativeHint ?? null,
-    standardCode: generated.standardCode ?? null,
-  };
+  return { ...(await generateAndStore(db, conceptId, tier, theta)), tier };
 }
 
 /**
- * The concept in this tier the learner is weakest at.
+ * Which concept to practise.
  *
- * A concept never attempted outranks one attempted badly: an unseen idea is
- * where the most is learned, and a learner who only ever revisits their worst
- * score never meets anything new. Ties break on the declared order, so a fresh
- * learner starts at the beginning of the tier rather than somewhere arbitrary.
+ * Scoped to the learner's age band, so a three-year-old is never offered
+ * fractions and a fourteen-year-old is never sent back to shape sorting. A
+ * concept never attempted outranks one attempted badly: an unseen idea is where
+ * the most is learned, and a learner who only revisits their worst score never
+ * meets anything new.
  */
-async function weakestConceptForTier(db: Database, learnerId: number, tier: AgeTier): Promise<string> {
-  const candidates = conceptsForTier(tier);
-  if (candidates.length === 0) throw new Error(`No generator concepts for tier ${tier}`);
+async function chooseConcept(db: Database, learnerId: number, age: number): Promise<string> {
+  const available = await db
+    .select({ id: schema.concepts.id, sortOrder: schema.concepts.sortOrder })
+    .from(schema.concepts)
+    .where(and(sql`${schema.concepts.ageBandLow} <= ${age}`, sql`${schema.concepts.ageBandHigh} >= ${age}`))
+    .orderBy(schema.concepts.sortOrder);
 
-  const ids = candidates.map(c => c.id);
+  if (available.length === 0) {
+    throw new Error(
+      `No concept is banded for age ${age}. Every age from 3 to 18 should be reachable — ` +
+        'check the generator concepts were seeded and the age bands cover this year.',
+    );
+  }
+
+  const ids = available.map(row => row.id);
   const mastery = await db
     .select()
     .from(schema.learnerConceptMastery)
@@ -139,11 +133,109 @@ async function weakestConceptForTier(db: Database, learnerId: number, tier: AgeT
       ),
     );
 
-  const unseen = candidates.find(c => !mastery.some(m => m.conceptId === c.id));
+  const unseen = available.find(row => !mastery.some(m => m.conceptId === row.id));
   if (unseen) return unseen.id;
 
-  const weakest = [...mastery].sort((a, b) => a.masteryScore - b.masteryScore)[0];
-  return weakest.conceptId;
+  return [...mastery].sort((a, b) => a.masteryScore - b.masteryScore)[0].conceptId;
+}
+
+/**
+ * An authored problem the learner has not answered, closest to their ability.
+ *
+ * Returns null when the concept has no authored content left — either because
+ * it is a generator-only concept, or because the learner has worked through all
+ * of it. Both cases fall through to generation.
+ *
+ * Difficulty is matched to theta rather than taken in order: the corpus is
+ * authored in a sensible sequence, but a learner well above or below the middle
+ * of a concept should not start at its first item.
+ */
+async function takeAuthoredProblem(
+  db: Database,
+  learnerId: number,
+  conceptId: string,
+  theta: number,
+): Promise<Omit<ServedProblem, 'tier'> | null> {
+  const answered = await db
+    .select({ problemId: schema.attempts.problemId })
+    .from(schema.attempts)
+    .where(and(eq(schema.attempts.learnerId, learnerId), eq(schema.attempts.conceptId, conceptId)));
+
+  const seen = answered.map(row => row.problemId);
+
+  // The 1-10 difficulty scale mapped from theta, the same mapping the generator
+  // uses, so a learner meets comparable difficulty from either source.
+  const targetDifficulty = Math.min(10, Math.max(1, Math.round(5.5 + theta * 1.5)));
+
+  const conditions = [
+    eq(schema.problems.conceptId, conceptId),
+    eq(schema.problems.source, 'authored'),
+  ];
+  if (seen.length > 0) conditions.push(notInArray(schema.problems.id, seen));
+
+  const [candidate] = await db
+    .select()
+    .from(schema.problems)
+    .where(and(...conditions))
+    .orderBy(sql`abs(${schema.problems.difficulty} - ${targetDifficulty})`, schema.problems.id)
+    .limit(1);
+
+  if (!candidate) return null;
+
+  return {
+    problemId: candidate.id,
+    conceptId: candidate.conceptId,
+    prompt: candidate.prompt,
+    // A numeric problem has no choices; the client renders an input instead.
+    choices: (candidate.choices as string[] | null) ?? [],
+    hint: candidate.hint,
+    difficulty: candidate.difficulty,
+    answerType: candidate.answerType,
+    visual: (candidate.visual as Record<string, unknown> | null) ?? null,
+    manipulativeHint: null,
+    standardCode: null,
+    source: 'authored',
+  };
+}
+
+/**
+ * Generates a problem for a concept and stores it.
+ *
+ * Storing it is what lets an attempt reference a question that can be shown
+ * again in a review, and lets generated items accumulate the response data a
+ * future calibration pass would need.
+ */
+async function generateAndStore(
+  db: Database,
+  conceptId: string,
+  tier: AgeTier,
+  theta: number,
+): Promise<Omit<ServedProblem, 'tier'>> {
+  if (!GENERATOR_KINDS.has(conceptId)) {
+    // An authored concept whose problems are exhausted. Rather than fail the
+    // session, fall back to the tier's generated content — the learner keeps
+    // practising at the right level even though the concept has run out.
+    const fallback = GENERATOR_CONCEPTS.find(concept => concept.tier === tier);
+    if (!fallback) throw new Error(`No generator content for tier ${tier}`);
+    conceptId = fallback.id;
+  }
+
+  const generated = generateForConcept(conceptId, tier, theta);
+  const problemId = await persist(db, generated, conceptId);
+
+  return {
+    problemId,
+    conceptId,
+    prompt: generated.question,
+    choices: generated.options,
+    hint: generated.hint,
+    difficulty: generated.difficulty ?? 5,
+    answerType: 'multiple_choice',
+    visual: (generated.visualData as Record<string, unknown>) ?? null,
+    manipulativeHint: generated.manipulativeHint ?? null,
+    standardCode: generated.standardCode ?? null,
+    source: 'generated',
+  };
 }
 
 /**
@@ -205,21 +297,3 @@ async function persist(db: Database, generated: GeneratedMathProblem, conceptId:
     return inserted.id;
   });
 }
-
-/**
- * Problems this learner has already answered in this session.
- *
- * Used to avoid serving the same generated item twice in one sitting — the
- * generator can repeat itself, and a child who sees the identical question back
- * to back reasonably concludes the app is broken.
- */
-export async function problemsSeenInSession(db: Database, sessionId: number): Promise<number[]> {
-  const rows = await db
-    .select({ problemId: schema.attempts.problemId })
-    .from(schema.attempts)
-    .where(eq(schema.attempts.sessionId, sessionId))
-    .orderBy(desc(schema.attempts.id));
-  return rows.map(row => row.problemId);
-}
-
-export { notInArray };
