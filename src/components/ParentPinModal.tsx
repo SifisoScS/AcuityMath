@@ -34,6 +34,17 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
         ? 'Educator PIN Required'
         : 'District Administrator PIN Required';
 
+  /**
+   * The demonstration credential shown under the keypad.
+   *
+   * It was a two-branch ternary and gained a third role, so the district prompt
+   * offered the teacher's PIN — following the on-screen hint would have been
+   * refused by the server, which checks the role alongside the digits. A lookup
+   * fails to compile when a role is added without one, where a ternary silently
+   * picks a wrong branch.
+   */
+  const demoKey = { parent: '1234', teacher: '4321', admin: '9876' }[targetRole];
+
   const description =
     targetRole === 'admin'
       ? 'Enter your 4-digit PIN to access multi-campus analytics, standards audits, and learner data export.'
@@ -188,7 +199,7 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
           <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-600">
             <KeyRound className="w-3 h-3 text-indigo-500" />
             <span>
-              Demo Key: <strong className="text-indigo-600">{targetRole === 'parent' ? '1234' : '4321'}</strong>
+              Demo Key: <strong className="text-indigo-600">{demoKey}</strong>
             </span>
           </div>
           <span className="text-[10px] text-slate-400 block mt-0.5">
