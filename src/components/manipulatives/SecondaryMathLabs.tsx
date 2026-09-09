@@ -534,7 +534,7 @@ export const CalculusDerivativeLab: React.FC = () => {
   const toSvgY = (y: number) => center - y * scale;
 
   // Generate curve path
-  const points = [];
+  const points: string[] = [];
   for (let x = -5; x <= 5; x += 0.2) {
     points.push(`${toSvgX(x)},${toSvgY(f(x))}`);
   }

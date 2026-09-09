@@ -16,10 +16,10 @@
 
 import { initTRPC, TRPCError } from '@trpc/server';
 import { and, eq, isNull } from 'drizzle-orm';
-import superjson from 'superjson';
 import { z } from 'zod';
 
 import * as schema from '../../drizzle/schema';
+import { transformer } from '../../src/lib/transformer';
 import { resolveUser, type AuthenticatedUser, type RequestHeaders } from '../auth/session';
 import { getDatabase, type Database } from '../db/client';
 
@@ -41,7 +41,7 @@ export async function createContext(headers: RequestHeaders = {}): Promise<Conte
  * transformer costs a few bytes and removes a class of bug that only shows up
  * near midnight.
  */
-const t = initTRPC.context<Context>().create({ transformer: superjson });
+const t = initTRPC.context<Context>().create({ transformer });
 
 export const router = t.router;
 export const publicProcedure = t.procedure;

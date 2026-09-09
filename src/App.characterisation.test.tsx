@@ -16,7 +16,7 @@
  * change in the same commit, with the reason.
  */
 
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -54,8 +54,14 @@ describe('navigation', () => {
 
     await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
 
-    // The landing headline is replaced by the dashboard.
-    expect(screen.queryByRole('heading', { name: /welcome to acuitymath/i })).not.toBeInTheDocument();
+    // Waited for rather than asserted immediately. The app is still resolving
+    // its bootstrap request when the click lands, and the re-render that
+    // follows can arrive after a synchronous assertion — which made this test
+    // pass or fail depending on machine speed. A flaky test in a safety net is
+    // worse than no test, because people learn to re-run it.
+    await waitFor(() =>
+      expect(screen.queryByRole('heading', { name: /welcome to acuitymath/i })).not.toBeInTheDocument(),
+    );
   });
 
   it('does not tell assistive technology which tab is current', async () => {

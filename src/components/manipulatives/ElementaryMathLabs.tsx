@@ -35,7 +35,7 @@ export const FractionVisualizerLab: React.FC = () => {
 
   // Render SVG Circle Slices
   const renderCircleSlices = (num: number, den: number, color: string, radius = 70) => {
-    const slices = [];
+    const slices: React.ReactElement[] = [];
     const center = 85;
     const anglePerSlice = 360 / den;
 
