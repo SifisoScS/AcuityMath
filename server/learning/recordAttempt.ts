@@ -17,6 +17,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 
 import { AdaptiveEngine, type MisconceptionCode, type StudentAbilityProfile } from '../../src/services/adaptiveEngine';
+import { approximateAge } from '../../src/services/tiers';
 import * as schema from '../../drizzle/schema';
 import type { Database } from '../db/client';
 import { accuracyPercent, nextMastery } from './mastery';
@@ -206,7 +207,7 @@ async function updateAbility(
         misconceptionsMap: {} as StudentAbilityProfile['misconceptionsMap'],
         confidenceInterval: [Number(row.theta) - 1.96 * Number(row.standardError), Number(row.theta) + 1.96 * Number(row.standardError)],
       }
-    : blankProfile();
+    : await blankProfile(tx, learnerId);
 
   const updated = AdaptiveEngine.updateAbility(current, {
     itemParams: {
@@ -245,11 +246,31 @@ async function updateAbility(
   return updated;
 }
 
-function blankProfile(): StudentAbilityProfile {
-  // Age-based seeding belongs at learner creation, where the birth year is
-  // known. Reaching for it here would need a join on every answer to set a
-  // value that only matters once.
-  return AdaptiveEngine.createInitialProfile(10);
+/**
+ * The ability a learner starts from, before any evidence.
+ *
+ * Seeded from the learner's own age. This used to return
+ * `createInitialProfile(10)` with a comment claiming the seeding belonged at
+ * learner creation — but nothing seeded it there, so *every* learner began at a
+ * ten-year-old's ability regardless of age. A five-year-old's first answer moved
+ * her from -1.2 to -0.8 and her level from 2.0 to 4.3, and her next questions
+ * were pitched for a ten-year-old.
+ *
+ * It is one query, on the first attempt of a learner's life, on the branch where
+ * no ability row exists yet. That is a fair price for not mis-pitching a child's
+ * first session.
+ */
+async function blankProfile(tx: Tx, learnerId: number): Promise<StudentAbilityProfile> {
+  const [learner] = await tx
+    .select({ birthYear: schema.learners.birthYear })
+    .from(schema.learners)
+    .where(eq(schema.learners.id, learnerId))
+    .limit(1);
+
+  // A learner who cannot be read here cannot have an attempt recorded either —
+  // the foreign key sees to that — so this is defensive rather than reachable.
+  const age = learner ? approximateAge(learner.birthYear) : 10;
+  return AdaptiveEngine.createInitialProfile(age);
 }
 
 /**

@@ -172,6 +172,19 @@ describeWithDb('recordAttempt', () => {
     expect(history[1].masteryScore).toBeGreaterThan(history[0].masteryScore);
   });
 
+  it('starts a learner at their own age, not a default one', async () => {
+    // This returned `createInitialProfile(10)` for everybody, so a
+    // four-year-old's first answer put her on a ten-year-old's curve — her
+    // level jumped from 2.0 to 4.3 on a question she got wrong.
+    const [maya] = learnerIds; // born 2022
+    const [alexander] = learnerIds.slice(3); // born 2010
+
+    const young = await recordAttempt(db, { learnerId: maya, problemId, submittedAnswer: '3' });
+    const older = await recordAttempt(db, { learnerId: alexander, problemId, submittedAnswer: '3' });
+
+    expect(young.ability.theta).toBeLessThan(older.ability.theta);
+  });
+
   it('advances the ability estimate and its history', async () => {
     const first = await recordAttempt(db, { learnerId: learnerIds[0], problemId, submittedAnswer: '3' });
     const second = await recordAttempt(db, { learnerId: learnerIds[0], problemId, submittedAnswer: '3' });
