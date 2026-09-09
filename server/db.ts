@@ -109,6 +109,20 @@ const INITIAL_STATE: DatabaseState = {
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString()
     },
     {
+      id: 'admin_district_1',
+      name: 'Dr. Adaeze Okonkwo (District)',
+      email: 'd.okonkwo@oakridge.district',
+      role: 'admin',
+      pinHash: '9876',
+      coppaConsent: {
+        granted: true,
+        consentedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString(),
+        method: 'signed_form',
+        parentSignature: 'District Data Processing Agreement - Oakridge'
+      },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString()
+    },
+    {
       id: 'teacher_marcus_1',
       name: 'Marcus Sterling',
       email: 'm.sterling@elementary.edu',
@@ -296,13 +310,32 @@ class Database {
     try {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        return JSON.parse(raw);
+        return this.topUpSeedAccounts(JSON.parse(raw));
       }
     } catch (err) {
       console.error('[DB] Failed to load data_store.json, using initial state:', err);
     }
     this.persist(INITIAL_STATE);
     return INITIAL_STATE;
+  }
+
+  /**
+   * Adds seed accounts a stored file predates.
+   *
+   * `INITIAL_STATE` is only consulted when no store exists, so a developer who
+   * ran the app before the administrator account was added would have a
+   * district surface that is gated and has no credential to open it — locked
+   * out rather than protected, which is a worse bug than the one being fixed.
+   */
+  private topUpSeedAccounts(state: DatabaseState): DatabaseState {
+    const missing = INITIAL_STATE.users.filter(
+      seed => !state.users.some(existing => existing.id === seed.id),
+    );
+    if (missing.length === 0) return state;
+
+    const topped = { ...state, users: [...state.users, ...missing] };
+    this.persist(topped);
+    return topped;
   }
 
   private persist(data: DatabaseState): void {
@@ -395,7 +428,7 @@ class Database {
     return { attempt: newAttempt, student: student! };
   }
 
-  public verifyPin(role: 'parent' | 'teacher', pin: string): { valid: boolean; user?: UserAccount } {
+  public verifyPin(role: 'parent' | 'teacher' | 'admin', pin: string): { valid: boolean; user?: UserAccount } {
     const user = this.state.users.find(u => u.role === role && u.pinHash === pin);
     if (user) {
       this.logAudit('AUTH_PIN_SUCCESS', role, { userId: user.id });

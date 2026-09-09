@@ -104,7 +104,11 @@ export const CoppaConsentModal: React.FC<CoppaConsentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+    <div
+      role="dialog"
+      aria-label="Parental consent"
+      tabIndex={-1}
+      className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
       <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">

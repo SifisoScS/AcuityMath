@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+
+import { useModalA11y } from '../hooks/useModalA11y';
 import { ShieldCheck, X, Lock, KeyRound, AlertCircle } from 'lucide-react';
 import { apiService } from '../services/api';
 import { playClickSound, playErrorSound, playSuccessSound } from '../utils/audio';
 
 interface ParentPinModalProps {
   isOpen: boolean;
-  targetRole: 'parent' | 'teacher';
+  targetRole: 'parent' | 'teacher' | 'admin';
   onSuccess: () => void;
   onClose: () => void;
 }
@@ -20,7 +22,33 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Called before the early return, because hooks cannot be conditional.
+  const panelRef = useModalA11y(isOpen, onClose);
+
   if (!isOpen) return null;
+
+  const heading =
+    targetRole === 'parent'
+      ? 'Parent Authorization Required'
+      : targetRole === 'teacher'
+        ? 'Educator PIN Required'
+        : 'District Administrator PIN Required';
+
+  /**
+   * The demonstration credential shown under the keypad.
+   *
+   * It was a two-branch ternary and gained a third role, so the district prompt
+   * offered the teacher's PIN — following the on-screen hint would have been
+   * refused by the server, which checks the role alongside the digits. A lookup
+   * fails to compile when a role is added without one, where a ternary silently
+   * picks a wrong branch.
+   */
+  const demoKey = { parent: '1234', teacher: '4321', admin: '9876' }[targetRole];
+
+  const description =
+    targetRole === 'admin'
+      ? 'Enter your 4-digit PIN to access multi-campus analytics, standards audits, and learner data export.'
+      : 'Enter your 4-digit PIN to access child analytics, screen time controls, and compliance settings.';
 
   const handleDigit = (digit: string) => {
     playClickSound();
@@ -69,7 +97,15 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 relative overflow-hidden">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pin-modal-heading"
+        aria-describedby="pin-modal-description"
+        tabIndex={-1}
+        className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 relative overflow-hidden outline-hidden"
+      >
         {/* Top Accent Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2 text-indigo-700 font-extrabold text-sm uppercase tracking-wider">
@@ -81,6 +117,7 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
               playClickSound();
               onClose();
             }}
+            aria-label="Close"
             className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -92,11 +129,11 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-3 shadow-xs">
             <Lock className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-black text-slate-900 tracking-tight">
-            {targetRole === 'parent' ? 'Parent Authorization Required' : 'Educator PIN Required'}
+          <h3 id="pin-modal-heading" className="text-lg font-black text-slate-900 tracking-tight">
+            {heading}
           </h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-            Enter your 4-digit PIN to access child analytics, screen time controls, and compliance settings.
+          <p id="pin-modal-description" className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+            {description}
           </p>
         </div>
 
@@ -162,7 +199,7 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
           <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-600">
             <KeyRound className="w-3 h-3 text-indigo-500" />
             <span>
-              Demo Key: <strong className="text-indigo-600">{targetRole === 'parent' ? '1234' : '4321'}</strong>
+              Demo Key: <strong className="text-indigo-600">{demoKey}</strong>
             </span>
           </div>
           <span className="text-[10px] text-slate-400 block mt-0.5">

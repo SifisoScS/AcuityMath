@@ -163,7 +163,11 @@ export const InteractiveLessonModal: React.FC<LessonModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto">
+    <div
+      role="dialog"
+      aria-label="Interactive lesson"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto">
       <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden my-auto max-h-[95vh]">
         {/* Scratchpad overlay if open */}
         {showScratchpad && <Scratchpad onClose={() => setShowScratchpad(false)} />}

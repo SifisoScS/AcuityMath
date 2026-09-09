@@ -7,7 +7,13 @@ import '@testing-library/jest-dom/vitest';
  * before the assertion is reached, and the failure names the missing API rather
  * than the behaviour under test.
  */
-if (!window.matchMedia) {
+// Guarded because not every suite runs in a DOM. `suiteInventory` reads
+// vitest's own configuration, which drags in esbuild, and esbuild refuses to
+// run under jsdom — so that file declares the node environment and arrives here
+// with no `window` at all.
+const hasDom = typeof window !== 'undefined';
+
+if (hasDom && !window.matchMedia) {
   window.matchMedia = (query: string) =>
     ({
       matches: false,
@@ -21,7 +27,7 @@ if (!window.matchMedia) {
     }) as MediaQueryList;
 }
 
-if (!window.speechSynthesis) {
+if (hasDom && !window.speechSynthesis) {
   Object.defineProperty(window, 'speechSynthesis', {
     writable: true,
     value: {
