@@ -3,6 +3,8 @@
  * Implements 3-Parameter Logistic (3PL) Computer Adaptive Testing (CAT) & Cognitive Diagnostics
  */
 
+import { baseThetaForAge } from './tiers';
+
 export interface ItemParameters {
   discrimination: number; // a parameter (typical range: 0.6 - 2.2)
   difficulty: number;     // b parameter (latent scale: -3.0 to +3.0)
@@ -114,14 +116,16 @@ export class AdaptiveEngine {
   }
 
   /**
-   * Initializes a fresh ability profile based on age/tier
+   * Initializes a fresh ability profile based on age/tier.
+   *
+   * The bands come from `services/tiers` rather than being repeated here. They
+   * used to be repeated, and the two copies disagreed at 6 and at 14 — a
+   * six-year-old was placed in Early Sprouts and given the starting ability of a
+   * seven-to-ten year old, so their first questions were pitched a tier above
+   * them.
    */
   public static createInitialProfile(age: number): StudentAbilityProfile {
-    let baseTheta = 0.0;
-    if (age <= 5) baseTheta = -1.2;
-    else if (age <= 10) baseTheta = -0.3;
-    else if (age <= 13) baseTheta = 0.4;
-    else baseTheta = 1.0;
+    const baseTheta = baseThetaForAge(age);
 
     return {
       theta: baseTheta,

@@ -68,11 +68,22 @@ export async function createTestDatabase(suite: string): Promise<TestDatabase> {
     const [rows] = await connection.query<mysql.RowDataPacket[]>(
       "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name <> '__drizzle_migrations'",
     );
+
     // Foreign key checks are suspended so the tables can be emptied in any
     // order; maintaining a topological list would rot as tables are added.
+    //
+    // DELETE rather than TRUNCATE. MySQL refuses to truncate a table that
+    // another table's foreign key references — `learners` is referenced by
+    // fourteen — and it refuses even with checks disabled, because TRUNCATE is
+    // DDL and carries an implicit commit that discards the session state the
+    // suspension lives in. DELETE is DML, honours the suspension, and leaves
+    // AUTO_INCREMENT alone, which nothing here depends on.
     await connection.query('SET FOREIGN_KEY_CHECKS = 0');
-    for (const { name } of rows) await connection.query(`TRUNCATE TABLE \`${name}\``);
-    await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+    try {
+      for (const { name } of rows) await connection.query(`DELETE FROM \`${name}\``);
+    } finally {
+      await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+    }
   }
 
   async function reconnect() {

@@ -1,6 +1,6 @@
 # Migration status
 
-**Last updated: 8 September 2026.** The resumption point for grafting the
+**Last updated: 9 September 2026.** The resumption point for grafting the
 Sovereign Mathematical Learning Engine's spine under AcuityMath.
 
 Read this first if you are picking the work up cold. It records what is done,
@@ -34,16 +34,17 @@ Donor repository, read-only reference:
 | **A** | Generator verification, CI, test infrastructure | **Done**, merged to `main` (PR #1) |
 | **B1** | Schema, migration, identity model | **Done**, merged to `main` (PR #3) |
 | **B2** | Answer pipeline, mastery curve, test isolation | **Done**, open in **PR #4** — not yet in `main` |
-| **B3** | tRPC routers, `App.tsx` state lift, content seeding | **Next** |
+| **B3a** | tRPC routers, practice loop API, tier unification | **Done**, open in **PR #5** |
+| **B3b** | `App.tsx` state lift, content seeding | **Next** |
 | **C** | Auth, de-Manusing, child access | Not started |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
-> **First thing tomorrow:** PR #4 carries the answer pipeline and this document.
-> It missed the PR #3 merge window by a few minutes. Merge it before branching
-> anything new, or B3 will be built on a `main` that has no `recordAttempt`.
+> **Merge order matters.** PR #4 (answer pipeline), then PR #5 (practice loop
+> API) which is branched from it. `main` currently has the schema but no
+> `recordAttempt`.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
-Working branch: `graft-b-schema`
+Working branch: `graft-b3-practice-loop`
 
 ---
 
@@ -74,7 +75,7 @@ generator integrity gate is written in them.
 
 | Command | What it does |
 | --- | --- |
-| `pnpm test` | Everything. 119 tests; integration suites skip without `DATABASE_URL` |
+| `pnpm test` | Everything. 154 tests; integration suites skip without `DATABASE_URL` |
 | `pnpm test:integration` | Only the suites needing a database |
 | `pnpm audit:generator` | Both halves of the content gate, writes `data/generator-validation.json` |
 | `pnpm lint` | `tsc --noEmit` |
@@ -134,18 +135,24 @@ answers diagnosed only where the generator predicted them.
 
 Three pieces, in dependency order.
 
-### 1. tRPC routers over the existing helpers
+### ~~1. tRPC routers over the existing helpers~~ - done, PR #5
 
-The helpers exist and are tested; nothing exposes them yet. Add tRPC 11 with
-Zod input validation, and procedures scoped so a guardian can only reach their
-own learners — the scoping is the security boundary and should be tested as one,
-not assumed.
+`server/trpc/` holds the context, the procedures and the routers, mounted at
+`/trpc`. The legacy `/api` REST surface over the JSON file is still mounted
+beside it, and comes out when the client moves - not before, so the app is never
+half-migrated at runtime.
 
-Minimum surface for the practice loop: list learners for the signed-in guardian,
-start a session, fetch the next problem, submit an attempt, read a learner
-snapshot.
+The ownership check is **structural**. `learnerProcedure` requires a `learnerId`,
+resolves the learner and proves entitlement before the handler runs, so a
+procedure built on it cannot skip the check and one that forgets to declare
+`learnerId` does not compile. A missing learner and an unreachable one answer
+identically, so ids cannot be enumerated.
 
-### 2. Lift `App.tsx`
+`server/auth/session.ts` is a **seam, not an implementation** - Graft C fills it
+in. `DEV_AUTH_EMAIL` resolves a user in development and throws if it is ever set
+in a production build.
+
+### 1. Lift `App.tsx`
 
 **The largest single task in the whole migration.** `src/App.tsx` is 1,424 lines
 holding **35 `useState` hooks**; only two files in the repo touch `localStorage`
@@ -156,7 +163,7 @@ Do it in slices behind `src/App.smoke.test.tsx`, which exists precisely as the
 tripwire for this: it pins that the app renders with no reachable API, that the
 four tiers are in the nav, and that the three role-gated surfaces are reachable.
 
-### 3. Seed real content
+### 2. Seed real content
 
 Import the engine's **1,132 SymPy-verified problems** into `problems` and
 `problem_distractors`. They live in
@@ -181,6 +188,8 @@ Do not relitigate these without a reason that is new.
 | **pnpm, not bun** | One lockfile, and it is the one with the patch in it |
 | **Mastery and theta are separate models** | Per-concept knowledge and cross-concept difficulty answer different questions |
 | **Learner PIN/QR/picture are not credentials** | They resolve a child inside an authenticated guardian session; they cannot start one. This is the COPPA story |
+| **One definition of the tier bands** | There were two and they disagreed at 6 and 14, so a six-year-old was placed in Early Sprouts and seeded with a seven-to-ten year old's ability. `services/tiers.ts` owns them now |
+| **Authentication is a seam until Graft C** | The authorization logic can be built and tested now; only *who is signed in* is deferred, and the dev bypass throws in production rather than degrading |
 | **LTI 1.3 deferred** | Greenfield in both repos, and no district pilots before auth is real |
 
 ---
@@ -209,6 +218,20 @@ concept seeded by the pipeline suite turned up in the schema suite's age-band
 assertion, and the failure read as a schema defect. `server/test-support/database.ts`
 gives each suite its own database. Do not "fix" this by serialising the files —
 that leaves the hazard for whoever forgets the flag.
+
+**Decimal values need decimal columns.** The IRT parameters began as
+`varchar(12)` holding decimal strings, and the generator produced an item
+difficulty of `-0.29000000000000004` — twenty characters of floating-point noise
+from `-0.2 + theta * 0.3` — which the insert rejected. They are `DECIMAL` now, so
+the precision is a fact about the column rather than a convention every writer
+has to remember. Storing seventeen significant digits of a psychometric estimate
+was recording noise as measurement either way.
+
+**TRUNCATE cannot empty a table a foreign key references.** Not even with
+`FOREIGN_KEY_CHECKS = 0`: TRUNCATE is DDL and its implicit commit discards the
+session state the suspension lives in. `DELETE` is DML, honours the suspension,
+and is what the test harness uses. `learners` is referenced by fourteen tables,
+so this is not an edge case.
 
 **A skipping suite is worse than a missing one.** The integration suites *throw*
 rather than skip when `DATABASE_URL` is absent and `CI` is set. A suite that
