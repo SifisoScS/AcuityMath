@@ -57,7 +57,11 @@ export const BilingualGlossaryModal: React.FC<BilingualGlossaryModalProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+    <div
+      role="dialog"
+      aria-label="Bilingual mathematics glossary"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
       <div className="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-start justify-between pb-4 border-b border-slate-100 shrink-0">

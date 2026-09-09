@@ -151,7 +151,7 @@ export default function App() {
   // Phase 1: Security, Persistent Cloud Data & COPPA
   const [authenticatedRoles, setAuthenticatedRoles] = useState<Record<string, boolean>>({});
   const [isParentPinOpen, setIsParentPinOpen] = useState(false);
-  const [targetProtectedRole, setTargetProtectedRole] = useState<'parent' | 'teacher'>('parent');
+  const [targetProtectedRole, setTargetProtectedRole] = useState<'parent' | 'teacher' | 'admin'>('parent');
   const [targetProtectedTab, setTargetProtectedTab] = useState<NavigationTab | null>(null);
   const [targetProtectedProfile, setTargetProtectedProfile] = useState<UserProfile | null>(null);
 
@@ -482,11 +482,27 @@ export default function App() {
     }
   };
 
-  // Tab navigation helper with Server PIN Guard for Parent/Teacher sections
+  /**
+   * Which adult role a tab requires, or null if anyone may open it.
+   *
+   * `district` was missing from this guard, so the command centre — every
+   * campus's mean ability, intervention flags, and a one-click CSV of the lot —
+   * opened to whoever clicked it. It is demonstration data today, which is
+   * exactly why the gap would have survived into a pilot.
+   */
+  const roleRequiredFor = (tab: NavigationTab): 'parent' | 'teacher' | 'admin' | null => {
+    if (tab === 'parent') return 'parent';
+    if (tab === 'teacher') return 'teacher';
+    if (tab === 'district') return 'admin';
+    return null;
+  };
+
+  // Tab navigation helper with Server PIN Guard for adult sections
   const handleNavigate = (tab: NavigationTab) => {
     playClickSound();
-    if ((tab === 'parent' || tab === 'teacher') && !authenticatedRoles[tab]) {
-      setTargetProtectedRole(tab as 'parent' | 'teacher');
+    const required = roleRequiredFor(tab);
+    if (required && !authenticatedRoles[required]) {
+      setTargetProtectedRole(required);
       setTargetProtectedTab(tab);
       setTargetProtectedProfile(null);
       setIsParentPinOpen(true);
@@ -628,6 +644,7 @@ export default function App() {
           <div className="flex items-center justify-between pb-5 border-b border-slate-200 mb-5">
             <div
               onClick={() => handleNavigate('home')}
+              aria-current={activeTab === 'home' ? 'page' : undefined}
               className="flex items-center gap-3 cursor-pointer"
             >
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 text-white flex items-center justify-center font-black text-xl shadow-md shadow-indigo-100">
@@ -666,6 +683,7 @@ export default function App() {
           <nav className="space-y-1">
             <button
               onClick={() => handleNavigate('home')}
+              aria-current={activeTab === 'home' ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'home'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -695,6 +713,7 @@ export default function App() {
                     <button
                       key={cat.tier}
                       onClick={() => handleOpenCategory(cat.tier)}
+                      aria-current={isCatActive ? 'page' : undefined}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                         isCatActive
                           ? 'bg-indigo-50 text-indigo-700 font-extrabold border border-indigo-200/80 shadow-2xs'
@@ -722,6 +741,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('student')}
+              aria-current={activeTab === 'student' ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'student'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -734,6 +754,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('curriculum')}
+              aria-current={activeTab === 'curriculum' ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'curriculum'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -746,6 +767,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('labs')}
+              aria-current={activeTab === 'labs' ? 'page' : undefined}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'labs'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -769,6 +791,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('parent')}
+              aria-current={activeTab === 'parent' ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'parent'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -781,6 +804,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('teacher')}
+              aria-current={activeTab === 'teacher' ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'teacher'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -793,6 +817,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('district')}
+              aria-current={activeTab === 'district' ? 'page' : undefined}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'district'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -816,6 +841,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('rewards')}
+              aria-current={activeTab === 'rewards' ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'rewards'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -828,6 +854,7 @@ export default function App() {
 
             <button
               onClick={() => handleNavigate('scratchpad')}
+              aria-current={activeTab === 'scratchpad' ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
                 activeTab === 'scratchpad'
                   ? 'bg-indigo-600 text-white shadow-sm'

@@ -64,22 +64,33 @@ describe('navigation', () => {
     );
   });
 
-  it('does not tell assistive technology which tab is current', async () => {
-    // A finding, recorded rather than fixed here: the navigation sets no
-    // `aria-current`, so a screen-reader user is never told where they are.
-    // Fixing it is accessibility work rather than state migration, and doing it
-    // inside this refactor would blur what the refactor changed. The assertion
-    // is inverted deliberately — when it is fixed, this test fails and is
-    // rewritten as the positive one it wants to be.
+  it('tells assistive technology which tab is current', async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
 
-    const marked = within(nav())
-      .getAllByRole('button')
-      .filter(button => button.getAttribute('aria-current'));
-    expect(marked).toHaveLength(0);
+    await waitFor(() =>
+      expect(within(nav()).getByRole('button', { name: /dashboard/i })).toHaveAttribute(
+        'aria-current',
+        'page',
+      ),
+    );
+  });
+
+  it('marks exactly one destination as current', async () => {
+    // Two would tell a screen-reader user they are in two places at once.
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
+
+    await waitFor(() => {
+      const marked = within(nav())
+        .getAllByRole('button')
+        .filter(button => button.getAttribute('aria-current') === 'page');
+      expect(marked).toHaveLength(1);
+    });
   });
 });
 
@@ -107,31 +118,82 @@ describe('the PIN gate on adult surfaces', () => {
     expect(await screen.findByText(/educator pin required/i)).toBeInTheDocument();
   });
 
-  it('has no dialog semantics on the PIN prompt', async () => {
-    // The inverted form again: the prompt is a `div`, so a screen reader does
-    // not announce it and focus stays behind it. When it becomes a real dialog
-    // this fails, and should be rewritten to assert the role.
+  it('announces the PIN prompt as a dialog, named and described', async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
-    await screen.findByText(/parent authorization required/i);
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    const dialog = await screen.findByRole('dialog', { name: /parent authorization required/i });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAccessibleName(/parent authorization required/i);
+    expect(dialog).toHaveAccessibleDescription(/4-digit pin/i);
   });
 
-  it('leaves the district surface ungated', async () => {
-    // Recorded because it is surprising: `handleNavigate` guards only `parent`
-    // and `teacher`, so the district command centre — multi-campus analytics
-    // and CSV export of every learner's scores — opens to anyone who clicks it.
-    // Current behaviour, and this test exists to notice when it changes.
+  it('moves focus into the dialog and keeps it there', async () => {
+    // Without a trap the keyboard walks out of the modal into the page behind,
+    // where a user can operate controls they cannot see.
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
+    const dialog = await screen.findByRole('dialog', { name: /parent authorization required/i });
+
+    expect(dialog.contains(document.activeElement)).toBe(true);
+
+    // Tab all the way round; focus must still be inside.
+    for (let i = 0; i < 25; i++) await user.tab();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it('closes on Escape', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
+    await screen.findByRole('dialog', { name: /parent authorization required/i });
+
+    await user.keyboard('{Escape}');
+
+    // Queried by name, not by role alone: every modal in the app now declares
+    // `role="dialog"`, so a bare role query can match a different one that
+    // happens to be open and report a false pass.
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: /parent authorization required/i }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('gates the district command centre', async () => {
+    // It was not gated. Every campus's mean ability, its intervention flags and
+    // a one-click CSV of the lot opened to whoever clicked. Demonstration data
+    // today, which is exactly why the gap would have survived into a pilot.
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(within(nav()).getByRole('button', { name: /district hub/i }));
 
-    expect(screen.queryByText(/parent authorization required/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/educator pin required/i)).not.toBeInTheDocument();
+    expect(await screen.findByText(/district administrator pin required/i)).toBeInTheDocument();
+  });
+
+  it('asks for a different role on each gated surface', async () => {
+    // A parent PIN must not open the district hub. The prompt names which
+    // credential it wants, and the server checks the role alongside the PIN.
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
+    expect(await screen.findByText(/parent authorization required/i)).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: /parent authorization required/i }),
+      ).not.toBeInTheDocument(),
+    );
+
+    await user.click(within(nav()).getByRole('button', { name: /district hub/i }));
+    expect(await screen.findByText(/district administrator pin required/i)).toBeInTheDocument();
   });
 });
 

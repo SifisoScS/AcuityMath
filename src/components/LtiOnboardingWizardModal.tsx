@@ -143,7 +143,11 @@ export const LtiOnboardingWizardModal: React.FC<LtiOnboardingWizardModalProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div
+      role="dialog"
+      aria-label="Learning management system setup"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       <div className="bg-white w-full max-w-3xl rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 my-auto max-h-[92vh] flex flex-col">
         {/* Modal Header */}
         <div className="flex items-start justify-between pb-4 border-b border-slate-100 shrink-0">

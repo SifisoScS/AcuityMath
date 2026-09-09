@@ -182,7 +182,11 @@ export const PlacementQuestModal: React.FC<PlacementQuestModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div
+      role="dialog"
+      aria-label="Placement quest"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white w-full max-w-3xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 animate-in zoom-in-95">
         {!isCompleted ? (
           <>

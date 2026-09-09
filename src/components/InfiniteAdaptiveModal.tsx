@@ -199,7 +199,11 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-label="Adaptive practice session"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         {/* Top Header */}
         <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shadow-xs">

@@ -46,7 +46,7 @@ apiRouter.post('/auth/verify-pin', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Role and PIN are required' });
   }
 
-  const result = db.verifyPin(role, pin);
+  const result = db.verifyPin(role as 'parent' | 'teacher' | 'admin', pin);
   if (!result.valid || !result.user) {
     return res.status(401).json({ valid: false, error: 'Incorrect PIN passcode' });
   }

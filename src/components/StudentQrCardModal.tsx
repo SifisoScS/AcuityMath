@@ -29,7 +29,11 @@ export const StudentQrCardModal: React.FC<StudentQrCardModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+    <div
+      role="dialog"
+      aria-label="Printable learner badge"
+      tabIndex={-1}
+      className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
       <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center relative overflow-hidden">
         {/* Close Button */}
         <button

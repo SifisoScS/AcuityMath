@@ -19,7 +19,11 @@ export const PlacementQuestPromptModal: React.FC<PlacementQuestPromptModalProps>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+    <div
+      role="dialog"
+      aria-label="Start the placement quest"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
       <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 text-center">
         {/* Animated Compass Icon Header */}
         <div className="relative mx-auto w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white">

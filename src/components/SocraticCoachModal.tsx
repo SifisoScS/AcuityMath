@@ -144,7 +144,11 @@ export const SocraticCoachModal: React.FC<SocraticCoachModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div
+      role="dialog"
+      aria-label="Socratic mathematics coach"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         {/* Header */}
         <div className="px-5 py-4 bg-linear-to-r from-indigo-700 via-indigo-600 to-purple-600 text-white flex items-center justify-between shadow-xs">
