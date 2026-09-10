@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserProfile, ParentAnalytics } from '../types';
 import {
   Clock,
@@ -27,14 +27,68 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   onUpdateScreenTime,
   onOpenCoppaModal
 }) => {
-  const [selectedStudentId, setSelectedStudentId] = useState<string>(students[0]?.id || 'user-maya');
+  const [selectedStudentId, setSelectedStudentId] = useState<string>(students[0]?.id ?? '');
   const [showPrintReport, setShowPrintReport] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
-  const analytics = analyticsMap[selectedStudentId] || analyticsMap['user-maya'];
 
+  /**
+   * This child's analytics, or nothing.
+   *
+   * It used to fall back to `analyticsMap['user-maya']` — one particular
+   * demonstration child. When the key was present, a parent selecting Leo was
+   * shown Maya's numbers under Leo's name; when the data became real and the key
+   * was gone, every field access threw.
+   *
+   * There is no sensible substitute for a child's own record, so a missing one
+   * renders an empty state rather than somebody else's.
+   */
+  const analytics = analyticsMap[selectedStudentId];
+
+  // 45 is the slider's starting position for a child with no limit yet, not a
+  // claim that one is set — the card below reads the real value.
   const [screenLimit, setScreenLimit] = useState(analytics?.screenTimeLimitMinutes || 45);
+
+  /**
+   * Follows the selected child.
+   *
+   * The analytics query resolves after this mounts, so the initial `useState`
+   * ran against `undefined` and left the slider on 45 forever. Switching child
+   * then saved the previous child's number against the new child, because
+   * `handleSaveScreenLimit` sends whatever the slider holds.
+   */
+  const savedLimit = analytics?.screenTimeLimitMinutes;
+  useEffect(() => {
+    if (savedLimit !== undefined) setScreenLimit(savedLimit || 45);
+  }, [selectedStudentId, savedLimit]);
+
+  if (!currentStudent || !analytics) {
+    return (
+      <div className="max-w-md mx-auto text-center py-16">
+        <h2 className="text-xl font-black text-slate-900 tracking-tight">
+          {students.length === 0 ? 'No learners on this account yet' : 'No progress recorded yet'}
+        </h2>
+        <p className="mt-2 text-sm text-slate-500">
+          {students.length === 0
+            ? 'Add a child to see their progress here.'
+            : `${currentStudent?.name ?? 'This learner'} has not answered anything yet. Their progress will appear once they practise.`}
+        </p>
+      </div>
+    );
+  }
+
+  /**
+   * The week, from the seven days the chart already shows.
+   *
+   * `analytics.totalTimeMinutes` sums every attempt the child has ever made —
+   * the server query has no date filter — so it was labelled "Weekly Time Spent"
+   * and divided by seven for a "daily average" that grew without limit as the
+   * child's history did.
+   */
+  const weeklyMinutes = analytics.weeklyActivity.reduce((sum, day) => sum + day.minutes, 0);
+  const weeklyProblems = analytics.weeklyActivity.reduce((sum, day) => sum + day.problemsSolved, 0);
+  const hasPractised = analytics.masteryDomains.length > 0;
 
   const handleSaveScreenLimit = () => {
     onUpdateScreenTime(selectedStudentId, screenLimit);
@@ -116,11 +170,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           <div>
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Weekly Time Spent</span>
             <div className="text-2xl font-extrabold text-slate-900 mt-1 flex items-baseline gap-1.5">
-              <span>{analytics.totalTimeMinutes}</span>
+              <span>{weeklyMinutes}</span>
               <span className="text-xs font-medium text-slate-500">minutes</span>
             </div>
-            <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-2">
-              <TrendingUp className="w-3.5 h-3.5" /> +18% vs last week
+            {/*
+              This read "+18% vs last week", hard-coded, for every child on every
+              week. Nothing queries the previous week, so there is no comparison
+              to make; the all-time total is a figure that actually exists.
+            */}
+            <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 mt-2">
+              <TrendingUp className="w-3.5 h-3.5" /> {analytics.totalTimeMinutes} minutes all time
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -134,9 +193,21 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="text-2xl font-extrabold text-slate-900 mt-1">
               {currentStudent.accuracyRate}%
             </div>
-            <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-2">
-              <CheckCircle2 className="w-3.5 h-3.5" /> High retention
-            </span>
+            {/* "High retention" was asserted regardless of the figure above it. */}
+            {hasPractised ? (
+              <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 mt-2">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {currentStudent.accuracyRate >= 80
+                  ? 'High retention'
+                  : currentStudent.accuracyRate >= 60
+                    ? 'Steady'
+                    : 'Finding it hard'}
+              </span>
+            ) : (
+              <span className="text-[11px] font-semibold text-slate-400 mt-2 block">
+                No answers yet
+              </span>
+            )}
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <Target className="w-6 h-6" />
@@ -162,12 +233,24 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-start justify-between">
           <div>
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Daily Screen Limit</span>
+            {/*
+              The saved limit, not the slider. This showed the slider's value, so
+              a child with no limit set was reported as limited to 45 mins/day.
+            */}
             <div className="text-2xl font-extrabold text-slate-900 mt-1 flex items-baseline gap-1.5">
-              <span>{screenLimit}</span>
-              <span className="text-xs font-medium text-slate-500">mins/day</span>
+              {analytics.screenTimeLimitMinutes > 0 ? (
+                <>
+                  <span>{analytics.screenTimeLimitMinutes}</span>
+                  <span className="text-xs font-medium text-slate-500">mins/day</span>
+                </>
+              ) : (
+                <span className="text-slate-400">Not set</span>
+              )}
             </div>
-            <span className="text-[11px] font-semibold text-sky-600 flex items-center gap-1 mt-2">
-              <Sliders className="w-3.5 h-3.5" /> Automated pause
+            {/* "Automated pause" claimed an enforcement the app does not have. */}
+            <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 mt-2">
+              <Sliders className="w-3.5 h-3.5" />
+              {analytics.screenTimeLimitMinutes > 0 ? 'Shown to your child' : 'No limit set'}
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
@@ -224,8 +307,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           </div>
 
           <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Daily average: <strong>{Math.round(analytics.totalTimeMinutes / 7)} mins/day</strong></span>
-            <span>Completed questions this week: <strong>{analytics.weeklyActivity.reduce((acc, d) => acc + d.problemsSolved, 0)}</strong></span>
+            <span>Daily average: <strong>{Math.round(weeklyMinutes / 7)} mins/day</strong></span>
+            <span>Completed questions this week: <strong>{weeklyProblems}</strong></span>
           </div>
         </div>
 

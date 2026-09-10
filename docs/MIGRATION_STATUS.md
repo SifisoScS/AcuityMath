@@ -43,16 +43,25 @@ Donor repository, read-only reference:
 | **C2** | Step-up PIN, elevation, child access tokens | **Done**, open in **PR #12** |
 | **B3e** | Profiles from the server, demo family, real progress | **Done**, open in **PR #13** |
 | **C3** | The PIN gate on real elevation | **Done**, open in **PR #14** |
-| **B3f** | Analytics, assignments, notifications onto the server | **Next** |
+| **B3f-1** | Parent analytics derived from real attempts | **Done**, open in **PR #15** |
+| **B3f-2** | Assignments onto the server | **Next** |
+| **B3f-3** | Notifications onto the server | Needs a table; nothing emits them yet |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
 > **The gate is real now.** `handleNavigate` asks the account's role first, then
 > the server's elevation. `authenticatedRoles` — a client-side record any
 > devtools user could set, and which the API never saw — is gone.
 >
-> **Next up is B3f — analytics, assignments and notifications onto the server.** The remaining `App.tsx` work touches
-> the profile switcher, the PIN gates and learner selection, which are exactly
-> the surfaces Graft C rewrites. Doing it first means doing it twice.
+> **Analytics are derived now.** `INITIAL_ANALYTICS` is deleted. Every figure a
+> parent sees traces to a row the child's own answers produced, and the fields
+> with no honest source — focus alerts, week-over-week change — say nothing
+> rather than inventing a number.
+>
+> **Next up is B3f-2, assignments.** `assignments` and `assignment_targets`
+> exist in the schema with no router over them; `classrooms` and
+> `classroom_learners` exist too, so the teacher path is buildable. It needs a
+> teacher entitlement rule — `learnerProcedure` is guardian-or-admin only, and
+> `server/trpc/index.ts:113` defers the teacher case deliberately.
 >
 > **Branch from `main`, and target `main`.** A stacked pull request merges into
 > its base branch, not into `main` — PR #5 was based on `graft-b-schema` and its
@@ -256,6 +265,22 @@ Do not relitigate these without a reason that is new.
 
 Each of these looked like something else first.
 
+**A number can be wrong on both sides of a correct join.** The analytics
+endpoint was verified over HTTP and the profile list was verified over HTTP, and
+the parent dashboard still crashed on every load. The server keys analytics by
+learner id (`12`); profiles are `learner-12`. Both sides were right; nothing
+tested the correspondence. Two dashboards had learned to paper over it with
+`|| analyticsMap['user-maya']`, so before the data was real a parent selecting
+Leo saw Maya's numbers under Leo's name — and once it was real, the same line
+dereferenced `undefined`. **A fallback that hides a missing key hides a wrong
+key too.** `keyByProfileId` is exported so the join itself can be tested.
+
+**Zero is not a value when it means "unset".** `screen_time_rules` has no row
+until a parent creates one, and `learnerAnalytics` reports that absence as `0`.
+`max(0, 0 - minutesPractised)` is zero remaining, which reads as "at the limit",
+so every child whose parent had set nothing would have sat permanently in a
+pulsing red warning. The rule lives in `src/utils/screenTime.ts` for that reason.
+
 **pnpm build approvals live in exactly one place.** `pnpm.onlyBuiltDependencies`
 in `package.json` is no longer read. The same key as a *list* in
 `pnpm-workspace.yaml` is silently ignored by 11.21. `only-built-dependencies[]`
@@ -362,4 +387,14 @@ Recorded rather than hidden.
   `reachability_unchecked`. Closing it means giving each trig item a stated
   derivation for its wrong answers.
 - **Ages 6–10 curriculum** is thin in both repositories.
-- **Screen-time enforcement** has a schema but no server logic yet.
+- **Screen-time enforcement** has a schema and a parent-facing setting, but
+  nothing pauses the app. The dashboard used to claim "Automated pause"; it now
+  says the limit is shown to the child, which is what actually happens.
+- **Week-over-week change** is not computed. `learnerAnalytics` reads the last
+  seven days only, so the "+18% vs last week" badge was removed rather than
+  guessed at. Closing it means a second window in the query.
+- **Assignments and notifications** are still demonstration data in
+  `src/utils/storage.ts`. Assignments have tables and no router; notifications
+  have no table at all, and nothing in the app emits one.
+- **Nothing writes `learner_rewards`.** Coins, XP and streaks read zero for
+  every learner.

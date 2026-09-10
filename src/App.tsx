@@ -16,7 +16,6 @@ import {
 } from './types';
 import {
   INITIAL_PROFILES,
-  INITIAL_ANALYTICS,
   INITIAL_ASSIGNMENTS,
   INITIAL_NOTIFICATIONS,
   getSavedItem,
@@ -39,6 +38,7 @@ import { RewardsModal } from './components/RewardsModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { useProfiles } from './hooks/useProfiles';
 import { useStepUpStatus } from './hooks/useStepUp';
+import { useFamilyAnalytics } from './hooks/useAnalytics';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
@@ -80,6 +80,7 @@ import {
   X
 } from 'lucide-react';
 import { playClickSound, speakText, stopSpeaking } from './utils/audio';
+import { screenTimeMeter } from './utils/screenTime';
 
 export default function App() {
   /**
@@ -117,10 +118,6 @@ export default function App() {
   // Lessons
   const [lessons] = useState<MathLesson[]>(INITIAL_LESSONS);
 
-  // Parent Analytics map
-  const [analyticsMap, setAnalyticsMap] = useState<Record<string, ParentAnalytics>>(() =>
-    getSavedItem<Record<string, ParentAnalytics>>('analytics', INITIAL_ANALYTICS)
-  );
 
   // Teacher Assignments
   const [assignments, setAssignments] = useState<TeacherAssignment[]>(() =>
@@ -173,6 +170,24 @@ export default function App() {
   // server, and `elevatedProcedure`, which refuses regardless of what the
   // client believes.
   const { isElevated } = useStepUpStatus();
+  /**
+   * A parent's view of their children, from the server.
+   *
+   * `INITIAL_ANALYTICS` was seven days of invented activity per child and a
+   * recommended action written into `storage.ts`. Every figure is derived from
+   * the child's own answers now, and the fields with no honest source — focus
+   * alerts, which nothing records — stay at zero rather than being filled in to
+   * look complete.
+   *
+   * Fetched only once elevated, because that is what the step-up protects.
+   */
+  const {
+    analyticsMap,
+    needsStepUp: analyticsNeedsStepUp,
+    refresh: refreshAnalytics,
+    setScreenTimeLimit,
+  } = useFamilyAnalytics(isElevated === true);
+
   /** Set when an account lacks the role a surface needs, rather than the PIN. */
   const [blockedSurface, setBlockedSurface] = useState<'parent' | 'teacher' | 'admin' | null>(null);
   const [isParentPinOpen, setIsParentPinOpen] = useState(false);
@@ -259,17 +274,7 @@ export default function App() {
     // Initial check
     apiService.sendHeartbeat(activeProfile.id, 0).then(res => {
       if (res) {
-        setAnalyticsMap(prev => {
-          const existing = prev[activeProfile.id] || INITIAL_ANALYTICS['user-maya'];
-          return {
-            ...prev,
-            [activeProfile.id]: {
-              ...existing,
-              totalTimeMinutes: res.todayMinutesSpent,
-              screenTimeLimitMinutes: res.screenTimeLimitMinutes
-            }
-          };
-        });
+        refreshAnalytics();
         if (res.isLocked) {
           setIsScreenLocked(true);
           setLockedTimeData({
@@ -283,17 +288,7 @@ export default function App() {
     const interval = setInterval(async () => {
       const res = await apiService.sendHeartbeat(activeProfile.id, 60);
       if (res) {
-        setAnalyticsMap(prev => {
-          const existing = prev[activeProfile.id] || INITIAL_ANALYTICS['user-maya'];
-          return {
-            ...prev,
-            [activeProfile.id]: {
-              ...existing,
-              totalTimeMinutes: res.todayMinutesSpent,
-              screenTimeLimitMinutes: res.screenTimeLimitMinutes
-            }
-          };
-        });
+        refreshAnalytics();
         if (res.isLocked) {
           setIsScreenLocked(true);
           setLockedTimeData({
@@ -329,17 +324,19 @@ export default function App() {
     saveItem('sync_state', syncState);
   }, [syncState]);
 
-  useEffect(() => {
-    saveItem('analytics', analyticsMap);
-  }, [analyticsMap]);
+  // Analytics is the server's answer now, so it is not written back to
+  // localStorage. Persisting it copied one child's mastery and error patterns
+  // onto a shared family device, and nothing ever read the copy.
 
-  // Screen time tracking
-  const currentAnalytics = analyticsMap[activeProfile.id] || analyticsMap['user-maya'] || {
-    totalTimeMinutes: 42,
-    screenTimeLimitMinutes: 45
-  };
-  const remainingMinutes = Math.max(0, currentAnalytics.screenTimeLimitMinutes - currentAnalytics.totalTimeMinutes);
-  const isNearScreenLimit = remainingMinutes <= 5;
+  // Screen time. `screenTimeMeter` holds the rule that a limit of zero means
+  // *no limit set* rather than a limit of zero minutes — see the note there for
+  // what inlining that distinction cost twice.
+  const {
+    minutesUsed: screenMinutesUsed,
+    limitMinutes: screenLimitMinutes,
+    hasLimit: hasScreenLimit,
+    isNearLimit: isNearScreenLimit,
+  } = screenTimeMeter(analyticsMap[activeProfile.id]);
 
   // Handle student lesson completion
   const handleLessonComplete = (results: {
@@ -505,16 +502,7 @@ export default function App() {
 
   // Screen time update from parent
   const handleUpdateScreenTime = (studentId: string, minutes: number) => {
-    setAnalyticsMap(prev => {
-      const existing = prev[studentId] || INITIAL_ANALYTICS['user-maya'];
-      return {
-        ...prev,
-        [studentId]: {
-          ...existing,
-          screenTimeLimitMinutes: minutes
-        }
-      };
-    });
+    void setScreenTimeLimit(studentId, minutes);
   };
 
   // Stage change handler
@@ -1140,7 +1128,8 @@ export default function App() {
               <span className="hidden sm:inline">COPPA Verified</span>
             </button>
 
-            {/* Screen Time Badge */}
+            {/* Screen Time Badge — only when a parent has actually set a limit. */}
+            {hasScreenLimit && (
             <span
               className={`px-3 py-1.5 rounded-full border text-xs font-bold flex items-center gap-1.5 shadow-xs ${
                 isNearScreenLimit
@@ -1150,9 +1139,10 @@ export default function App() {
             >
               <Clock className={`w-3.5 h-3.5 ${isNearScreenLimit ? 'text-rose-600' : 'text-slate-500'}`} />
               <span>
-                {Math.round(currentAnalytics.totalTimeMinutes)} / {currentAnalytics.screenTimeLimitMinutes}m
+                {Math.round(screenMinutesUsed)} / {screenLimitMinutes}m
               </span>
             </span>
+            )}
 
             {/* Quick-Win 2: Bilingual Glossary Quick Button */}
             <button
@@ -1334,8 +1324,8 @@ export default function App() {
                   handleUpdateActiveUser({ dynamicLevel: newLevel });
                 }}
                 onUpdateUserProfile={handleUpdateActiveUser}
-                screenTimeMinutes={currentAnalytics.totalTimeMinutes}
-                screenTimeLimit={currentAnalytics.screenTimeLimitMinutes}
+                screenTimeMinutes={screenMinutesUsed}
+                screenTimeLimit={screenLimitMinutes}
                 onOpenScratchpad={() => setActiveTab('scratchpad')}
                 onOpenAgePage={handleOpenAge}
                 onNavigate={setActiveTab}
@@ -1359,7 +1349,34 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'parent' && (
+            {activeTab === 'parent' && analyticsNeedsStepUp && (
+              /**
+               * Elevation lasts fifteen minutes and the tab can stay open for
+               * longer. Rather than showing the last numbers fetched — which is
+               * a child's record left on screen after the proof that an adult
+               * was present has expired — the dashboard asks again.
+               */
+              <div className="max-w-md mx-auto text-center py-16">
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Confirm it is you</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Your PIN confirmation has expired. Enter it again to see your children's progress.
+                </p>
+                <button
+                  onClick={() => {
+                    playClickSound();
+                    setTargetProtectedRole('parent');
+                    setTargetProtectedTab('parent');
+                    setTargetProtectedProfile(null);
+                    setIsParentPinOpen(true);
+                  }}
+                  className="mt-5 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition cursor-pointer"
+                >
+                  Enter PIN
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'parent' && !analyticsNeedsStepUp && (
               <ParentDashboard
                 students={studentProfiles}
                 analyticsMap={analyticsMap}
@@ -1569,17 +1586,7 @@ export default function App() {
           // Refresh analytics after unlocking
           apiService.sendHeartbeat(activeProfile.id, 0).then(res => {
             if (res) {
-              setAnalyticsMap(prev => {
-                const existing = prev[activeProfile.id] || INITIAL_ANALYTICS['user-maya'];
-                return {
-                  ...prev,
-                  [activeProfile.id]: {
-                    ...existing,
-                    totalTimeMinutes: res.todayMinutesSpent,
-                    screenTimeLimitMinutes: res.screenTimeLimitMinutes
-                  }
-                };
-              });
+              refreshAnalytics();
             }
           });
         }}
