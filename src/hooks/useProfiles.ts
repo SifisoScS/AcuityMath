@@ -71,6 +71,8 @@ function placeholderProfile(): UserProfile {
 }
 
 export interface ProfilesState {
+  /** The signed-in adult, or null. Distinct from any profile: adults are not learners. */
+  sessionUser: { id: number; email: string; name: string | null; role: 'parent' | 'teacher' | 'admin' } | null;
   profiles: UserProfile[];
   activeProfile: UserProfile;
   activeProfileId: string;
@@ -154,6 +156,7 @@ export function useProfiles(): ProfilesState {
   };
 
   return {
+    sessionUser: user,
     profiles,
     activeProfile: active,
     activeProfileId: active.id,

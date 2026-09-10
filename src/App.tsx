@@ -38,6 +38,7 @@ import { InteractiveLessonModal } from './components/InteractiveLessonModal';
 import { RewardsModal } from './components/RewardsModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { useProfiles } from './hooks/useProfiles';
+import { useStepUpStatus } from './hooks/useStepUp';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
@@ -94,6 +95,7 @@ export default function App() {
    * a second source of truth that silently disagrees after a refresh.
    */
   const {
+    sessionUser,
     profiles,
     activeProfile,
     activeProfileId,
@@ -164,7 +166,15 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Phase 1: Security, Persistent Cloud Data & COPPA
-  const [authenticatedRoles, setAuthenticatedRoles] = useState<Record<string, boolean>>({});
+  //
+  // `authenticatedRoles` is gone. It was a client-side record of which roles a
+  // modal had approved — trivially set from devtools, and meaningless to the
+  // API, which never saw it. What replaces it is `isElevated`, read from the
+  // server, and `elevatedProcedure`, which refuses regardless of what the
+  // client believes.
+  const { isElevated } = useStepUpStatus();
+  /** Set when an account lacks the role a surface needs, rather than the PIN. */
+  const [blockedSurface, setBlockedSurface] = useState<'parent' | 'teacher' | 'admin' | null>(null);
   const [isParentPinOpen, setIsParentPinOpen] = useState(false);
   const [targetProtectedRole, setTargetProtectedRole] = useState<'parent' | 'teacher' | 'admin'>('parent');
   const [targetProtectedTab, setTargetProtectedTab] = useState<NavigationTab | null>(null);
@@ -532,18 +542,58 @@ export default function App() {
     return null;
   };
 
-  // Tab navigation helper with Server PIN Guard for adult sections
+  /**
+   * Whether this account may open a surface at all.
+   *
+   * Separate from the PIN, and asked first. A PIN proves an adult is present;
+   * it says nothing about *which* adult, and a parent entering the right PIN
+   * must still not reach a district export. Asking for a PIN they could type
+   * correctly and still be refused wastes their time and teaches them the
+   * prompt is meaningless.
+   *
+   * An administrator reaches everything, which is what the role is for.
+   */
+  const accountMayReach = (required: 'parent' | 'teacher' | 'admin'): boolean => {
+    const role = sessionUser?.role;
+    if (!role) return false;
+    if (role === 'admin') return true;
+    return role === required;
+  };
+
+  /**
+   * Tab navigation, gated by the server rather than by a flag in this component.
+   *
+   * `authenticatedRoles` used to live here — a record set to true when a modal
+   * said so, which any React devtools user could set themselves and which meant
+   * nothing to the API. Elevation is a short-lived signed cookie the server
+   * issues and checks, and `elevatedProcedure` refuses without it whatever the
+   * client believes.
+   */
   const handleNavigate = (tab: NavigationTab) => {
     playClickSound();
     const required = roleRequiredFor(tab);
-    if (required && !authenticatedRoles[required]) {
-      setTargetProtectedRole(required);
-      setTargetProtectedTab(tab);
-      setTargetProtectedProfile(null);
-      setIsParentPinOpen(true);
-      setIsMobileSidebarOpen(false);
-      return;
+
+    if (required) {
+      if (!sessionUser) {
+        setIsSignInOpen(true);
+        setIsMobileSidebarOpen(false);
+        return;
+      }
+      if (!accountMayReach(required)) {
+        setBlockedSurface(required);
+        setIsMobileSidebarOpen(false);
+        return;
+      }
+      if (!isElevated) {
+        setTargetProtectedRole(required);
+        setTargetProtectedTab(tab);
+        setTargetProtectedProfile(null);
+        setIsParentPinOpen(true);
+        setIsMobileSidebarOpen(false);
+        return;
+      }
     }
+
     setActiveTab(tab);
     setIsMobileSidebarOpen(false);
   };
@@ -1404,18 +1454,52 @@ export default function App() {
 
       <SignInPanel isOpen={isSignInOpen} onClose={() => setIsSignInOpen(false)} />
 
+      {blockedSurface && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Not available on this account"
+          tabIndex={-1}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn"
+        >
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">
+              Not available on this account
+            </h3>
+            <p className="text-xs text-slate-500 mt-2">
+              {/* Says which account would reach it, rather than only refusing.
+                  A parent told "no" with no explanation assumes a fault. */}
+              You are signed in as a {sessionUser?.role}.{' '}
+              {blockedSurface === 'admin'
+                ? 'The district command centre is for district administrators.'
+                : blockedSurface === 'teacher'
+                  ? 'The classroom view is for educator accounts.'
+                  : 'The parent view is for guardian accounts.'}
+            </p>
+            <button
+              onClick={() => {
+                playClickSound();
+                setBlockedSurface(null);
+              }}
+              className="mt-5 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {isProfileModalOpen && (
         <ProfileSwitchModal
           profiles={profiles}
           activeProfile={activeProfile}
           onSelectProfile={p => {
-            if ((p.role === 'parent' || p.role === 'teacher') && !authenticatedRoles[p.role]) {
-              setTargetProtectedRole(p.role);
-              setTargetProtectedProfile(p);
-              setTargetProtectedTab(p.role as NavigationTab);
-              setIsParentPinOpen(true);
-              return;
-            }
+            // The parent and teacher *profiles* this branch guarded no longer
+            // exist: profiles are the guardian's children, and an adult is the
+            // signed-in account rather than something to switch into.
             selectProfile(p.id);
             if (p.role === 'parent') setActiveTab('parent');
             else if (p.role === 'teacher') setActiveTab('teacher');
@@ -1438,7 +1522,9 @@ export default function App() {
         isOpen={isParentPinOpen}
         targetRole={targetProtectedRole}
         onSuccess={() => {
-          setAuthenticatedRoles(prev => ({ ...prev, [targetProtectedRole]: true }));
+          // Nothing to record here. The server issued an elevation cookie and
+          // `useStepUpStatus` re-reads it; a local flag would be a second
+          // opinion that outlives the fifteen minutes the real one lasts.
           if (targetProtectedProfile) {
             selectProfile(targetProtectedProfile.id);
           }

@@ -177,40 +177,67 @@ describe('the placement quest prompt', () => {
   });
 });
 
-describe('the PIN gate on adult surfaces', () => {
-  it('asks for a PIN instead of opening the parent dashboard', async () => {
-    // `handleNavigate` intercepts `parent` and `teacher` when the role has not
-    // been authenticated and opens the PIN prompt instead of switching tabs.
-    //
-    // Asserted on the visible heading rather than `role="dialog"`, because the
-    // modal is a plain `div` with no dialog semantics and no focus trap — a
-    // second finding, recorded in the same spirit as the one above.
+describe('the gate on adult surfaces', () => {
+  /**
+   * These tests run with no reachable server, so nobody is signed in — and that
+   * is now the first thing the gate checks.
+   *
+   * They used to assert a PIN prompt appeared. That was true when the PIN was
+   * compared against demo accounts in a JSON file and being signed in was not a
+   * concept. It is wrong now: a PIN proves *an adult is present*, not who they
+   * are, so there is nothing to step up from until somebody has signed in.
+   *
+   * The step-up itself — right PIN, wrong PIN, the fifth wrong PIN, elevation
+   * belonging to another account — is covered against a real database in
+   * `server/auth/stepUp.integration.test.ts`, where a session can be made.
+   */
+
+  it('sends a signed-out visitor to sign in, not to a PIN pad', async () => {
     const user = userEvent.setup();
     renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
 
-    expect(await screen.findByText(/parent authorization required/i)).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.queryByText(/parent authorization required/i)).not.toBeInTheDocument();
   });
 
-  it('gates the teacher surface the same way', async () => {
-    const user = userEvent.setup();
-    renderApp();
-
-    await user.click(within(nav()).getByRole('button', { name: /^teacher/i }));
-    expect(await screen.findByText(/educator pin required/i)).toBeInTheDocument();
-  });
-
-  it('announces the PIN prompt as a dialog, named and described', async () => {
+  it('does not open the surface behind it', async () => {
     const user = userEvent.setup();
     renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
+    await screen.findByRole('dialog', { name: /sign in/i });
 
-    const dialog = await screen.findByRole('dialog', { name: /parent authorization required/i });
+    // The landing page is still underneath; the tab did not change.
+    expect(screen.getByRole('heading', { name: /^welcome to acuitymath$/i })).toBeInTheDocument();
+  });
+
+  it('gates every adult surface the same way', async () => {
+    // Including the district command centre, which was ungated entirely until
+    // it was found by a characterisation test in this file.
+    for (const surface of [/parent analytics/i, /^teacher/i, /district hub/i]) {
+      const user = userEvent.setup();
+      const view = renderApp();
+
+      await user.click(within(nav()).getByRole('button', { name: surface }));
+      expect(await screen.findByRole('dialog', { name: /sign in/i })).toBeInTheDocument();
+
+      view.unmount();
+      window.localStorage.clear();
+      window.sessionStorage.setItem(`dismissed_placement_prompt_${DEFAULT_PROFILE_ID}`, '1');
+    }
+  });
+
+  it('announces the dialog it opens, named and described', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
+    const dialog = await screen.findByRole('dialog', { name: /sign in/i });
+
     expect(dialog).toHaveAttribute('aria-modal', 'true');
-    expect(dialog).toHaveAccessibleName(/parent authorization required/i);
-    expect(dialog).toHaveAccessibleDescription(/4-digit pin/i);
+    expect(dialog).toHaveAccessibleName(/sign in to acuitymath/i);
   });
 
   it('moves focus into the dialog and keeps it there', async () => {
@@ -220,12 +247,10 @@ describe('the PIN gate on adult surfaces', () => {
     renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
-    const dialog = await screen.findByRole('dialog', { name: /parent authorization required/i });
+    const dialog = await screen.findByRole('dialog', { name: /sign in/i });
 
     expect(dialog.contains(document.activeElement)).toBe(true);
-
-    // Tab all the way round; focus must still be inside.
-    for (let i = 0; i < 25; i++) await user.tab();
+    for (let i = 0; i < 20; i++) await user.tab();
     expect(dialog.contains(document.activeElement)).toBe(true);
   });
 
@@ -234,49 +259,13 @@ describe('the PIN gate on adult surfaces', () => {
     renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
-    await screen.findByRole('dialog', { name: /parent authorization required/i });
+    await screen.findByRole('dialog', { name: /sign in/i });
 
     await user.keyboard('{Escape}');
 
-    // Queried by name, not by role alone: every modal in the app now declares
-    // `role="dialog"`, so a bare role query can match a different one that
-    // happens to be open and report a false pass.
     await waitFor(() =>
-      expect(
-        screen.queryByRole('dialog', { name: /parent authorization required/i }),
-      ).not.toBeInTheDocument(),
+      expect(screen.queryByRole('dialog', { name: /sign in/i })).not.toBeInTheDocument(),
     );
-  });
-
-  it('gates the district command centre', async () => {
-    // It was not gated. Every campus's mean ability, its intervention flags and
-    // a one-click CSV of the lot opened to whoever clicked. Demonstration data
-    // today, which is exactly why the gap would have survived into a pilot.
-    const user = userEvent.setup();
-    renderApp();
-
-    await user.click(within(nav()).getByRole('button', { name: /district hub/i }));
-
-    expect(await screen.findByText(/district administrator pin required/i)).toBeInTheDocument();
-  });
-
-  it('asks for a different role on each gated surface', async () => {
-    // A parent PIN must not open the district hub. The prompt names which
-    // credential it wants, and the server checks the role alongside the PIN.
-    const user = userEvent.setup();
-    renderApp();
-
-    await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
-    expect(await screen.findByText(/parent authorization required/i)).toBeInTheDocument();
-    await user.keyboard('{Escape}');
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('dialog', { name: /parent authorization required/i }),
-      ).not.toBeInTheDocument(),
-    );
-
-    await user.click(within(nav()).getByRole('button', { name: /district hub/i }));
-    expect(await screen.findByText(/district administrator pin required/i)).toBeInTheDocument();
   });
 });
 
