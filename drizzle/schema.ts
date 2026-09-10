@@ -147,6 +147,40 @@ export const consentEvents = mysqlTable(
   table => [index('consent_learner_idx').on(table.learnerId, table.recordedAt)],
 );
 
+/**
+ * Sign-in links, as hashes.
+ *
+ * The token itself is never stored. A magic link is a bearer credential for the
+ * lifetime of the email that carries it, and a database of live ones is a
+ * database of ways into other people's children's records. What is kept is a
+ * SHA-256 of the token, which verifies a presented link and cannot produce one.
+ *
+ * `consumedAt` makes a link single-use. Without it a link sitting in a mailbox —
+ * or in a mail provider's link-scanner, or a shared family inbox — stays a valid
+ * credential until it expires.
+ */
+export const magicLinkTokens = mysqlTable(
+  'magic_link_tokens',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    /**
+     * Stored alongside the hash so a request can be rate-limited per address,
+     * and so consuming a link can find or create the account it belongs to.
+     */
+    email: varchar('email', { length: 320 }).notNull(),
+    tokenHash: varchar('token_hash', { length: 64 }).notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    consumedAt: timestamp('consumed_at'),
+    /** For rate limiting and for showing a parent where a link was requested. */
+    requestedFromIp: varchar('requested_from_ip', { length: 64 }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('magic_link_hash_idx').on(table.tokenHash),
+    index('magic_link_email_idx').on(table.email, table.createdAt),
+  ],
+);
+
 // ---------------------------------------------------------------------------
 // Classrooms
 // ---------------------------------------------------------------------------

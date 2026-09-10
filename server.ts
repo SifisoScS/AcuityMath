@@ -5,6 +5,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 
 import { apiRouter } from './server/api';
+import { authRouter } from './server/auth/routes';
 import { createContext } from './server/trpc';
 import { appRouter } from './server/trpc/routers';
 
@@ -38,6 +39,9 @@ async function startServer() {
       },
     }),
   );
+
+  // Sign-in, before the legacy REST surface so `/api/auth/*` reaches it.
+  app.use('/api/auth', authRouter);
 
   // API Routes FIRST before SPA / Vite middleware
   app.use('/api', apiRouter);
@@ -77,6 +81,20 @@ function reportConfiguration() {
     console.warn(
       '[AcuityMath] DATABASE_URL is not set. /trpc procedures will fail until it is. ' +
         'See .env.example for a local Docker one-liner.',
+    );
+  }
+
+  if (!process.env.JWT_SECRET && !process.env.DEV_AUTH_EMAIL) {
+    console.warn(
+      '[AcuityMath] JWT_SECRET is not set. Sessions cannot be issued or verified, ' +
+        'so sign-in will fail. Generate one with `openssl rand -base64 48`.',
+    );
+  }
+
+  if (!process.env.SMTP_HOST && process.env.NODE_ENV !== 'production') {
+    console.warn(
+      '[AcuityMath] No SMTP configured. Sign-in links will be written to this log ' +
+        'rather than emailed.',
     );
   }
 
