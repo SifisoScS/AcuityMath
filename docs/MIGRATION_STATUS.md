@@ -43,8 +43,8 @@ Donor repository, read-only reference:
 | **C2** | Step-up PIN, elevation, child access tokens | **Done**, open in **PR #12** |
 | **B3e** | Profiles from the server, demo family, real progress | **Done**, open in **PR #13** |
 | **C3** | The PIN gate on real elevation | **Done**, open in **PR #14** |
-| **B3f-1** | Parent analytics derived from real attempts | **Done**, open in **PR #15** |
-| **B3f-2** | Assignments onto the server, teacher entitlement | **Done**, open in **PR #16** |
+| **B3f-1** | Parent analytics derived from real attempts | **Done**, merged (PR #15) |
+| **B3f-2** | Assignments onto the server, teacher entitlement | **Done**, open in **PR #17** |
 | **B3f-3** | Notifications onto the server | Needs a table; nothing emits them yet |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
