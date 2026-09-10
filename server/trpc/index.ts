@@ -20,17 +20,31 @@ import { z } from 'zod';
 
 import * as schema from '../../drizzle/schema';
 import { transformer } from '../../src/lib/transformer';
-import { resolveUser, type AuthenticatedUser, type RequestHeaders } from '../auth/session';
+import { hasElevation, resolveUser, type AuthenticatedUser, type RequestHeaders } from '../auth/session';
 import { getDatabase, type Database } from '../db/client';
 
 export interface Context {
   db: Database;
   user: AuthenticatedUser | null;
+  /**
+   * Kept so elevation can be checked per procedure rather than once per
+   * request. Most procedures do not need it, and verifying a signature on every
+   * practice answer to serve procedures that never ask would be waste.
+   */
+  headers: RequestHeaders;
+  /**
+   * Set by the adapter. Elevation is granted by a mutation, and a mutation has
+   * no other way to put a cookie on the response.
+   */
+  setCookie?: (value: string) => void;
 }
 
-export async function createContext(headers: RequestHeaders = {}): Promise<Context> {
+export async function createContext(
+  headers: RequestHeaders = {},
+  setCookie?: (value: string) => void,
+): Promise<Context> {
   const db = getDatabase();
-  return { db, user: await resolveUser(db, headers) };
+  return { db, user: await resolveUser(db, headers), headers, setCookie };
 }
 
 /**
@@ -52,6 +66,30 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in to continue.' });
   }
   return next({ ctx: { ...ctx, user: ctx.user } });
+});
+
+/**
+ * Requires the adult, not just the account.
+ *
+ * A thirty-day session says somebody signed in on this device a while ago. It
+ * does not say who is holding it now, and a family tablet is handed to a child
+ * several times a day. Anything showing one child's records to another — a
+ * sibling's analytics, the screen-time controls that restrict them, the export
+ * of every learner's scores — is built on this rather than on `protectedProcedure`.
+ *
+ * The elevation is a separate short-lived cookie, so requiring it never means
+ * signing anybody out.
+ */
+export const elevatedProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (!(await hasElevation(ctx.headers, ctx.user.id))) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      // Distinguishable from an ordinary refusal, so the client knows to ask
+      // for a PIN rather than to send the parent back to sign in.
+      message: 'STEP_UP_REQUIRED',
+    });
+  }
+  return next({ ctx });
 });
 
 /** Administrators only. Used by nothing yet; declared so the shape is settled. */
@@ -95,6 +133,21 @@ export const learnerProcedure = protectedProcedure.input(learnerIdInput).use(asy
   }
 
   return next({ ctx: { ...ctx, learner } });
+});
+
+/**
+ * One learner, and proof the adult is present.
+ *
+ * Composed from `learnerProcedure` rather than written afresh, so the ownership
+ * check cannot drift between the two. Deciding how a child identifies
+ * themselves is a parent's decision — a child who could set their own badge
+ * could set their sibling's.
+ */
+export const elevatedLearnerProcedure = learnerProcedure.use(async ({ ctx, next }) => {
+  if (!(await hasElevation(ctx.headers, ctx.user.id))) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'STEP_UP_REQUIRED' });
+  }
+  return next({ ctx });
 });
 
 export type Learner = typeof schema.learners.$inferSelect;

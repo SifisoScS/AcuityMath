@@ -15,7 +15,23 @@ import * as schema from '../../drizzle/schema';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { recordAttempt } from '../learning/recordAttempt';
 import { serveNextProblem } from '../learning/serveProblem';
-import { learnerProcedure, protectedProcedure, publicProcedure, router } from './index';
+import {
+  checkStepUpPin,
+  hasStepUpPin,
+  resolveLearnerBySecret,
+  setLearnerAccessToken,
+  setStepUpPin,
+  WeakPin,
+} from '../auth/pin';
+import { clearedElevationCookie, elevationCookie, hasElevation, issueElevation } from '../auth/session';
+import {
+  elevatedLearnerProcedure,
+  learnerIdInput,
+  learnerProcedure,
+  protectedProcedure,
+  publicProcedure,
+  router,
+} from './index';
 
 const learnersRouter = router({
   /** The signed-in guardian's own children. Never anybody else's. */
@@ -146,6 +162,125 @@ const learnersRouter = router({
   }),
 });
 
+/**
+ * The step-up PIN, and the child selector.
+ *
+ * Both live here rather than beside sign-in because neither of them signs
+ * anybody in. One proves the adult is present within a session that already
+ * exists; the other picks which child that session is looking at.
+ */
+const accessRouter = router({
+  /** What the client needs to decide whether to ask for anything. */
+  status: protectedProcedure.query(async ({ ctx }) => ({
+    hasPin: await hasStepUpPin(ctx.db, ctx.user.id),
+    isElevated: await hasElevation(ctx.headers, ctx.user.id),
+  })),
+
+  setPin: protectedProcedure
+    .input(z.object({ pin: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await setStepUpPin(ctx.db, ctx.user.id, input.pin);
+      } catch (error) {
+        if (error instanceof WeakPin) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+        throw error;
+      }
+
+      // Setting a PIN proves the adult is present, so it elevates too. Asking
+      // someone to enter the PIN they just chose would be theatre.
+      ctx.setCookie?.(elevationCookie(await issueElevation(ctx.user.id)));
+      return { set: true };
+    }),
+
+  elevate: protectedProcedure
+    .input(z.object({ pin: z.string().max(32) }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await checkStepUpPin(ctx.db, ctx.user.id, input.pin);
+
+      if (result.ok) {
+        ctx.setCookie?.(elevationCookie(await issueElevation(ctx.user.id)));
+        return { elevated: true as const };
+      }
+
+      // The three failures have different next steps for the person in front of
+      // the screen, and telling somebody the wrong one wastes their time: a
+      // locked account should wait, an unset PIN should be chosen, a wrong one
+      // retyped.
+      if (result.reason === 'locked') {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many attempts. Try again in ${Math.ceil(result.retryAfterMs / 60000)} minutes.`,
+        });
+      }
+      if (result.reason === 'not-set') {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'No PIN has been set yet.' });
+      }
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: `Incorrect PIN. ${result.attemptsRemaining} attempt${result.attemptsRemaining === 1 ? '' : 's'} left.`,
+      });
+    }),
+
+  /** Hands the tablet back to a child. */
+  standDown: protectedProcedure.mutation(({ ctx }) => {
+    ctx.setCookie?.(clearedElevationCookie());
+    return { elevated: false };
+  }),
+
+  /**
+   * Gives a child a way to choose themselves.
+   *
+   * Requires elevation: deciding how a child identifies is a parent's decision,
+   * and a child who could set their own badge could set their sibling's.
+   */
+  setLearnerSecret: elevatedLearnerProcedure
+    .input(
+      z.object({
+        kind: z.enum(['pin', 'qr_badge', 'picture_sequence']),
+        secret: z.string().min(3).max(200),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await setLearnerAccessToken(ctx.db, ctx.learner.id, input.kind, input.secret);
+      return { set: true };
+    }),
+
+  /**
+   * Which of this guardian's children a badge or picture sequence belongs to.
+   *
+   * Not authentication. It resolves a learner *within* the signed-in guardian's
+   * own set, so a badge is meaningless without the session and cannot reach
+   * another family's child even if two families pick the same sequence.
+   */
+  selectLearner: protectedProcedure
+    .input(
+      z.object({
+        kind: z.enum(['pin', 'qr_badge', 'picture_sequence']),
+        secret: z.string().max(200),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const mine = await ctx.db
+        .select({ id: schema.learners.id })
+        .from(schema.learners)
+        .where(and(eq(schema.learners.guardianId, ctx.user.id), isNull(schema.learners.archivedAt)));
+
+      const learnerId = await resolveLearnerBySecret(
+        ctx.db,
+        mine.map(row => row.id),
+        input.kind,
+        input.secret,
+      );
+
+      if (!learnerId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'That badge does not match anyone here.' });
+      }
+      return { learnerId };
+    }),
+});
+
 const practiceRouter = router({
   start: learnerProcedure
     .input(z.object({ targetLength: z.number().int().min(1).max(50).default(8) }))
@@ -264,6 +399,7 @@ export const appRouter = router({
   me: protectedProcedure.query(({ ctx }) => ctx.user),
   learners: learnersRouter,
   practice: practiceRouter,
+  access: accessRouter,
 });
 
 export type AppRouter = typeof appRouter;

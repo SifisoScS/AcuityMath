@@ -1,6 +1,6 @@
 # Migration status
 
-**Last updated: 9 September 2026 (evening).** The resumption point for grafting the
+**Last updated: 10 September 2026.** The resumption point for grafting the
 Sovereign Mathematical Learning Engine's spine under AcuityMath.
 
 Read this first if you are picking the work up cold. It records what is done,
@@ -39,10 +39,20 @@ Donor repository, read-only reference:
 | **B3c** | Safety net, service layer, three a11y/authorisation fixes | **Done**, merged (PR #9) |
 | **B3d** | Practice view serving authored content | **Done**, open in **PR #10** |
 | **B3e** | The rest of the `App.tsx` lift — profiles, analytics, assignments | **After Graft C** |
-| **C** | Auth, de-Manusing, child access | Not started |
+| **C1** | Sign in by emailed link | **Done**, merged (PR #11) |
+| **C2** | Step-up PIN, elevation, child access tokens | **Done**, open in **PR #12** |
+| **C3** | Wiring the PIN gate to real elevation | **With B3e** — see below |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
-> **Next up is Graft C — authentication.** The remaining `App.tsx` work touches
+> **The client PIN gate is still demo theatre, on purpose.** `ParentPinModal`
+> calls the legacy `/api/auth/verify-pin`, which compares against demo accounts
+> in a JSON file. It guards the parent, teacher and district dashboards — all of
+> which read *demonstration data*. Swapping it for real elevation now would
+> replace one piece of theatre with another while the surfaces behind it still
+> show invented numbers. It becomes real in the same change that moves those
+> dashboards onto the server, where they must be built on `elevatedProcedure`.
+>
+> **Next up is Graft C3 / B3e — the remaining `App.tsx` lift.** The remaining `App.tsx` work touches
 > the profile switcher, the PIN gates and learner selection, which are exactly
 > the surfaces Graft C rewrites. Doing it first means doing it twice.
 >
@@ -51,7 +61,7 @@ Donor repository, read-only reference:
 > merge left `main` without the tRPC layer for an hour. PR #7 repaired it.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
-Working branch: `graft-b3d-practice-slice`
+Working branch: `graft-c2-child-access`
 
 ---
 
@@ -82,7 +92,7 @@ generator integrity gate is written in them.
 
 | Command | What it does |
 | --- | --- |
-| `pnpm test` | Everything. 282 tests; integration suites skip without `DATABASE_URL` |
+| `pnpm test` | Everything. 345 tests; integration suites skip without `DATABASE_URL` |
 | `pnpm test:integration` | Only the suites needing a database |
 | `pnpm audit:generator` | Both halves of the content gate, writes `data/generator-validation.json` |
 | `pnpm lint` | `tsc --noEmit` |
