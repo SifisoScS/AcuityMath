@@ -24,9 +24,15 @@ const describeWithDb = DATABASE_URL ? describe : describe.skip;
 describeWithDb('practice loop API', () => {
   let harness: TestDatabase;
 
-  /** A caller acting as the given user, or as nobody. */
+  /**
+   * A caller acting as the given user, or as nobody.
+   *
+   * `headers` is empty, so nothing here carries elevation. Procedures built on
+   * `elevatedProcedure` are exercised in the step-up suite, where a token can
+   * be minted deliberately.
+   */
   const callerFor = (user: AuthenticatedUser | null) =>
-    appRouter.createCaller({ db: harness.db, user } satisfies Context);
+    appRouter.createCaller({ db: harness.db, user, headers: {} } satisfies Context);
 
   let sarah: AuthenticatedUser;
   let otherParent: AuthenticatedUser;

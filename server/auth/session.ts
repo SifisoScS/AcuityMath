@@ -33,6 +33,18 @@ export interface AuthenticatedUser {
 }
 
 export const SESSION_COOKIE = 'acuity_session';
+
+/**
+ * Proof that the adult, not the child, is at the keyboard.
+ *
+ * A separate cookie from the session rather than a claim inside it. The session
+ * lasts thirty days because a parent should not be signed out between homework
+ * sessions; elevation lasts fifteen minutes because the tablet gets handed to a
+ * child. Putting both in one token would mean reissuing a thirty-day credential
+ * every time somebody opened the parent dashboard, and expiring elevation would
+ * mean expiring the session.
+ */
+export const ELEVATION_COOKIE = 'acuity_elevated';
 export const DEV_AUTH_ENV = 'DEV_AUTH_EMAIL';
 
 /** Thirty days. A parent should not be signed out between homework sessions. */
@@ -40,6 +52,15 @@ export const SESSION_LIFETIME_SECONDS = 30 * 24 * 60 * 60;
 
 const ISSUER = 'acuitymath';
 const AUDIENCE = 'acuitymath-app';
+/**
+ * A distinct audience, so a session token cannot be presented as elevation.
+ * Without it, the same signature verifies for both and holding a session would
+ * be holding the step-up it exists to require.
+ */
+const ELEVATION_AUDIENCE = 'acuitymath-elevated';
+
+/** Fifteen minutes. Long enough to read a dashboard, short enough to hand over. */
+export const ELEVATION_LIFETIME_SECONDS = 15 * 60;
 
 export interface RequestHeaders {
   cookie?: string | undefined;
@@ -75,6 +96,57 @@ export async function issueSession(userId: number): Promise<string> {
     .setAudience(AUDIENCE)
     .setExpirationTime(`${SESSION_LIFETIME_SECONDS}s`)
     .sign(signingKey());
+}
+
+/** Mints an elevation token for a user id. */
+export async function issueElevation(userId: number): Promise<string> {
+  return new SignJWT({ sub: String(userId) })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setIssuer(ISSUER)
+    .setAudience(ELEVATION_AUDIENCE)
+    .setExpirationTime(`${ELEVATION_LIFETIME_SECONDS}s`)
+    .sign(signingKey());
+}
+
+/**
+ * Whether this request carries valid elevation for this user.
+ *
+ * Checks the subject as well as the signature. An elevation token belonging to
+ * a different account is not elevation for this one — which matters on a shared
+ * computer where two parents sign in from the same browser.
+ */
+export async function hasElevation(headers: RequestHeaders, userId: number): Promise<boolean> {
+  const token = readCookie(headers.cookie, ELEVATION_COOKIE);
+  if (!token) return false;
+
+  try {
+    const { payload } = await jwtVerify(token, signingKey(), {
+      issuer: ISSUER,
+      audience: ELEVATION_AUDIENCE,
+    });
+    return Number(payload.sub) === userId;
+  } catch {
+    return false;
+  }
+}
+
+export function elevationCookie(token: string): string {
+  const parts = [
+    `${ELEVATION_COOKIE}=${token}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${ELEVATION_LIFETIME_SECONDS}`,
+  ];
+  if (process.env.NODE_ENV === 'production') parts.push('Secure');
+  return parts.join('; ');
+}
+
+export function clearedElevationCookie(): string {
+  const parts = [`${ELEVATION_COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'];
+  if (process.env.NODE_ENV === 'production') parts.push('Secure');
+  return parts.join('; ');
 }
 
 /**

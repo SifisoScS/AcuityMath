@@ -28,8 +28,13 @@ async function startServer() {
     '/trpc',
     createExpressMiddleware({
       router: appRouter,
-      createContext: ({ req }) =>
-        createContext({ cookie: req.headers.cookie, authorization: req.headers.authorization }),
+      createContext: ({ req, res }) =>
+        createContext(
+          { cookie: req.headers.cookie, authorization: req.headers.authorization },
+          // Appended rather than replaced: a single response may set both the
+          // elevation cookie and anything else a procedure needs.
+          value => res.append('Set-Cookie', value),
+        ),
       onError({ error, path: procedure }) {
         // A 500 from a procedure is a server fault worth seeing in the log; a
         // 401 or 404 is the authorization layer working and would only be noise.

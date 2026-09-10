@@ -58,6 +58,26 @@ export const users = mysqlTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
     lastSignedInAt: timestamp('last_signed_in_at'),
+
+    /**
+     * The PIN that separates the adult who signed in from the child now holding
+     * the device.
+     *
+     * Signing in is not the question this answers. A guardian signs in once on
+     * the family tablet and leaves it signed in — which is the point, and also
+     * why reaching their child's analytics, screen-time controls and data export
+     * needs a second, deliberate step.
+     *
+     * scrypt, with the parameters recorded in the value itself. A four-digit PIN
+     * is ten thousand possibilities and no key derivation makes that strong; the
+     * defence that matters is the lockout below, because the attacker here is a
+     * nine-year-old trying birthdays rather than someone holding the database.
+     */
+    stepUpPinHash: varchar('step_up_pin_hash', { length: 255 }),
+    stepUpPinSetAt: timestamp('step_up_pin_set_at'),
+    /** Reset on success. Drives the lockout that makes a short PIN defensible. */
+    stepUpFailedAttempts: smallint('step_up_failed_attempts').notNull().default(0),
+    stepUpLockedUntil: timestamp('step_up_locked_until'),
   },
   table => [uniqueIndex('users_email_idx').on(table.email)],
 );
