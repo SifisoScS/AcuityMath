@@ -41,7 +41,9 @@ Donor repository, read-only reference:
 | **B3e** | The rest of the `App.tsx` lift — profiles, analytics, assignments | **After Graft C** |
 | **C1** | Sign in by emailed link | **Done**, merged (PR #11) |
 | **C2** | Step-up PIN, elevation, child access tokens | **Done**, open in **PR #12** |
-| **C3** | Wiring the PIN gate to real elevation | **With B3e** — see below |
+| **B3e** | Profiles from the server, demo family, real progress | **Done**, open in **PR #13** |
+| **C3** | Wiring the PIN gate to real elevation | **Next** |
+| **B3f** | Analytics, assignments, notifications onto the server | After C3 |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
 > **The client PIN gate is still demo theatre, on purpose.** `ParentPinModal`
@@ -61,7 +63,7 @@ Donor repository, read-only reference:
 > merge left `main` without the tRPC layer for an hour. PR #7 repaired it.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
-Working branch: `graft-c2-child-access`
+Working branch: `graft-b3e-profiles`
 
 ---
 
@@ -92,13 +94,14 @@ generator integrity gate is written in them.
 
 | Command | What it does |
 | --- | --- |
-| `pnpm test` | Everything. 345 tests; integration suites skip without `DATABASE_URL` |
+| `pnpm test` | Everything. 347 tests; integration suites skip without `DATABASE_URL` |
 | `pnpm test:integration` | Only the suites needing a database |
 | `pnpm audit:generator` | Both halves of the content gate, writes `data/generator-validation.json` |
 | `pnpm lint` | `tsc --noEmit` |
 | `pnpm db:generate` | New migration from a schema change |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Import the 1,132-problem curriculum. Idempotent |
+| `pnpm db:seed:demo` | A demonstration family with real attempts. Idempotent |
 | `pnpm build` | Client bundle plus server bundle |
 
 CI runs these in order: schema/migration → generator gate → typecheck → test →
@@ -284,6 +287,21 @@ ability at `createInitialProfile(10)` with a comment saying age-based seeding
 ten-year-old's curve, and a five-year-old's first wrong answer moved her level
 from 2.0 to 4.3. Found by looking at the ability meter in a screenshot, not by a
 test. If a comment defers work, the work needs a home.
+
+**A key built from data that moved is a suppression that fails quietly.** The
+characterisation tests suppress the placement prompt with a sessionStorage key
+containing the active profile id. Profile ids changed from `user-maya` to
+`guest`/`learner-N`, the key stopped matching, and the prompt started covering
+the page about one run in five. There is now a test asserting the suppression
+still works, so the next time it rots it fails in one obvious place rather than
+making twenty tests racy.
+
+**Zeros about a real child are worse than invented numbers.** Moving profiles to
+the server first returned them with progress zeroed, on the reasoning that
+progress belonged to the snapshot. The dashboard then showed "Level 0, 0 ELO"
+for a learner with eighteen recorded answers. `learners.list` carries headline
+progress now — three aggregate queries for the whole family rather than a
+snapshot request per child.
 
 **Sort ranges collide silently.** Generated concepts were numbered 10-120 and
 imported strands 0-3000, so a nine-year-old was offered a generated fraction

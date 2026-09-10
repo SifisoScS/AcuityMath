@@ -8,7 +8,7 @@
  */
 
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import * as schema from '../../drizzle/schema';
@@ -34,7 +34,17 @@ import {
 } from './index';
 
 const learnersRouter = router({
-  /** The signed-in guardian's own children. Never anybody else's. */
+  /**
+   * The signed-in guardian's own children. Never anybody else's.
+   *
+   * Carries each child's headline progress, because every surface that lists
+   * children shows it — the switcher, the sidebar, the parent dashboard. The
+   * alternative is a snapshot request per child, which for a family of four is
+   * four round trips to render one list.
+   *
+   * The aggregates are three queries over the whole family rather than three
+   * per child: an N+1 here is four times the work for the same answer.
+   */
   list: protectedProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db
       .select()
@@ -42,8 +52,37 @@ const learnersRouter = router({
       .where(and(eq(schema.learners.guardianId, ctx.user.id), isNull(schema.learners.archivedAt)))
       .orderBy(schema.learners.birthYear);
 
+    if (rows.length === 0) return [];
+    const ids = rows.map(row => row.id);
+
+    const abilities = await ctx.db
+      .select()
+      .from(schema.learnerAbility)
+      .where(inArray(schema.learnerAbility.learnerId, ids));
+
+    const rewards = await ctx.db
+      .select()
+      .from(schema.learnerRewards)
+      .where(inArray(schema.learnerRewards.learnerId, ids));
+
+    const mastery = await ctx.db
+      .select({
+        learnerId: schema.learnerConceptMastery.learnerId,
+        attempts: sql<number>`sum(${schema.learnerConceptMastery.attemptCount})`,
+        weightedAccuracy: sql<number>`sum(${schema.learnerConceptMastery.accuracy} * ${schema.learnerConceptMastery.attemptCount})`,
+        mastered: sql<number>`sum(case when ${schema.learnerConceptMastery.masteryScore} >= 80 then 1 else 0 end)`,
+      })
+      .from(schema.learnerConceptMastery)
+      .where(inArray(schema.learnerConceptMastery.learnerId, ids))
+      .groupBy(schema.learnerConceptMastery.learnerId);
+
     return rows.map(learner => {
       const age = approximateAge(learner.birthYear);
+      const ability = abilities.find(row => row.learnerId === learner.id);
+      const reward = rewards.find(row => row.learnerId === learner.id);
+      const progress = mastery.find(row => row.learnerId === learner.id);
+
+      const attempts = Number(progress?.attempts ?? 0);
       return {
         id: learner.id,
         displayName: learner.displayName,
@@ -51,6 +90,19 @@ const learnersRouter = router({
         birthYear: learner.birthYear,
         age,
         tier: tierForAge(age),
+        // Zero for a learner who has never answered, which is true rather than
+        // a placeholder — a child with no attempts has no ability estimate.
+        dynamicLevel: ability ? Number(ability.dynamicLevel) : 0,
+        eloRating: ability?.eloRating ?? 0,
+        answered: ability?.historyCount ?? 0,
+        coins: reward?.coins ?? 0,
+        xp: reward?.xp ?? 0,
+        streakDays: reward?.streakDays ?? 0,
+        streakShields: reward?.streakShields ?? 0,
+        // Weighted by attempts, so a concept answered once does not count as
+        // much as one answered twenty times.
+        accuracyRate: attempts > 0 ? Math.round(Number(progress?.weightedAccuracy ?? 0) / attempts) : 0,
+        conceptsMastered: Number(progress?.mastered ?? 0),
       };
     });
   }),

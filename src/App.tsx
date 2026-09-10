@@ -37,6 +37,7 @@ import { CATEGORY_DETAILS, AGE_PROFILES } from './data/ageCurriculumData';
 import { InteractiveLessonModal } from './components/InteractiveLessonModal';
 import { RewardsModal } from './components/RewardsModal';
 import { NotificationsModal } from './components/NotificationsModal';
+import { useProfiles } from './hooks/useProfiles';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
@@ -80,17 +81,29 @@ import {
 import { playClickSound, speakText, stopSpeaking } from './utils/audio';
 
 export default function App() {
-  // Profiles state
-  const [profiles, setProfiles] = useState<UserProfile[]>(() =>
-    getSavedItem<UserProfile[]>('profiles', INITIAL_PROFILES)
-  );
-
-  // Active profile
-  const [activeProfileId, setActiveProfileId] = useState<string>(() =>
-    getSavedItem<string>('active_profile_id', 'user-maya')
-  );
-
-  const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0];
+  /**
+   * Profiles now come from the server: the signed-in guardian's real children.
+   *
+   * What used to be `INITIAL_PROFILES` in `localStorage` — Maya, Leo and Alex,
+   * invented — is a query. The shape they arrive in is unchanged, so the
+   * fourteen components rendering a `UserProfile` did not have to move with the
+   * data.
+   *
+   * `setProfiles` is gone with them. A child's name and age belong to a row, and
+   * the mutation that changes one is `learners.create`; a local setter would be
+   * a second source of truth that silently disagrees after a refresh.
+   */
+  const {
+    profiles,
+    activeProfile,
+    activeProfileId,
+    selectProfile,
+    refresh: refreshProfiles,
+    createLearner,
+    isSignedIn,
+    isResolving: isResolvingProfiles,
+    isPlaceholder,
+  } = useProfiles();
 
   // Active navigation tab (default to landing/home page)
   const [activeTab, setActiveTab] = useState<NavigationTab>('home');
@@ -285,13 +298,14 @@ export default function App() {
   }, [activeProfile.id, activeProfile.role]);
 
   // Save changes to localStorage
-  useEffect(() => {
-    saveItem('profiles', profiles);
-  }, [profiles]);
-
-  useEffect(() => {
-    saveItem('active_profile_id', activeProfileId);
-  }, [activeProfileId]);
+  //
+  // The two effects that mirrored `profiles` and the active profile id here are
+  // gone. Children are rows now, and `useProfiles` owns the one thing that is
+  // still local — which child this browser tab is looking at.
+  //
+  // Leaving them would have been worse than redundant: `profiles` starts empty
+  // while the query is in flight, so the effect wrote `[]` over whatever was
+  // stored, on every load, before the real children had arrived.
 
   useEffect(() => {
     saveItem('assignments', assignments);
@@ -326,23 +340,11 @@ export default function App() {
     newLevel: number;
     newElo: number;
   }) => {
-    const updatedProfiles = profiles.map(p => {
-      if (p.id === activeProfile.id) {
-        const nextXp = p.xp + results.xpEarned;
-        const nextCoins = p.coins + results.coinsEarned;
-        return {
-          ...p,
-          xp: nextXp,
-          coins: nextCoins,
-          dynamicLevel: results.newLevel,
-          eloRating: results.newElo,
-          completedLessonsCount: p.completedLessonsCount + 1,
-          accuracyRate: Math.round((p.accuracyRate + results.accuracy) / 2)
-        };
-      }
-      return p;
-    });
-    setProfiles(updatedProfiles);
+    // XP, coins, level and ELO were computed here and written to local state.
+    // They are the server's now — `recordAttempt` moves mastery and the 3PL
+    // estimate inside one transaction — so this asks for the new numbers
+    // instead of inventing a second set that disagrees after a refresh.
+    refreshProfiles();
 
     // Submit attempt to server database
     apiService.submitAttempt(activeProfile.id, {
@@ -461,11 +463,16 @@ export default function App() {
     }, 1200);
   };
 
-  // Profile update
-  const handleUpdateActiveUser = (updated: Partial<UserProfile>) => {
-    setProfiles(prev =>
-      prev.map(p => (p.id === activeProfile.id ? { ...p, ...updated } : p))
-    );
+  /**
+   * A component reporting that the learner moved.
+   *
+   * Nothing is written locally: whatever changed was recorded server-side by
+   * the procedure that changed it, and this re-reads rather than guessing. The
+   * argument is kept in the signature because fourteen components pass it, and
+   * dropping it would be a churn this slice does not need.
+   */
+  const handleUpdateActiveUser = (_updated: Partial<UserProfile>) => {
+    refreshProfiles();
   };
 
   // Add new assignment
@@ -1189,7 +1196,7 @@ export default function App() {
               <LandingPage
                 onNavigate={tab => setActiveTab(tab)}
                 onSelectProfile={p => {
-                  setActiveProfileId(p.id);
+                  selectProfile(p.id);
                   if (p.role === 'parent') setActiveTab('parent');
                   else if (p.role === 'teacher') setActiveTab('teacher');
                   else setActiveTab('student');
@@ -1229,7 +1236,44 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'student' && (
+            {activeTab === 'student' && isPlaceholder && (
+              /**
+               * No child to show.
+               *
+               * Before profiles moved to the server this could not happen —
+               * three invented children were always there. Now a visitor who
+               * has not signed in has none, and the honest answer is to say so
+               * rather than to greet "Guest" over a row of zeroes. A dashboard
+               * that looks populated to somebody with no account is how a demo
+               * flatters itself.
+               */
+              <div className="max-w-md mx-auto text-center py-16">
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                  {isResolvingProfiles ? 'Loading your learners…' : 'No learners yet'}
+                </h2>
+                {!isResolvingProfiles && (
+                  <>
+                    <p className="mt-2 text-sm text-slate-500">
+                      {isSignedIn
+                        ? 'Add a child to this account to start practising.'
+                        : 'Sign in as a parent or educator to see your learners and their progress.'}
+                    </p>
+                    <button
+                      onClick={() => {
+                        playClickSound();
+                        if (isSignedIn) setIsProfileModalOpen(true);
+                        else setIsSignInOpen(true);
+                      }}
+                      className="mt-5 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition cursor-pointer"
+                    >
+                      {isSignedIn ? 'Add a learner' : 'Sign in'}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'student' && !isPlaceholder && (
               <StudentDashboard
                 user={activeProfile}
                 lessons={lessons}
@@ -1372,15 +1416,18 @@ export default function App() {
               setIsParentPinOpen(true);
               return;
             }
-            setActiveProfileId(p.id);
+            selectProfile(p.id);
             if (p.role === 'parent') setActiveTab('parent');
             else if (p.role === 'teacher') setActiveTab('teacher');
             else setActiveTab('student');
           }}
           onAddNewStudent={newP => {
-            setProfiles(prev => [...prev, newP]);
-            setActiveProfileId(newP.id);
-            setActiveTab('student');
+            // The modal builds a client-side profile; what is created is a row.
+            void createLearner({
+              displayName: newP.name,
+              birthYear: new Date().getFullYear() - newP.age,
+              avatar: newP.avatar,
+            }).then(() => setActiveTab('student'));
           }}
           onClose={() => setIsProfileModalOpen(false)}
         />
@@ -1393,7 +1440,7 @@ export default function App() {
         onSuccess={() => {
           setAuthenticatedRoles(prev => ({ ...prev, [targetProtectedRole]: true }));
           if (targetProtectedProfile) {
-            setActiveProfileId(targetProtectedProfile.id);
+            selectProfile(targetProtectedProfile.id);
           }
           if (targetProtectedTab) {
             setActiveTab(targetProtectedTab);
@@ -1416,14 +1463,11 @@ export default function App() {
         hasConsented={hasCoppaConsent}
         onConsentUpdated={() => {
           setHasCoppaConsent(true);
-          apiService.getBootstrap().then(data => {
-            if (data && data.students) {
-              setProfiles(prev => {
-                const nonStudents = prev.filter(p => p.role !== 'student');
-                return [...nonStudents, ...data.students];
-              });
-            }
-          });
+          // Consent changes what the server will return for these children, so
+          // re-read rather than patching a local copy. The legacy bootstrap
+          // call that used to rebuild the profile list from `/api` goes with the
+          // JSON store it reads from.
+          refreshProfiles();
         }}
         students={studentProfiles.map(s => ({ id: s.id, name: s.name, age: s.age || 8 }))}
       />

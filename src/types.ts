@@ -36,6 +36,15 @@ export interface UserProfile {
   parentContact?: string;
   diagnosticComplete?: boolean;
   initialThetaScore?: number;
+  /**
+   * The server learner this profile stands for, when it stands for one.
+   *
+   * Absent on the signed-in adult and on the placeholder shown to a visitor who
+   * has not signed in. Its presence is what tells the practice loop it has a
+   * real child to record against, which is why the check is `typeof === number`
+   * rather than a truthiness test somewhere.
+   */
+  learnerId?: number;
 }
 
 export type VisualType = 
