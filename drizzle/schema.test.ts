@@ -63,6 +63,7 @@ const LEARNER_SCOPED = [
 /** Tables holding data about an authenticating adult, or about content. */
 const NOT_LEARNER_SCOPED = [
   'users',
+  'magic_link_tokens',
   'learners',
   'classrooms',
   'concepts',

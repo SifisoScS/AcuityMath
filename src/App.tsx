@@ -38,6 +38,7 @@ import { InteractiveLessonModal } from './components/InteractiveLessonModal';
 import { RewardsModal } from './components/RewardsModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
+import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
 import { CoppaConsentModal } from './components/CoppaConsentModal';
 import { ScreenTimeLockModal } from './components/ScreenTimeLockModal';
@@ -49,31 +50,32 @@ import { PlacementQuestPromptModal } from './components/PlacementQuestPromptModa
 import { BilingualGlossaryModal } from './components/BilingualGlossaryModal';
 import { apiService } from './services/api';
 import {
-  Home,
-  LayoutDashboard,
-  GraduationCap,
-  LineChart,
-  Users,
-  Trophy,
-  PenTool,
-  Clock,
-  Volume2,
-  Eye,
-  Type,
   Bell,
+  Building2,
   ChevronRight,
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
+  Clock,
+  Compass,
+  Eye,
+  GraduationCap,
+  Home,
+  KeyRound,
+  Languages,
+  LayoutDashboard,
+  LineChart,
+  Menu,
   PanelLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  Menu,
-  X,
+  PenTool,
   QrCode,
-  Compass,
-  Building2,
-  Languages
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Trophy,
+  Type,
+  Users,
+  Volume2,
+  X
 } from 'lucide-react';
 import { playClickSound, speakText, stopSpeaking } from './utils/audio';
 
@@ -175,6 +177,32 @@ export default function App() {
   // Quick-Wins: Placement Quest & Bilingual Vocabulary Scaffolding
   const [isPlacementQuestOpen, setIsPlacementQuestOpen] = useState(false);
   const [showPlacementPrompt, setShowPlacementPrompt] = useState(false);
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
+
+  /**
+   * What the sign-in callback said, taken from the query string once.
+   *
+   * The callback redirects rather than rendering, so the token never sits in
+   * the address bar — but the *outcome* has to reach the page somehow, and a
+   * query parameter is the only channel a redirect has. Read and cleared on
+   * mount so a refresh does not repeat the message.
+   */
+  const [signInNotice, setSignInNotice] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const status = new URLSearchParams(window.location.search).get('signin');
+    if (!status) return null;
+    window.history.replaceState({}, '', window.location.pathname);
+    return (
+      {
+        ok: 'You are signed in.',
+        expired: 'That sign-in link has expired. Ask for a new one.',
+        'already-used': 'That sign-in link has already been used. Ask for a new one.',
+        invalid: 'That sign-in link was not valid. Ask for a new one.',
+        unknown: 'That sign-in link was not recognised. Ask for a new one.',
+      } as Record<string, string>
+    )[status] ?? null;
+  });
+
   const [isGlossaryModalOpen, setIsGlossaryModalOpen] = useState(false);
 
   // Automated Placement Quest First-Login Onboarding Prompt
@@ -1026,6 +1054,18 @@ export default function App() {
               </button>
             )}
 
+            <button
+              onClick={() => {
+                playClickSound();
+                setIsSignInOpen(true);
+              }}
+              className="px-2.5 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              title="Sign in as a parent or educator"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden md:inline">Sign In</span>
+            </button>
+
             {/* COPPA & FERPA Compliance Indicator */}
             <button
               onClick={() => {
@@ -1129,6 +1169,22 @@ export default function App() {
         {/* View Main Content Container - Independent Scroll Container */}
         <div className="flex-1 overflow-y-auto flex flex-col min-h-0 w-full">
           <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+            {signInNotice && (
+              <div
+                role="status"
+                className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3"
+              >
+                <span className="text-xs font-bold text-indigo-900">{signInNotice}</span>
+                <button
+                  onClick={() => setSignInNotice(null)}
+                  aria-label="Dismiss"
+                  className="p-1 rounded-full text-indigo-500 hover:bg-indigo-100 transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             {activeTab === 'home' && (
               <LandingPage
                 onNavigate={tab => setActiveTab(tab)}
@@ -1301,6 +1357,8 @@ export default function App() {
           }}
         />
       )}
+
+      <SignInPanel isOpen={isSignInOpen} onClose={() => setIsSignInOpen(false)} />
 
       {isProfileModalOpen && (
         <ProfileSwitchModal

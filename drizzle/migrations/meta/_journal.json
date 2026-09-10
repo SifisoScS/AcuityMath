@@ -22,6 +22,13 @@
       "when": 1788949111484,
       "tag": "0002_serious_franklin_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1789022053347,
+      "tag": "0003_bumpy_young_avengers",
+      "breakpoints": true
     }
   ]
 }
