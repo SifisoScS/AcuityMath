@@ -566,6 +566,15 @@ const practiceRouter = router({
         answer: z.string().max(200),
         responseTimeMs: z.number().int().nonnegative().max(3_600_000).optional(),
         wasOffline: z.boolean().optional(),
+        /**
+         * Made by the client when the child answered, not when this was sent.
+         *
+         * Supplying one makes the call safe to repeat, which is what lets the
+         * offline queue retry an item it is not sure was delivered. Without it a
+         * retry moves mastery and the 3PL estimate a second time for one
+         * question, and there is no way back to what they should have been.
+         */
+        clientId: z.string().trim().min(8).max(64).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -596,6 +605,7 @@ const practiceRouter = router({
         submittedAnswer: input.answer,
         responseTimeMs: input.responseTimeMs ?? null,
         wasOffline: input.wasOffline ?? false,
+        clientId: input.clientId ?? null,
       });
 
       const [problem] = await ctx.db
@@ -605,6 +615,10 @@ const practiceRouter = router({
         .limit(1);
 
       return {
+        // True when this answer was already recorded and nothing was written.
+        // The reconciler counts delivered items, not accepted ones, so it needs
+        // to tell the two apart.
+        replayed: result.replayed,
         isCorrect: result.isCorrect,
         correctAnswer: problem.answer,
         explanation: problem.explanation,
