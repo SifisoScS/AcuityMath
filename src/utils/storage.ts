@@ -1,4 +1,4 @@
-import { UserProfile, ParentAnalytics, TeacherAssignment, NotificationItem, OfflineSyncState, AgeTier } from '../types';
+import { UserProfile, TeacherAssignment, NotificationItem, OfflineSyncState, AgeTier } from '../types';
 import { INITIAL_ACHIEVEMENTS } from '../data/curriculumData';
 import { tierForAge } from '../services/tiers';
 
@@ -98,80 +98,16 @@ export const INITIAL_PROFILES: UserProfile[] = [
   }
 ];
 
-export const INITIAL_ANALYTICS: Record<string, ParentAnalytics> = {
-  'user-maya': {
-    studentId: 'user-maya',
-    totalTimeMinutes: 145,
-    weeklyActivity: [
-      { day: 'Mon', minutes: 18, accuracy: 95, problemsSolved: 12 },
-      { day: 'Tue', minutes: 22, accuracy: 100, problemsSolved: 15 },
-      { day: 'Wed', minutes: 15, accuracy: 90, problemsSolved: 10 },
-      { day: 'Thu', minutes: 25, accuracy: 96, problemsSolved: 18 },
-      { day: 'Fri', minutes: 20, accuracy: 92, problemsSolved: 14 },
-      { day: 'Sat', minutes: 30, accuracy: 94, problemsSolved: 20 },
-      { day: 'Sun', minutes: 15, accuracy: 93, problemsSolved: 11 }
-    ],
-    masteryDomains: [
-      { domain: 'Counting & Number Sense', score: 96, color: 'bg-emerald-500', level: 'Mastered' },
-      { domain: 'Visual Shape Recognition', score: 92, color: 'bg-teal-500', level: 'Proficient' },
-      { domain: 'Early Addition & Patterns', score: 85, color: 'bg-amber-500', level: 'Developing' },
-      { domain: 'Spatial Orientation', score: 88, color: 'bg-sky-500', level: 'Proficient' }
-    ],
-    strengths: ['Rapid single-digit counting', 'Exceptional shape identification', 'High persistence'],
-    areasToImprove: ['Two-step counting without visual anchors', 'Transitions from 5 to 10'],
-    recommendedAction: 'Encourage 5 minutes daily on Star Addition with audio manipulatives.',
-    screenTimeLimitMinutes: 35,
-    focusAlertsCount: 0
-  },
-  'user-leo': {
-    studentId: 'user-leo',
-    totalTimeMinutes: 280,
-    weeklyActivity: [
-      { day: 'Mon', minutes: 35, accuracy: 88, problemsSolved: 24 },
-      { day: 'Tue', minutes: 40, accuracy: 92, problemsSolved: 28 },
-      { day: 'Wed', minutes: 30, accuracy: 85, problemsSolved: 20 },
-      { day: 'Thu', minutes: 45, accuracy: 91, problemsSolved: 32 },
-      { day: 'Fri', minutes: 38, accuracy: 86, problemsSolved: 26 },
-      { day: 'Sat', minutes: 50, accuracy: 94, problemsSolved: 35 },
-      { day: 'Sun', minutes: 42, accuracy: 90, problemsSolved: 30 }
-    ],
-    masteryDomains: [
-      { domain: 'Multiplication Tables (1-12)', score: 94, color: 'bg-emerald-500', level: 'Mastered' },
-      { domain: 'Visual Fraction Bars', score: 84, color: 'bg-sky-500', level: 'Proficient' },
-      { domain: 'Word Problem Translation', score: 76, color: 'bg-amber-500', level: 'Target Area' },
-      { domain: 'Area & 2D Geometry', score: 90, color: 'bg-indigo-500', level: 'Proficient' }
-    ],
-    strengths: ['Speed on multi-digit multiplication', 'Visual fraction slice comprehension'],
-    areasToImprove: ['Word problems requiring multi-step subtraction before division'],
-    recommendedAction: 'Practice with scratchpad note-taking during multi-step story problems.',
-    screenTimeLimitMinutes: 45,
-    focusAlertsCount: 1
-  },
-  'user-alex': {
-    studentId: 'user-alex',
-    totalTimeMinutes: 460,
-    weeklyActivity: [
-      { day: 'Mon', minutes: 55, accuracy: 94, problemsSolved: 35 },
-      { day: 'Tue', minutes: 60, accuracy: 96, problemsSolved: 40 },
-      { day: 'Wed', minutes: 45, accuracy: 89, problemsSolved: 28 },
-      { day: 'Thu', minutes: 65, accuracy: 93, problemsSolved: 42 },
-      { day: 'Fri', minutes: 50, accuracy: 91, problemsSolved: 32 },
-      { day: 'Sat', minutes: 80, accuracy: 97, problemsSolved: 50 },
-      { day: 'Sun', minutes: 60, accuracy: 92, problemsSolved: 38 }
-    ],
-    masteryDomains: [
-      { domain: 'Calculus: Power Rule & Tangents', score: 95, color: 'bg-purple-500', level: 'Mastered' },
-      { domain: 'Quadratic Curves & Parabolas', score: 92, color: 'bg-emerald-500', level: 'Mastered' },
-      { domain: 'Trigonometric Identities', score: 82, color: 'bg-amber-500', level: 'Developing' },
-      { domain: 'Coordinate Geometry Modeling', score: 96, color: 'bg-sky-500', level: 'Mastered' }
-    ],
-    strengths: ['Instant derivative recognition', 'Algebraic manipulation with fractions'],
-    areasToImprove: ['Unit circle trigonometric radian transformations'],
-    recommendedAction: 'Review sine wave phase-shift graphing module before next AP benchmark.',
-    screenTimeLimitMinutes: 90,
-    focusAlertsCount: 0
-  }
-};
+/*
+ * `INITIAL_ANALYTICS` stood here: three children's worth of invented weekly
+ * activity, mastery domains and advice, keyed `user-maya`/`user-leo`/`user-alex`.
+ *
+ * It is gone because analytics are derived from the child's own attempts now
+ * (`server/learning/analytics.ts`). Leaving it would not have been harmless —
+ * every consumer had learned to fall back to `INITIAL_ANALYTICS['user-maya']`
+ * when a lookup missed, so a parent selecting Leo saw Maya's numbers under
+ * Leo's name, and a child with no screen-time limit was shown Maya's.
+ */
 
 export const INITIAL_ASSIGNMENTS: TeacherAssignment[] = [
   {

@@ -13,6 +13,7 @@ import { z } from 'zod';
 
 import * as schema from '../../drizzle/schema';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
+import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { recordAttempt } from '../learning/recordAttempt';
 import { serveNextProblem } from '../learning/serveProblem';
 import {
@@ -26,6 +27,7 @@ import {
 import { clearedElevationCookie, elevationCookie, hasElevation, issueElevation } from '../auth/session';
 import {
   elevatedLearnerProcedure,
+  elevatedProcedure,
   learnerIdInput,
   learnerProcedure,
   protectedProcedure,
@@ -133,6 +135,23 @@ const learnersRouter = router({
         .$returningId();
 
       return { id: created.id };
+    }),
+
+  /**
+   * The daily screen-time limit for one child.
+   *
+   * Elevated, because it is a parent's control over a child and the child is
+   * the person most motivated to change it. It lived in browser state before,
+   * where the learner it restricted could clear it.
+   */
+  setScreenTimeLimit: elevatedLearnerProcedure
+    .input(z.object({ dailyLimitMinutes: z.number().int().min(5).max(480) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .insert(schema.screenTimeRules)
+        .values({ learnerId: ctx.learner.id, dailyLimitMinutes: input.dailyLimitMinutes })
+        .onDuplicateKeyUpdate({ set: { dailyLimitMinutes: input.dailyLimitMinutes } });
+      return { dailyLimitMinutes: input.dailyLimitMinutes };
     }),
 
   /** Everything a dashboard needs for one child, in one round trip. */
@@ -333,6 +352,31 @@ const accessRouter = router({
     }),
 });
 
+const analyticsRouter = router({
+  /**
+   * One child's analytics.
+   *
+   * `elevatedLearnerProcedure`, not `learnerProcedure`: this is the surface the
+   * step-up PIN exists for. A signed-in session on a family tablet is not proof
+   * that the person reading a nine-year-old's error patterns is their parent
+   * rather than their sibling.
+   */
+  forLearner: elevatedLearnerProcedure.query(({ ctx }) => learnerAnalytics(ctx.db, ctx.learner.id)),
+
+  /** Every child on the account, for the parent dashboard's family view. */
+  forFamily: elevatedProcedure.query(async ({ ctx }) => {
+    const mine = await ctx.db
+      .select({ id: schema.learners.id })
+      .from(schema.learners)
+      .where(and(eq(schema.learners.guardianId, ctx.user.id), isNull(schema.learners.archivedAt)));
+
+    return analyticsForLearners(
+      ctx.db,
+      mine.map(row => row.id),
+    );
+  }),
+});
+
 const practiceRouter = router({
   start: learnerProcedure
     .input(z.object({ targetLength: z.number().int().min(1).max(50).default(8) }))
@@ -452,6 +496,7 @@ export const appRouter = router({
   learners: learnersRouter,
   practice: practiceRouter,
   access: accessRouter,
+  analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;
