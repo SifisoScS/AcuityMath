@@ -1,6 +1,6 @@
 # Migration status
 
-**Last updated: 9 September 2026.** The resumption point for grafting the
+**Last updated: 9 September 2026 (evening).** The resumption point for grafting the
 Sovereign Mathematical Learning Engine's spine under AcuityMath.
 
 Read this first if you are picking the work up cold. It records what is done,
@@ -35,17 +35,23 @@ Donor repository, read-only reference:
 | **B1** | Schema, migration, identity model | **Done**, merged to `main` (PR #3) |
 | **B2** | Answer pipeline, mastery curve, test isolation | **Done**, open in **PR #4** — not yet in `main` |
 | **B3a** | tRPC routers, practice loop API, tier unification | **Done**, open in **PR #5** |
-| **B3b** | Curriculum import, seed, practice loop on real content | **Done**, open in **PR #8** |
-| **B3c** | `App.tsx` state lift | **Next** — the last piece of Graft B |
+| **B3b** | Curriculum import, seed, practice loop on real content | **Done**, merged (PR #8) |
+| **B3c** | Safety net, service layer, three a11y/authorisation fixes | **Done**, merged (PR #9) |
+| **B3d** | Practice view serving authored content | **Done**, open in **PR #10** |
+| **B3e** | The rest of the `App.tsx` lift — profiles, analytics, assignments | **After Graft C** |
 | **C** | Auth, de-Manusing, child access | Not started |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
+> **Next up is Graft C — authentication.** The remaining `App.tsx` work touches
+> the profile switcher, the PIN gates and learner selection, which are exactly
+> the surfaces Graft C rewrites. Doing it first means doing it twice.
+>
 > **Branch from `main`, and target `main`.** A stacked pull request merges into
 > its base branch, not into `main` — PR #5 was based on `graft-b-schema` and its
 > merge left `main` without the tRPC layer for an hour. PR #7 repaired it.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
-Working branch: `graft-b3b-curriculum-import`
+Working branch: `graft-b3d-practice-slice`
 
 ---
 
@@ -76,7 +82,7 @@ generator integrity gate is written in them.
 
 | Command | What it does |
 | --- | --- |
-| `pnpm test` | Everything. 199 tests; integration suites skip without `DATABASE_URL` |
+| `pnpm test` | Everything. 282 tests; integration suites skip without `DATABASE_URL` |
 | `pnpm test:integration` | Only the suites needing a database |
 | `pnpm audit:generator` | Both halves of the content gate, writes `data/generator-validation.json` |
 | `pnpm lint` | `tsc --noEmit` |
@@ -172,7 +178,30 @@ own prerequisite graph. Coverage by age is pinned in a test:
     3:5  4:9  5:9  6:6  7:0  8:3  9:8  10:7
     11:6  12:14  13:25  14:20  15:13  16:8  17:3  18:1
 
-### 1. Lift `App.tsx`
+### ~~Practice view on real content~~ - done, PR #10
+
+`InfiniteAdaptiveModal` now asks the server for a question and falls back to the
+local generator when offline or signed out. A learner sees authored problems
+with their authored explanations, and the server decides correctness.
+
+`usePracticeLearner` is a **deliberate temporary bridge**: it finds or creates a
+server learner matching the visible demo profile, so real content could reach
+the practice view without touching identity. It deletes itself when the profile
+system moves in B3e.
+
+**Two gaps this exposed, both open:**
+
+- **Foundations problems do not draw.** Their `visual` payload is a set of
+  figures, and the practice card renders the prompt as text. "Which shape is the
+  biggest?" with no shapes is unanswerable by a five-year-old — and the choices
+  are the words *circle, square, star*, which she cannot read either. The
+  imported early-years content is present but not yet usable.
+- **The misconception label is wrong for imported content.** The card knows the
+  generator's ten codes; the corpus uses its own vocabulary, so
+  `size-middle-not-extreme` displays as "Arithmetic calculation step slip".
+  Showing nothing would be better than showing something false.
+
+### 1. Lift the rest of `App.tsx` (after Graft C)
 
 **The largest single task in the whole migration.** `src/App.tsx` is 1,424 lines
 holding **35 `useState` hooks**; only two files in the repo touch `localStorage`
@@ -238,6 +267,13 @@ concept seeded by the pipeline suite turned up in the schema suite's age-band
 assertion, and the failure read as a schema defect. `server/test-support/database.ts`
 gives each suite its own database. Do not "fix" this by serialising the files —
 that leaves the hazard for whoever forgets the flag.
+
+**A comment is not an implementation.** `blankProfile` seeded every learner's
+ability at `createInitialProfile(10)` with a comment saying age-based seeding
+"belongs at learner creation" — where nothing did it. Every learner began on a
+ten-year-old's curve, and a five-year-old's first wrong answer moved her level
+from 2.0 to 4.3. Found by looking at the ability meter in a screenshot, not by a
+test. If a comment defers work, the work needs a home.
 
 **Sort ranges collide silently.** Generated concepts were numbered 10-120 and
 imported strands 0-3000, so a nine-year-old was offered a generated fraction

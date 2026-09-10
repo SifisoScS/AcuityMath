@@ -15,7 +15,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import App from './App';
+import { renderApp } from '../test/renderApp';
 
 describe('App shell', () => {
   it('renders without a reachable API', () => {
@@ -23,14 +23,14 @@ describe('App shell', () => {
     // expected to degrade to its local cache, not to throw — the assertion is
     // that render() returned at all, plus a landmark to prove it got past the
     // first paint.
-    render(<App />);
+    renderApp();
     expect(screen.getByRole('heading', { name: /welcome to acuitymath/i })).toBeInTheDocument();
   });
 
   it('offers all four developmental tiers', () => {
     // The tier structure is the product's spine and the thing most likely to be
     // disturbed by a schema that models age differently.
-    render(<App />);
+    renderApp();
     const nav = screen.getByRole('navigation');
     for (const tier of ['Early Sprouts', 'Math Navigators', 'Algebra Voyagers', 'STEM Pioneers']) {
       expect(within(nav).getByRole('button', { name: new RegExp(tier, 'i') })).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('App shell', () => {
   it('keeps the role-gated surfaces reachable from the nav', () => {
     // Parent, Teacher and District are the three views that Graft C puts behind
     // real authentication. They must still be present and named the same.
-    render(<App />);
+    renderApp();
     const nav = screen.getByRole('navigation');
     for (const surface of ['Parent Analytics', 'Teacher', 'District Hub']) {
       expect(within(nav).getByRole('button', { name: new RegExp(surface, 'i') })).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('App shell', () => {
   it('exposes exactly one primary navigation landmark', () => {
     // Two would mean a screen-reader user is offered the same list twice, and
     // it is the kind of thing a layout change introduces silently.
-    render(<App />);
+    renderApp();
     expect(screen.getAllByRole('navigation')).toHaveLength(1);
   });
 });

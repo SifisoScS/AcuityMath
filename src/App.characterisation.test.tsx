@@ -16,11 +16,11 @@
  * change in the same commit, with the reason.
  */
 
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import App from './App';
+import { renderApp } from '../test/renderApp';
 
 /**
  * The app seeds its state from `localStorage` and mirrors it back on every
@@ -48,14 +48,14 @@ const nav = () => screen.getByRole('navigation');
 
 describe('the shell', () => {
   it('opens on the landing page', async () => {
-    render(<App />);
+    renderApp();
     expect(screen.getByRole('heading', { name: /welcome to acuitymath/i })).toBeInTheDocument();
   });
 
   it('survives an unreachable API', async () => {
     // jsdom resolves no relative URL, so every `/api/*` call rejects and the
     // app runs its offline fallback path on every one of these tests.
-    render(<App />);
+    renderApp();
     expect(nav()).toBeInTheDocument();
   });
 });
@@ -63,7 +63,7 @@ describe('the shell', () => {
 describe('navigation', () => {
   it('moves to an unprotected tab when it is clicked', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
 
@@ -79,7 +79,7 @@ describe('navigation', () => {
 
   it('tells assistive technology which tab is current', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
 
@@ -94,7 +94,7 @@ describe('navigation', () => {
   it('marks exactly one destination as current', async () => {
     // Two would tell a screen-reader user they are in two places at once.
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
 
@@ -113,7 +113,7 @@ describe('the placement quest prompt', () => {
     // after load, covers the page, and is suppressed for the rest of the
     // session once dismissed.
     window.sessionStorage.clear();
-    render(<App />);
+    renderApp();
 
     const prompt = await screen.findByRole('dialog', { name: /placement quest/i }, { timeout: 4000 });
     expect(prompt).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe('the placement quest prompt', () => {
   it('stays away once dismissed for the session', async () => {
     const user = userEvent.setup();
     window.sessionStorage.clear();
-    render(<App />);
+    renderApp();
 
     const prompt = await screen.findByRole('dialog', { name: /placement quest/i }, { timeout: 4000 });
     await user.click(within(prompt).getByRole('button', { name: /explore dashboard/i }));
@@ -143,7 +143,7 @@ describe('the PIN gate on adult surfaces', () => {
     // modal is a plain `div` with no dialog semantics and no focus trap — a
     // second finding, recorded in the same spirit as the one above.
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
 
@@ -152,7 +152,7 @@ describe('the PIN gate on adult surfaces', () => {
 
   it('gates the teacher surface the same way', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /^teacher/i }));
     expect(await screen.findByText(/educator pin required/i)).toBeInTheDocument();
@@ -160,7 +160,7 @@ describe('the PIN gate on adult surfaces', () => {
 
   it('announces the PIN prompt as a dialog, named and described', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
 
@@ -174,7 +174,7 @@ describe('the PIN gate on adult surfaces', () => {
     // Without a trap the keyboard walks out of the modal into the page behind,
     // where a user can operate controls they cannot see.
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
     const dialog = await screen.findByRole('dialog', { name: /parent authorization required/i });
@@ -188,7 +188,7 @@ describe('the PIN gate on adult surfaces', () => {
 
   it('closes on Escape', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
     await screen.findByRole('dialog', { name: /parent authorization required/i });
@@ -210,7 +210,7 @@ describe('the PIN gate on adult surfaces', () => {
     // a one-click CSV of the lot opened to whoever clicked. Demonstration data
     // today, which is exactly why the gap would have survived into a pilot.
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /district hub/i }));
 
@@ -221,7 +221,7 @@ describe('the PIN gate on adult surfaces', () => {
     // A parent PIN must not open the district hub. The prompt names which
     // credential it wants, and the server checks the role alongside the PIN.
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /parent analytics/i }));
     expect(await screen.findByText(/parent authorization required/i)).toBeInTheDocument();
@@ -244,7 +244,7 @@ describe('accessibility toggles', () => {
 
   it('applies a high-contrast ground when switched on', async () => {
     const user = userEvent.setup();
-    const { container } = render(<App />);
+    const { container } = renderApp();
 
     expect(themedRoot(container)?.className).toContain('bg-slate-50');
 
@@ -256,7 +256,7 @@ describe('accessibility toggles', () => {
 
   it('applies the high-readability face when switched on', async () => {
     const user = userEvent.setup();
-    const { container } = render(<App />);
+    const { container } = renderApp();
 
     expect(themedRoot(container)?.className).not.toContain('font-fredoka');
 
@@ -267,7 +267,7 @@ describe('accessibility toggles', () => {
 
   it('switches back off', async () => {
     const user = userEvent.setup();
-    const { container } = render(<App />);
+    const { container } = renderApp();
     const toggle = screen.getByTitle(/toggle high contrast/i);
 
     await user.click(toggle);
@@ -281,12 +281,12 @@ describe('state that outlives a reload', () => {
   it('remembers the chosen profile', async () => {
     // Today this is `localStorage`. After the lift it is the server, and this
     // test should still pass — that is its purpose.
-    render(<App />);
+    renderApp();
     expect(window.localStorage.getItem('acuity_math_active_profile_id')).not.toBeNull();
   });
 
   it('remembers the profiles themselves', async () => {
-    render(<App />);
+    renderApp();
     const stored = window.localStorage.getItem('acuity_math_profiles');
     expect(stored).not.toBeNull();
     expect(JSON.parse(stored!).length).toBeGreaterThan(0);
@@ -297,7 +297,7 @@ describe('state that outlives a reload', () => {
     // landing page. Recorded so the lift does not accidentally give it a home
     // on the server and change where a returning learner lands.
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { UserProfile } from '../types';
 import { MathManipulatives } from './MathManipulatives';
@@ -33,9 +33,16 @@ import { AdaptiveEngine, StudentAbilityProfile, MisconceptionCode } from '../ser
 import { adaptiveWorkerClient } from '../utils/adaptiveWorkerClient';
 import { BilingualTextHighlighter } from './BilingualTextHighlighter';
 import { apiService } from '../services/api';
+import { usePractice } from '../hooks/usePractice';
 
 interface InfiniteAdaptiveModalProps {
   user: UserProfile;
+  /**
+   * The server learner to record this session against. When absent — offline,
+   * signed out, or still resolving — the modal falls back to generating
+   * problems locally, which is what it did before there was a server.
+   */
+  learnerId?: number | null;
   onClose: () => void;
   onUpdateUserProfile: (updates: Partial<UserProfile>) => void;
   onOpenGlossary?: () => void;
@@ -43,6 +50,7 @@ interface InfiniteAdaptiveModalProps {
 
 export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
   user,
+  learnerId,
   onClose,
   onUpdateUserProfile,
   onOpenGlossary
@@ -60,7 +68,23 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
     ProblemGenerator.generate(user.tier, abilityProfile.theta)
   );
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  /** A typed answer, for the 784 authored problems that offer no choices. */
+  const [typedAnswer, setTypedAnswer] = useState('');
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+
+  /**
+   * Where this question came from.
+   *
+   * `authored` means one of the 1,132 problems whose answer was verified with
+   * SymPy and whose wrong options were written by someone who knew what each
+   * one diagnoses. `generated` is the local generator: unlimited, and the only
+   * thing that covers the ages the corpus does not reach.
+   */
+  const [source, setSource] = useState<'authored' | 'generated'>('generated');
+  const [explanation, setExplanation] = useState<string | null>(null);
+
+  const practice = usePractice(learnerId ?? null);
+  const useServer = typeof learnerId === 'number' && learnerId > 0;
   const [isCorrect, setIsCorrect] = useState(false);
   const [detectedMisconception, setDetectedMisconception] = useState<MisconceptionCode | null>(null);
 
@@ -71,6 +95,51 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
   const [streak, setStreak] = useState(0);
   const [solvedCount, setSolvedCount] = useState(0);
   const [earnedCoins, setEarnedCoins] = useState(0);
+
+  /** Turns a served problem into the shape this component already renders. */
+  const adoptServerQuestion = (served: NonNullable<typeof practice.question>) => {
+    setCurrentProblem({
+      id: String(served.problemId),
+      question: served.prompt,
+      // The correct answer is deliberately not sent with the question — it
+      // arrives with the verdict, once the learner has committed.
+      correctAnswer: '',
+      options: served.choices,
+      hint: served.hint,
+      explanation: '',
+      visualType: undefined,
+      visualData: served.visual ?? undefined,
+      manipulativeHint: served.manipulativeHint ?? undefined,
+      difficulty: served.difficulty,
+      irtParameters: { discrimination: 1, difficulty: 0, pseudoGuessing: 0.25 },
+      distractorDiagnostics: {},
+      standardCode: '',
+      topicDomain: served.conceptId,
+    } as GeneratedMathProblem);
+    setSource(served.source);
+  };
+
+  // The first server question. Runs once the learner id is known; until then
+  // the locally generated problem from `useState` is on screen, so the modal
+  // always opens with something rather than a spinner.
+  useEffect(() => {
+    if (!useServer) return;
+    let cancelled = false;
+    practice
+      .next()
+      .then(served => {
+        if (!cancelled) adoptServerQuestion(served);
+      })
+      .catch(() => {
+        // Offline, or the server refused. The generated question already on
+        // screen stands, and practice continues.
+        if (!cancelled) setSource('generated');
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useServer, learnerId]);
 
   const handleReadAloud = () => {
     if (isSpeaking) {
@@ -88,10 +157,60 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
     setSelectedOption(opt);
   };
 
-  const handleSubmitAnswer = () => {
-    if (!selectedOption || isAnswerSubmitted) return;
+  const handleSubmitAnswer = async () => {
+    const answer = currentProblem.options.length > 0 ? selectedOption : typedAnswer.trim();
+    if (!answer || isAnswerSubmitted) return;
 
-    const correct = selectedOption === currentProblem.correctAnswer;
+    if (useServer && practice.question) {
+      // Correctness is decided by the server, from the stored problem. The
+      // client never learns the answer before the learner has committed to one.
+      try {
+        const outcome = await practice.submit(answer);
+        setSelectedOption(answer);
+        setIsCorrect(outcome.isCorrect);
+        setIsAnswerSubmitted(true);
+        setExplanation(outcome.explanation);
+        setCurrentProblem(prev => ({ ...prev, correctAnswer: outcome.correctAnswer }));
+        setDetectedMisconception((outcome.misconceptionCode as MisconceptionCode) ?? null);
+
+        if (outcome.isCorrect) {
+          playSuccessSound();
+          const newStreak = streak + 1;
+          setStreak(newStreak);
+          setSolvedCount(prev => prev + 1);
+          setEarnedCoins(prev => prev + 3);
+          if (newStreak > 0 && newStreak % 5 === 0) {
+            confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+            playLevelUpFanfare();
+          }
+        } else {
+          playErrorSound();
+          setStreak(0);
+        }
+
+        // The server holds the authoritative ability estimate; mirror it so the
+        // meters on screen agree with what was recorded.
+        setAbilityProfile(prev => ({
+          ...prev,
+          theta: outcome.ability.theta,
+          dynamicLevel: outcome.ability.dynamicLevel,
+          eloRating: outcome.ability.eloRating,
+          historyCount: outcome.ability.answered,
+        }));
+        onUpdateUserProfile({
+          dynamicLevel: outcome.ability.dynamicLevel,
+          eloRating: outcome.ability.eloRating,
+        });
+        return;
+      } catch {
+        // Fall through to local marking rather than stranding the learner
+        // mid-question. The attempt is lost, which is the honest cost of being
+        // offline until the reconciliation queue is built.
+      }
+    }
+
+    const correct = answer === currentProblem.correctAnswer;
+    setSelectedOption(answer);
     setIsCorrect(correct);
     setIsAnswerSubmitted(true);
 
@@ -163,16 +282,26 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
     ]);
   };
 
-  const handleNextProblem = () => {
+  const handleNextProblem = async () => {
     stopSpeaking();
     setIsSpeaking(false);
     setIsAnswerSubmitted(false);
     setSelectedOption(null);
+    setTypedAnswer('');
     setDetectedMisconception(null);
+    setExplanation(null);
 
-    // Generate next problem targeting new theta
-    const nextProb = ProblemGenerator.generate(user.tier, abilityProfile.theta);
-    setCurrentProblem(nextProb);
+    if (useServer) {
+      try {
+        adoptServerQuestion(await practice.next());
+        return;
+      } catch {
+        // Offline. Keep practising on generated content.
+      }
+    }
+
+    setCurrentProblem(ProblemGenerator.generate(user.tier, abilityProfile.theta));
+    setSource('generated');
   };
 
   const getMisconceptionLabel = (code: MisconceptionCode): string => {
@@ -318,6 +447,42 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
             <MathManipulatives problem={currentProblem} />
           </div>
 
+          {/* A typed answer, for the authored problems that offer no choices.
+              Two thirds of the imported corpus is numeric — the whole fractions
+              strand is — so a multiple-choice-only card could not show it. */}
+          {currentProblem.options.length === 0 && (
+            <div className="flex flex-col gap-2">
+              <label htmlFor="typed-answer" className="text-xs font-bold text-slate-600">
+                Your answer
+              </label>
+              <input
+                id="typed-answer"
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                value={typedAnswer}
+                disabled={isAnswerSubmitted}
+                onChange={event => setTypedAnswer(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' && !isAnswerSubmitted) handleSubmitAnswer();
+                }}
+                placeholder="Type your answer"
+                className={`w-full px-4 py-3 rounded-xl border-2 text-lg font-bold tracking-tight transition outline-hidden ${
+                  isAnswerSubmitted
+                    ? isCorrect
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-900'
+                      : 'bg-rose-50 border-rose-500 text-rose-900'
+                    : 'bg-white border-slate-200 focus:border-indigo-500 text-slate-900'
+                }`}
+              />
+              {isAnswerSubmitted && !isCorrect && currentProblem.correctAnswer && (
+                <p className="text-xs font-bold text-emerald-700">
+                  Correct answer: {currentProblem.correctAnswer}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Options Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {currentProblem.options.map((opt, i) => {
@@ -393,7 +558,7 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
               )}
 
               <p className="text-xs sm:text-sm leading-relaxed opacity-90">
-                {currentProblem.explanation}
+                {explanation ?? currentProblem.explanation}
               </p>
             </div>
           )}
@@ -412,7 +577,10 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
           {!isAnswerSubmitted ? (
             <button
               onClick={handleSubmitAnswer}
-              disabled={!selectedOption}
+              disabled={
+                (currentProblem.options.length > 0 ? !selectedOption : !typedAnswer.trim()) ||
+                practice.isSubmitting
+              }
               className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs sm:text-sm transition flex items-center gap-2 cursor-pointer shadow-xs"
             >
               <span>Submit Answer</span>
@@ -442,7 +610,7 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
           studentAge={user.age}
           tier={user.tier}
           hint={currentProblem.hint}
-          explanation={currentProblem.explanation}
+          explanation={explanation ?? currentProblem.explanation}
           misconceptionDescription={detectedMisconception ? getMisconceptionLabel(detectedMisconception) : null}
         />
       )}
