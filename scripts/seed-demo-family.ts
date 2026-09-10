@@ -34,6 +34,18 @@ export const DEMO_EMAIL = 'demo@acuitymath.local';
  * access control does not work.
  */
 export const DEMO_ADMIN_EMAIL = 'demo-admin@acuitymath.local';
+/**
+ * A teacher, with a classroom holding two of the four children.
+ *
+ * Two rather than four on purpose. A teacher reaches a learner through a
+ * classroom they teach and through nothing else, so a demonstration where the
+ * teacher can set work for every child in the database would demonstrate the
+ * opposite of the rule.
+ */
+export const DEMO_TEACHER_EMAIL = 'demo-teacher@acuitymath.local';
+const DEMO_CLASSROOM = 'Room 4 - Algebra Voyagers';
+/** The children in that classroom; the other two are only Sarah's. */
+const CLASSROOM_CHILDREN = ['Leo', 'Alexander'];
 const DEMO_PIN = '8317';
 
 const CHILDREN = [
@@ -74,6 +86,23 @@ export async function seedDemoFamily(db: Database) {
     .where(eq(schema.users.email, DEMO_ADMIN_EMAIL))
     .limit(1);
   await setStepUpPin(db, admin.id, DEMO_PIN);
+
+  const [existingTeacher] = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, DEMO_TEACHER_EMAIL))
+    .limit(1);
+  if (!existingTeacher) {
+    await db
+      .insert(schema.users)
+      .values({ email: DEMO_TEACHER_EMAIL, name: 'Mr. Henderson', role: 'teacher' });
+  }
+  const [teacher] = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, DEMO_TEACHER_EMAIL))
+    .limit(1);
+  await setStepUpPin(db, teacher.id, DEMO_PIN);
 
   const learnerIds: { name: string; id: number; answers: number }[] = [];
 
@@ -135,7 +164,42 @@ export async function seedDemoFamily(db: Database) {
     }
   }
 
-  return { guardianId: guardian.id, learners: learnerIds, pin: DEMO_PIN };
+  // The classroom, and who is in it.
+  const [existingRoom] = await db
+    .select()
+    .from(schema.classrooms)
+    .where(eq(schema.classrooms.teacherId, teacher.id))
+    .limit(1);
+  if (!existingRoom) {
+    await db.insert(schema.classrooms).values({ teacherId: teacher.id, name: DEMO_CLASSROOM });
+  }
+  const [room] = await db
+    .select()
+    .from(schema.classrooms)
+    .where(eq(schema.classrooms.teacherId, teacher.id))
+    .limit(1);
+
+  const enrolled = await db
+    .select()
+    .from(schema.classroomLearners)
+    .where(eq(schema.classroomLearners.classroomId, room.id));
+
+  for (const name of CLASSROOM_CHILDREN) {
+    const learner = learnerIds.find(row => row.name === name);
+    if (!learner) continue;
+    if (enrolled.some(row => row.learnerId === learner.id)) continue;
+    await db
+      .insert(schema.classroomLearners)
+      .values({ classroomId: room.id, learnerId: learner.id });
+  }
+
+  return {
+    guardianId: guardian.id,
+    teacherId: teacher.id,
+    classroom: { id: room.id, name: DEMO_CLASSROOM, children: CLASSROOM_CHILDREN },
+    learners: learnerIds,
+    pin: DEMO_PIN
+  };
 }
 
 async function main() {
@@ -150,9 +214,13 @@ async function main() {
   for (const learner of result.learners) {
     console.log(`  learner     ${learner.name} (id ${learner.id}), ${learner.answers} answers`);
   }
+  console.log(
+    `  classroom   ${result.classroom.name} (id ${result.classroom.id}): ${result.classroom.children.join(', ')}`
+  );
   console.log(`\n  Sign in as the parent : DEV_AUTH_EMAIL=${DEMO_EMAIL}`);
+  console.log(`  Sign in as the teacher: DEV_AUTH_EMAIL=${DEMO_TEACHER_EMAIL}`);
   console.log(`  Sign in as the admin  : DEV_AUTH_EMAIL=${DEMO_ADMIN_EMAIL}`);
-  console.log('  Same step-up PIN on both. Their roles differ, so the surfaces they reach differ.');
+  console.log('  Same step-up PIN on all three. Their roles differ, so the surfaces they reach differ.');
   console.log(`Done in ${((Date.now() - started) / 1000).toFixed(1)}s.`);
 
   await closeDatabase();
