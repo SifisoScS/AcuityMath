@@ -62,7 +62,7 @@ describeWithDb('sessions', () => {
     await db.insert(schema.users).values({ email: 'sarah@example.test', name: 'Sarah', role: 'parent' });
     const [user] = await db.select().from(schema.users).where(eq(schema.users.email, 'sarah@example.test'));
     userId = user.id;
-  });
+  }, 30_000);
 
   afterEach(() => {
     delete process.env.DEV_AUTH_EMAIL;
