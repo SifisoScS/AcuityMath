@@ -14,6 +14,12 @@ import { z } from 'zod';
 import * as schema from '../../drizzle/schema';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
+import { learnerSummaries } from '../learning/learnerSummary';
+import {
+  assignableLearnerIds,
+  assignmentsForLearner,
+  authoredAssignments,
+} from '../learning/assignments';
 import { recordAttempt } from '../learning/recordAttempt';
 import { serveNextProblem } from '../learning/serveProblem';
 import {
@@ -49,64 +55,16 @@ const learnersRouter = router({
    */
   list: protectedProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db
-      .select()
+      .select({ id: schema.learners.id })
       .from(schema.learners)
-      .where(and(eq(schema.learners.guardianId, ctx.user.id), isNull(schema.learners.archivedAt)))
-      .orderBy(schema.learners.birthYear);
+      .where(and(eq(schema.learners.guardianId, ctx.user.id), isNull(schema.learners.archivedAt)));
 
-    if (rows.length === 0) return [];
-    const ids = rows.map(row => row.id);
-
-    const abilities = await ctx.db
-      .select()
-      .from(schema.learnerAbility)
-      .where(inArray(schema.learnerAbility.learnerId, ids));
-
-    const rewards = await ctx.db
-      .select()
-      .from(schema.learnerRewards)
-      .where(inArray(schema.learnerRewards.learnerId, ids));
-
-    const mastery = await ctx.db
-      .select({
-        learnerId: schema.learnerConceptMastery.learnerId,
-        attempts: sql<number>`sum(${schema.learnerConceptMastery.attemptCount})`,
-        weightedAccuracy: sql<number>`sum(${schema.learnerConceptMastery.accuracy} * ${schema.learnerConceptMastery.attemptCount})`,
-        mastered: sql<number>`sum(case when ${schema.learnerConceptMastery.masteryScore} >= 80 then 1 else 0 end)`,
-      })
-      .from(schema.learnerConceptMastery)
-      .where(inArray(schema.learnerConceptMastery.learnerId, ids))
-      .groupBy(schema.learnerConceptMastery.learnerId);
-
-    return rows.map(learner => {
-      const age = approximateAge(learner.birthYear);
-      const ability = abilities.find(row => row.learnerId === learner.id);
-      const reward = rewards.find(row => row.learnerId === learner.id);
-      const progress = mastery.find(row => row.learnerId === learner.id);
-
-      const attempts = Number(progress?.attempts ?? 0);
-      return {
-        id: learner.id,
-        displayName: learner.displayName,
-        avatar: learner.avatar,
-        birthYear: learner.birthYear,
-        age,
-        tier: tierForAge(age),
-        // Zero for a learner who has never answered, which is true rather than
-        // a placeholder — a child with no attempts has no ability estimate.
-        dynamicLevel: ability ? Number(ability.dynamicLevel) : 0,
-        eloRating: ability?.eloRating ?? 0,
-        answered: ability?.historyCount ?? 0,
-        coins: reward?.coins ?? 0,
-        xp: reward?.xp ?? 0,
-        streakDays: reward?.streakDays ?? 0,
-        streakShields: reward?.streakShields ?? 0,
-        // Weighted by attempts, so a concept answered once does not count as
-        // much as one answered twenty times.
-        accuracyRate: attempts > 0 ? Math.round(Number(progress?.weightedAccuracy ?? 0) / attempts) : 0,
-        conceptsMastered: Number(progress?.mastered ?? 0),
-      };
-    });
+    // The scoping stays here; `learnerSummaries` only answers about ids it is
+    // given, so widening what a caller may see takes a change on this line.
+    return learnerSummaries(
+      ctx.db,
+      rows.map(row => row.id),
+    );
   }),
 
   create: protectedProcedure
@@ -377,6 +335,143 @@ const analyticsRouter = router({
   }),
 });
 
+/**
+ * The curriculum, for choosing what to assign.
+ *
+ * Read-only and open to any signed-in adult: concept titles are the product's
+ * table of contents, not a child's record.
+ */
+const curriculumRouter = router({
+  concepts: protectedProcedure.query(({ ctx }) =>
+    ctx.db
+      .select({
+        id: schema.concepts.id,
+        title: schema.concepts.title,
+        strand: schema.concepts.strand,
+        tier: schema.concepts.tier,
+        ageBandLow: schema.concepts.ageBandLow,
+        ageBandHigh: schema.concepts.ageBandHigh,
+      })
+      .from(schema.concepts)
+      .orderBy(schema.concepts.tier, schema.concepts.sortOrder),
+  ),
+});
+
+const assignmentsRouter = router({
+  /** Assignments this adult set, with how many have come back. */
+  authored: protectedProcedure.query(({ ctx }) => authoredAssignments(ctx.db, ctx.user.id)),
+
+  /**
+   * Who this adult may set work for.
+   *
+   * Carries the same headline progress `learners.list` does, because this is
+   * also a teacher's roster: `learners.list` is guardian-scoped, so a teacher
+   * signing in saw an empty class and a form with nobody in it.
+   */
+  assignableLearners: protectedProcedure.query(async ({ ctx }) =>
+    learnerSummaries(ctx.db, await assignableLearnerIds(ctx.db, ctx.user.id)),
+  ),
+
+  /** One child's own list. `learnerProcedure` proves the caller is entitled to them. */
+  forLearner: learnerProcedure.query(({ ctx }) => assignmentsForLearner(ctx.db, ctx.learner.id)),
+
+  /**
+   * Sets work.
+   *
+   * Elevated, because it writes against named children and is reached from the
+   * same adult surfaces the step-up PIN guards. Every target is checked against
+   * `assignableLearnerIds` — a teacher reaches a learner through a classroom
+   * they teach and through nothing else, and a guardian through their own
+   * children.
+   */
+  create: elevatedProcedure
+    .input(
+      z.object({
+        title: z.string().trim().min(1).max(200),
+        instructions: z.string().trim().max(2000).default(''),
+        conceptId: z.string().min(1).max(120),
+        dueDate: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD')
+          .optional(),
+        rewardCoins: z.number().int().min(0).max(500).default(0),
+        learnerIds: z.array(z.number().int().positive()).min(1).max(200),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [concept] = await ctx.db
+        .select({ id: schema.concepts.id })
+        .from(schema.concepts)
+        .where(eq(schema.concepts.id, input.conceptId))
+        .limit(1);
+      if (!concept) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No such concept.' });
+      }
+
+      const allowed = new Set(await assignableLearnerIds(ctx.db, ctx.user.id));
+      const requested = [...new Set(input.learnerIds)];
+      const refused = requested.filter(id => !allowed.has(id));
+      if (refused.length > 0) {
+        // Named collectively rather than individually: telling the caller which
+        // of the ids they guessed exist is a membership oracle.
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You cannot set work for one or more of those learners.',
+        });
+      }
+
+      const [created] = await ctx.db
+        .insert(schema.assignments)
+        .values({
+          assignedByUserId: ctx.user.id,
+          title: input.title,
+          description: input.instructions || null,
+          conceptId: input.conceptId,
+          dueDate: input.dueDate ?? null,
+          rewardCoins: input.rewardCoins,
+        })
+        .$returningId();
+
+      await ctx.db
+        .insert(schema.assignmentTargets)
+        .values(requested.map(learnerId => ({ assignmentId: created.id, learnerId })));
+
+      return { assignmentId: created.id, assigned: requested.length };
+    }),
+
+  /**
+   * Marks one child's copy done.
+   *
+   * Scoped to the learner in the input, so completing an assignment cannot
+   * complete it for the rest of the class.
+   */
+  markComplete: learnerProcedure
+    .input(z.object({ assignmentId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const [target] = await ctx.db
+        .select({ id: schema.assignmentTargets.id })
+        .from(schema.assignmentTargets)
+        .where(
+          and(
+            eq(schema.assignmentTargets.assignmentId, input.assignmentId),
+            eq(schema.assignmentTargets.learnerId, ctx.learner.id),
+          ),
+        )
+        .limit(1);
+
+      if (!target) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'That learner was not set this work.' });
+      }
+
+      await ctx.db
+        .update(schema.assignmentTargets)
+        .set({ status: 'completed', completedAt: new Date() })
+        .where(eq(schema.assignmentTargets.id, target.id));
+
+      return { ok: true };
+    }),
+});
+
 const practiceRouter = router({
   start: learnerProcedure
     .input(z.object({ targetLength: z.number().int().min(1).max(50).default(8) }))
@@ -497,6 +592,8 @@ export const appRouter = router({
   practice: practiceRouter,
   access: accessRouter,
   analytics: analyticsRouter,
+  assignments: assignmentsRouter,
+  curriculum: curriculumRouter,
 });
 
 export type AppRouter = typeof appRouter;

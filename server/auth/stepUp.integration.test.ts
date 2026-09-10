@@ -145,9 +145,10 @@ describeWithDb('step-up and child access', () => {
 
   // -------------------------------------------------------------------------
   describe('checking a PIN', () => {
+    // scrypt, at real cost parameters, on every test in this block.
     beforeEach(async () => {
       await setStepUpPin(db, sarah.id, '8317');
-    });
+    }, 30_000);
 
     it('accepts the right one', async () => {
       expect(await checkStepUpPin(db, sarah.id, '8317')).toEqual({ ok: true });
@@ -311,7 +312,7 @@ describeWithDb('step-up and child access', () => {
     beforeEach(async () => {
       await setLearnerAccessToken(db, maya, 'picture_sequence', 'star-rocket-apple');
       await setLearnerAccessToken(db, leo, 'picture_sequence', 'moon-train-pear');
-    });
+    }, 30_000);
 
     it('does not store the badge', async () => {
       const rows = await db.select().from(schema.learnerAccessTokens);

@@ -16,7 +16,6 @@ import {
 } from './types';
 import {
   INITIAL_PROFILES,
-  INITIAL_ASSIGNMENTS,
   INITIAL_NOTIFICATIONS,
   getSavedItem,
   saveItem
@@ -26,7 +25,7 @@ import { OfflineSyncBanner } from './components/OfflineSyncBanner';
 import { StudentDashboard } from './components/StudentDashboard';
 import { CurriculumView } from './components/CurriculumView';
 import { ParentDashboard } from './components/ParentDashboard';
-import { TeacherDashboard } from './components/TeacherDashboard';
+import { TeacherDashboard, type NewAssignmentInput } from './components/TeacherDashboard';
 import { RewardsView } from './components/RewardsView';
 import { ScratchpadView } from './components/ScratchpadView';
 import { LandingPage } from './components/LandingPage';
@@ -39,6 +38,7 @@ import { NotificationsModal } from './components/NotificationsModal';
 import { useProfiles } from './hooks/useProfiles';
 import { useStepUpStatus } from './hooks/useStepUp';
 import { useFamilyAnalytics } from './hooks/useAnalytics';
+import { useAuthoredAssignments, useLearnerAssignments } from './hooks/useAssignments';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
@@ -119,10 +119,26 @@ export default function App() {
   const [lessons] = useState<MathLesson[]>(INITIAL_LESSONS);
 
 
-  // Teacher Assignments
-  const [assignments, setAssignments] = useState<TeacherAssignment[]>(() =>
-    getSavedItem<TeacherAssignment[]>('assignments', INITIAL_ASSIGNMENTS)
-  );
+  /*
+   * Assignments, from the server.
+   *
+   * Two lists, because they answer different questions and are guarded
+   * differently. `forLearner` is what the child in front of the screen has been
+   * set, scoped by `learnerProcedure` so it cannot return a sibling's work.
+   * `authored` is what this adult has set, for the teacher view.
+   *
+   * They were one array in React state seeded from `INITIAL_ASSIGNMENTS`, so a
+   * teacher who set homework and reloaded the page had set nothing.
+   */
+  const learnerAssignments = useLearnerAssignments(activeProfile.learnerId ?? null);
+
+  const {
+    assignments: authoredAssignments,
+    concepts: assignableConcepts,
+    assignableStudents,
+    assignableLearnerIds,
+    create: createAssignment
+  } = useAuthoredAssignments(isSignedIn);
 
   // Notifications
   const [notifications, setNotifications] = useState<NotificationItem[]>(() =>
@@ -312,9 +328,9 @@ export default function App() {
   // while the query is in flight, so the effect wrote `[]` over whatever was
   // stored, on every load, before the real children had arrived.
 
-  useEffect(() => {
-    saveItem('assignments', assignments);
-  }, [assignments]);
+  // Assignments are rows on the server now, so there is nothing to persist
+  // here. Writing them back to localStorage would give a stale second copy that
+  // a reload could show instead of what was actually set.
 
   useEffect(() => {
     saveItem('notifications', notifications);
@@ -482,9 +498,15 @@ export default function App() {
     refreshProfiles();
   };
 
-  // Add new assignment
-  const handleAddAssignment = (newAssignment: TeacherAssignment) => {
-    setAssignments(prev => [newAssignment, ...prev]);
+  /*
+   * Sets work.
+   *
+   * Rejections are re-thrown rather than swallowed: the form shows the server's
+   * reason. Swallowing it would put a success toast on a refused write, which is
+   * what the old local-state version did unconditionally.
+   */
+  const handleCreateAssignment = async (input: NewAssignmentInput) => {
+    await createAssignment(input);
   };
 
   // Notification dispatch
@@ -1317,7 +1339,7 @@ export default function App() {
               <StudentDashboard
                 user={activeProfile}
                 lessons={lessons}
-                assignments={assignments}
+                assignments={learnerAssignments}
                 onSelectLesson={lesson => setActiveLesson(lesson)}
                 onOpenRewards={() => setActiveTab('rewards')}
                 onUpdateDifficulty={newLevel => {
@@ -1386,10 +1408,14 @@ export default function App() {
             )}
 
             {activeTab === 'teacher' && (
+              // The teacher's class, not the signed-in guardian's children:
+              // `learners.list` is guardian-scoped, so it is empty for a teacher.
               <TeacherDashboard
-                students={studentProfiles}
-                assignments={assignments}
-                onAddAssignment={handleAddAssignment}
+                students={assignableStudents}
+                assignments={authoredAssignments}
+                concepts={assignableConcepts}
+                assignableStudentIds={assignableLearnerIds}
+                onCreateAssignment={handleCreateAssignment}
                 onSendStudentNotification={handleSendStudentNotification}
               />
             )}

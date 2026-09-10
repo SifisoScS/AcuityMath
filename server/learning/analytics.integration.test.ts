@@ -106,9 +106,15 @@ describeWithDb('parent analytics', () => {
   });
 
   describe('a learner who has practised', () => {
+    /*
+     * Eight real questions served and answered through the live pipeline, once
+     * per test in this block. Vitest's default hook timeout is 10s regardless of
+     * `testTimeout`, and this exceeded it under load — a flake that says nothing
+     * about the code, on a suite whose whole purpose is to be trusted.
+     */
     beforeEach(async () => {
       await practise(maya, 8, 6);
-    });
+    }, 60_000);
 
     it('counts the questions they actually answered', async () => {
       const analytics = await learnerAnalytics(db, maya);

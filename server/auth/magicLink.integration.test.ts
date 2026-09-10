@@ -49,9 +49,12 @@ describeWithDb('magic links', () => {
     await harness?.close();
   });
 
+  // `harness.reset()` rebuilds the schema; 30s matches what the other
+  // integration suites give it. Vitest's hook timeout is 10s regardless of
+  // `testTimeout`, so leaving it default is a flake waiting for a slow run.
   beforeEach(async () => {
     await harness.reset();
-  });
+  }, 30_000);
 
   describe('issuing', () => {
     it('never stores the token it hands out', async () => {
