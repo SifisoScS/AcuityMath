@@ -37,12 +37,10 @@ import { playClickSound, playSuccessSound } from '../utils/audio';
 
 interface DistrictAdminDashboardProps {
   onBackToStudent?: () => void;
-  onDispatchNotification?: (title: string, message: string) => void;
 }
 
 export const DistrictAdminDashboard: React.FC<DistrictAdminDashboardProps> = ({
-  onBackToStudent,
-  onDispatchNotification
+  onBackToStudent
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'campuses' | 'standards' | 'lms' | 'growth' | 'audit'>('campuses');
   const [selectedSchoolFilter, setSelectedSchoolFilter] = useState<string>('all');
@@ -343,14 +341,19 @@ export const DistrictAdminDashboard: React.FC<DistrictAdminDashboardProps> = ({
         message: data.message || `Dispatched "${dispatchTitle}" across selected campuses.`
       });
 
-      if (onDispatchNotification) {
-        onDispatchNotification('District Assignment Published', `"${dispatchTitle}" is now live across student course dashboards.`);
-      }
+      /*
+       * No notification is raised. This wrote one into the family bell saying
+       * the assignment was "now live across student course dashboards";
+       * `/api/lms/dispatch-assignment` writes to an in-memory demonstration
+       * store, so no learner was given anything.
+       */
     } catch (err) {
-      setShowDispatchModal(false);
+      // This branch also reported success — "Dispatched to all student
+      // dashboards" — so a failed request was indistinguishable from a
+      // successful one.
       setFeedbackBanner({
         type: 'info',
-        message: `Dispatched "${dispatchTitle}" to all student dashboards.`
+        message: `Could not dispatch "${dispatchTitle}": ${err instanceof Error ? err.message : 'the request failed'}.`
       });
     } finally {
       setIsLoading(false);

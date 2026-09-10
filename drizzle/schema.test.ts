@@ -60,6 +60,23 @@ const LEARNER_SCOPED = [
   'learner_rewards',
 ] as const;
 
+/**
+ * Tables addressed to *either* an adult or a child.
+ *
+ * `notifications` is the only one, and it is here rather than on either list
+ * above because forcing it onto one would have cost something real. It holds a
+ * `user_id`, so `LEARNER_SCOPED` would have failed — and rightly, since that
+ * rule is what stops a child's learning data being keyed to an adult account.
+ * But it also holds rows about children, so calling it not-learner-scoped would
+ * have quietly exempted it from the deletion cascade below, which is the
+ * invariant that matters most.
+ *
+ * The distinction it draws is recipient versus subject: `user_id` and
+ * `learner_id` are who reads a row, `about_learner_id` is who it concerns. The
+ * assertions below are written against that.
+ */
+const DUAL_AUDIENCE = ['notifications'] as const;
+
 /** Tables holding data about an authenticating adult, or about content. */
 const NOT_LEARNER_SCOPED = [
   'users',
@@ -79,13 +96,15 @@ const columnNames = (table: AnyTable) => getTableConfig(table).columns.map(c => 
 
 describe('schema inventory', () => {
   it('classifies every table as learner-scoped or not', () => {
-    const classified = new Set<string>([...LEARNER_SCOPED, ...NOT_LEARNER_SCOPED]);
+    const classified = new Set<string>([...LEARNER_SCOPED, ...DUAL_AUDIENCE, ...NOT_LEARNER_SCOPED]);
     const unclassified = [...tables.keys()].filter(name => !classified.has(name));
     expect(unclassified).toEqual([]);
   });
 
   it('names no table that does not exist', () => {
-    const missing = [...LEARNER_SCOPED, ...NOT_LEARNER_SCOPED].filter(name => !tables.has(name));
+    const missing = [...LEARNER_SCOPED, ...DUAL_AUDIENCE, ...NOT_LEARNER_SCOPED].filter(
+      name => !tables.has(name),
+    );
     expect(missing).toEqual([]);
   });
 
@@ -145,6 +164,30 @@ describe('learning data is keyed on the child, not the account', () => {
   });
 });
 
+describe('a notification is addressed to one reader and is about one child', () => {
+  it.each(DUAL_AUDIENCE)('%s can be addressed to either', tableName => {
+    const columns = columnNames(tables.get(tableName)!);
+    expect(columns).toContain('user_id');
+    expect(columns).toContain('learner_id');
+  });
+
+  it.each(DUAL_AUDIENCE)('%s records the child it concerns separately', tableName => {
+    // Without this the guardian's copy has no machine-readable link to the child
+    // it is about, and "has this already been raised" cannot be asked once for
+    // both copies.
+    expect(columnNames(tables.get(tableName)!)).toContain('about_learner_id');
+  });
+
+  it.each(DUAL_AUDIENCE)('%s lets both reader columns be null', tableName => {
+    // Exactly one is set per row. Requiring either would make the other
+    // audience unrepresentable.
+    const config = getTableConfig(tables.get(tableName)!);
+    for (const name of ['user_id', 'learner_id']) {
+      expect(config.columns.find(c => c.name === name)?.notNull, name).toBeFalsy();
+    }
+  });
+});
+
 describe('referential integrity is the database"s job', () => {
   it('declares a foreign key for every id column that names another table', () => {
     // The donor engine declared none, which is why it needs a standing integrity
@@ -181,12 +224,21 @@ describe('referential integrity is the database"s job', () => {
     // table that does not cascade would survive the deletion it is subject to.
     const notCascading: string[] = [];
 
-    for (const tableName of LEARNER_SCOPED) {
+    // `DUAL_AUDIENCE` is included deliberately. Adding a category and looping
+    // over only the old one would have exempted the new table from the deletion
+    // it is subject to, which is the failure this test exists to prevent.
+    for (const tableName of [...LEARNER_SCOPED, ...DUAL_AUDIENCE]) {
       const config = getTableConfig(tables.get(tableName)!);
       for (const key of config.foreignKeys) {
         const reference = key.reference();
-        if (reference.columns.some(column => column.name === 'learner_id') && key.onDelete !== 'cascade') {
-          notCascading.push(`${tableName} (${key.onDelete ?? 'no action'})`);
+        // Any column pointing at a learner, whichever it is called. A cascade
+        // on `learner_id` alone would leave a guardian's copy of a notification
+        // about a deleted child behind, naming them.
+        const pointsAtALearner = reference.columns.some(column =>
+          /learner_id$/.test(column.name),
+        );
+        if (pointsAtALearner && key.onDelete !== 'cascade') {
+          notCascading.push(`${tableName}.${reference.columns.map(c => c.name).join(',')} (${key.onDelete ?? 'no action'})`);
         }
       }
     }

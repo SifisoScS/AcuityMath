@@ -18,9 +18,10 @@
 
 import 'dotenv/config';
 
-import { eq } from 'drizzle-orm';
+import { and, eq, gte } from 'drizzle-orm';
 
 import * as schema from '../drizzle/schema';
+import { approximateAge, tierForAge } from '../src/services/tiers';
 import { setStepUpPin } from '../server/auth/pin';
 import { ensureGeneratorConcepts, serveNextProblem } from '../server/learning/serveProblem';
 import { recordAttempt } from '../server/learning/recordAttempt';
@@ -54,6 +55,22 @@ const CHILDREN = [
   { displayName: 'Sophia', birthYear: 2013, avatar: '⚡', answers: 10 },
   { displayName: 'Alexander', birthYear: 2010, avatar: '🧑‍🚀', answers: 18 },
 ];
+
+/**
+ * One child carried past the mastery threshold, so the bell has something in it.
+ *
+ * Spread across concepts the way the practice above is, nobody reaches 80 on
+ * anything, and a notification feature whose demonstration is an empty list is
+ * indistinguishable from a broken one. These are real correct answers through
+ * the real pipeline, so the milestone is raised by `recordAttempt` rather than
+ * inserted here.
+ *
+ * The concept is chosen at run time rather than fixed. A milestone is a
+ * *crossing*, so a fixed concept produces one on the first run and nothing ever
+ * after — including after somebody clears the bell while looking around, which
+ * would leave the demo permanently unable to show the feature again.
+ */
+const MASTERS = { displayName: 'Leo', correctAnswers: 24 };
 
 /**
  * Idempotent, like the curriculum seed. A demo you are frightened to re-run is
@@ -164,6 +181,63 @@ export async function seedDemoFamily(db: Database) {
     }
   }
 
+  // One concept taken to mastery, so the bell has something real in it.
+  const master = learnerIds.find(row => row.name === MASTERS.displayName);
+  if (master) {
+    const [alreadyTold] = await db
+      .select()
+      .from(schema.notifications)
+      .where(eq(schema.notifications.aboutLearnerId, master.id))
+      .limit(1);
+
+    if (!alreadyTold) {
+      const [learner] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.id, master.id))
+        .limit(1);
+
+      // A concept in this child's tier that they have not already mastered, so
+      // there is a crossing left to make.
+      const tier = tierForAge(approximateAge(learner.birthYear));
+      const candidates = await db
+        .select({ id: schema.concepts.id })
+        .from(schema.concepts)
+        .where(eq(schema.concepts.tier, tier))
+        .orderBy(schema.concepts.sortOrder);
+
+      const mastered = await db
+        .select({ conceptId: schema.learnerConceptMastery.conceptId })
+        .from(schema.learnerConceptMastery)
+        .where(
+          and(
+            eq(schema.learnerConceptMastery.learnerId, master.id),
+            gte(schema.learnerConceptMastery.masteryScore, 80),
+          ),
+        );
+      const done = new Set(mastered.map(row => row.conceptId));
+      const target = candidates.find(row => !done.has(row.id));
+
+      if (target) {
+        for (let i = 0; i < MASTERS.correctAnswers; i++) {
+          const problem = await serveNextProblem(db, learner, { conceptId: target.id });
+          const [stored] = await db
+            .select({ answer: schema.problems.answer })
+            .from(schema.problems)
+            .where(eq(schema.problems.id, problem.problemId))
+            .limit(1);
+
+          await recordAttempt(db, {
+            learnerId: master.id,
+            problemId: problem.problemId,
+            submittedAnswer: stored.answer,
+            responseTimeMs: 4_000 + ((i * 811) % 6_000),
+          });
+        }
+      }
+    }
+  }
+
   // The classroom, and who is in it.
   const [existingRoom] = await db
     .select()
@@ -193,9 +267,12 @@ export async function seedDemoFamily(db: Database) {
       .values({ classroomId: room.id, learnerId: learner.id });
   }
 
+  const raised = await db.select().from(schema.notifications);
+
   return {
     guardianId: guardian.id,
     teacherId: teacher.id,
+    notifications: raised.length,
     classroom: { id: room.id, name: DEMO_CLASSROOM, children: CLASSROOM_CHILDREN },
     learners: learnerIds,
     pin: DEMO_PIN
@@ -216,6 +293,9 @@ async function main() {
   }
   console.log(
     `  classroom   ${result.classroom.name} (id ${result.classroom.id}): ${result.classroom.children.join(', ')}`
+  );
+  console.log(
+    `  bell        ${result.notifications} notification(s), raised by the pipeline rather than inserted`
   );
   console.log(`\n  Sign in as the parent : DEV_AUTH_EMAIL=${DEMO_EMAIL}`);
   console.log(`  Sign in as the teacher: DEV_AUTH_EMAIL=${DEMO_TEACHER_EMAIL}`);

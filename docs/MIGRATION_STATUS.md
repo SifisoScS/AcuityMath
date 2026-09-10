@@ -44,8 +44,8 @@ Donor repository, read-only reference:
 | **B3e** | Profiles from the server, demo family, real progress | **Done**, open in **PR #13** |
 | **C3** | The PIN gate on real elevation | **Done**, open in **PR #14** |
 | **B3f-1** | Parent analytics derived from real attempts | **Done**, merged (PR #15) |
-| **B3f-2** | Assignments onto the server, teacher entitlement | **Done**, open in **PR #17** |
-| **B3f-3** | Notifications onto the server | Needs a table; nothing emits them yet |
+| **B3f-2** | Assignments onto the server, teacher entitlement | **Done**, merged (PR #17) |
+| **B3f-3** | Notifications onto the server, with real producers | **Done**, open in **PR #18** |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
 > **The gate is real now.** `handleNavigate` asks the account's role first, then
@@ -64,10 +64,17 @@ Donor repository, read-only reference:
 > rule for the one thing a teacher should be able to do, and it gives an
 > administrator no bypass: a district administrator is not a teacher.
 >
-> **Next up is B3f-3, notifications.** They have no table, and nothing in the app
-> emits one. Unlike analytics and assignments this is not a matter of moving
-> existing data — the producers have to be written first (a mastery milestone, an
-> assignment being set, a streak), or the feature is an empty list.
+> **B3f is finished.** Analytics, assignments and notifications are all derived
+> from rows now, and `src/utils/storage.ts` holds no invented data at all.
+>
+> Notifications were the one that needed producers rather than a migration: two
+> events actually happen in this application — a concept crossing into mastery,
+> and work being set — and those are exactly the two the feature reports. The
+> `streak`, `reward` and `sync` types were removed rather than kept as
+> permanently-empty cases, because nothing writes `learner_rewards` and the
+> offline queue is Graft D.
+>
+> **Next is Graft D**, the offline reconciliation queue on IndexedDB.
 >
 > **Branch from `main`, and target `main`.** A stacked pull request merges into
 > its base branch, not into `main` — PR #5 was based on `graft-b-schema` and its
@@ -271,6 +278,26 @@ Do not relitigate these without a reason that is new.
 
 Each of these looked like something else first.
 
+**Two guards can hide each other, and a mutation finds it.** The mastery
+milestone has a crossing check (`was below 80, is now above`) and an
+already-raised check. Driven through `recordAttempt`, removing *either* left the
+suite green: the survivor was enough on its own. Both were only pinned once the
+producer was called directly with explicit before/after values. A test that
+exercises two guards through one path tests their disjunction, not each of them.
+
+**A test can be named for something it does not do.** "raises nothing for an
+attempt that was rolled back" submitted a non-existent problem id — which
+`recordAttempt` rejects *before* opening a transaction, so the producer was never
+reached and nothing was rolled back. It passed for the wrong reason and would
+have kept passing if the producer had been moved out of the transaction
+entirely. Rolling one back deliberately is the only version that watches the
+write disappear.
+
+**`git checkout <file>` discards uncommitted work.** Restoring a mutated file
+that way during mutation testing silently reverted a producer that had never been
+committed, and the next run failed ten tests. Copy the file aside and copy it
+back; only use `git checkout` on work that is already in a commit.
+
 **A roster is not a family.** `learners.list` returns the signed-in *guardian's*
 children, which is correct and was the only list the front end had. A teacher
 signing in therefore saw an empty class and an assignment form with nobody in it.
@@ -413,9 +440,20 @@ Recorded rather than hidden.
 - **Week-over-week change** is not computed. `learnerAnalytics` reads the last
   seven days only, so the "+18% vs last week" badge was removed rather than
   guessed at. Closing it means a second window in the query.
-- **Notifications** are still demonstration data in `src/utils/storage.ts`. They
-  have no table, and nothing in the app emits one, so this is not a matter of
-  moving existing data: the producers have to be written first.
+- **Streaks, coins and rewards.** Nothing writes `learner_rewards`, so there are
+  no streak or reward notifications and the `streak`/`reward` types are absent
+  from the schema enum rather than present and empty. Closing it means a producer
+  in `recordAttempt`, and it would also fix the zeros on every child's dashboard.
+- **A teacher nudge.** The teacher roster had a "Nudge" button that raised a
+  local notification about a hardcoded "Speed Addition Challenge" and toasted
+  "Reminder sent" although nothing was sent. It is gone. A real one needs a third
+  notification type, a message the teacher writes, and the classroom entitlement
+  check `assignments.create` already uses.
+- **District dispatch.** `/api/lms/dispatch-assignment` writes to an in-memory
+  demonstration store, not the database, so no learner is given anything. It used
+  to put an entry in the family bell saying the work was "now live across student
+  course dashboards", and its `catch` reported success on failure. Both are
+  fixed; the store itself is still demonstration data.
 - **Teacher pilot survey.** `POST /api/feedback` does not exist. The widget
   claimed "88% report optimal ZPD (24 responses)" from hard-coded state nothing
   could update, and said "Feedback logged!" over a request that always failed. It

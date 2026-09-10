@@ -16,7 +16,6 @@ import {
 } from './types';
 import {
   INITIAL_PROFILES,
-  INITIAL_NOTIFICATIONS,
   getSavedItem,
   saveItem
 } from './utils/storage';
@@ -39,6 +38,7 @@ import { useProfiles } from './hooks/useProfiles';
 import { useStepUpStatus } from './hooks/useStepUp';
 import { useFamilyAnalytics } from './hooks/useAnalytics';
 import { useAuthoredAssignments, useLearnerAssignments } from './hooks/useAssignments';
+import { useNotifications } from './hooks/useNotifications';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
@@ -140,10 +140,19 @@ export default function App() {
     create: createAssignment
   } = useAuthoredAssignments(isSignedIn);
 
-  // Notifications
-  const [notifications, setNotifications] = useState<NotificationItem[]>(() =>
-    getSavedItem<NotificationItem[]>('notifications', INITIAL_NOTIFICATIONS)
-  );
+  /*
+   * The bell, from the server.
+   *
+   * Two lists merged: what the signed-in adult has been told, and what the
+   * selected child has. A family device has both in front of it.
+   */
+  const {
+    notifications,
+    unreadCount: unreadNotificationCount,
+    markAllRead: markNotificationsRead,
+    clear: clearNotifications,
+    toggleRead: toggleNotificationRead
+  } = useNotifications(activeProfile.learnerId ?? null, isSignedIn);
 
   // Offline Sync State
   const [syncState, setSyncState] = useState<OfflineSyncState>(() =>
@@ -332,9 +341,9 @@ export default function App() {
   // here. Writing them back to localStorage would give a stale second copy that
   // a reload could show instead of what was actually set.
 
-  useEffect(() => {
-    saveItem('notifications', notifications);
-  }, [notifications]);
+  // Notifications are rows on the server now. Writing them back to localStorage
+  // would keep a stale copy whose 'read' flags disagree with the ones the bell
+  // was actually cleared on.
 
   useEffect(() => {
     saveItem('sync_state', syncState);
@@ -411,18 +420,17 @@ export default function App() {
       }));
     }
 
-    // Add milestone notification if level increased
-    if (results.newLevel > activeProfile.dynamicLevel) {
-      const newNotif: NotificationItem = {
-        id: `notif-${Date.now()}`,
-        title: 'Level Up Celebration! 🎉',
-        message: `${activeProfile.name} reached Level ${results.newLevel} with an updated ELO rating of ${results.newElo}!`,
-        type: 'milestone',
-        timestamp: 'Just now',
-        read: false
-      };
-      setNotifications(prev => [newNotif, ...prev]);
-    }
+    /*
+     * A "Level Up Celebration!" notification was raised here, client-side, from
+     * `results.newLevel > activeProfile.dynamicLevel`.
+     *
+     * It is gone rather than moved. It lived only in React state, so it vanished
+     * on reload while the server-raised ones persisted — one bell with two kinds
+     * of memory. The event it reported is also not quite real: the dynamic level
+     * is a continuous 3PL estimate, and crossing a rounded boundary is an
+     * artefact of the rounding. `recordAttempt` raises a milestone when a
+     * concept is actually mastered, which is a moment rather than a rounding.
+     */
   };
 
   // Offline toggle
@@ -470,19 +478,12 @@ export default function App() {
 
       setIsSyncing(false);
 
-      if (syncedCount > 0) {
-        setNotifications(prev => [
-          {
-            id: `notif-${Date.now()}`,
-            title: 'Offline Progress Synced to Cloud DB! ☁️',
-            message: `Successfully synchronized ${syncedCount} offline milestones to the AcuityMath persistent database.`,
-            type: 'sync',
-            timestamp: 'Just now',
-            read: false
-          },
-          ...prev
-        ]);
-      }
+      /*
+       * An "Offline Progress Synced to Cloud DB!" notification was raised here.
+       * The offline queue is Graft D and is not built; this counted items in a
+       * demonstration sync state. There is no `sync` notification type for the
+       * same reason.
+       */
     }, 1200);
   };
 
@@ -509,18 +510,14 @@ export default function App() {
     await createAssignment(input);
   };
 
-  // Notification dispatch
-  const handleSendStudentNotification = (studentName: string, assignmentTitle: string) => {
-    const newNotif: NotificationItem = {
-      id: `notif-${Date.now()}`,
-      title: `Assignment Notice for ${studentName}`,
-      message: `Mr. Henderson assigned "${assignmentTitle}". Check your assignments tab!`,
-      type: 'assignment',
-      timestamp: 'Just now',
-      read: false
-    };
-    setNotifications(prev => [newNotif, ...prev]);
-  };
+  /*
+   * `handleSendStudentNotification` stood here.
+   *
+   * It put a local notification in the bell saying `Mr. Henderson assigned "X"`
+   * — whoever was actually signed in — and it vanished on reload. Setting work
+   * now raises the notification server-side, in the same call that writes the
+   * assignment targets, so the child is told once and the record survives.
+   */
 
   // Screen time update from parent
   const handleUpdateScreenTime = (studentId: string, minutes: number) => {
@@ -658,7 +655,9 @@ export default function App() {
   };
 
   const studentProfiles = profiles.filter(p => p.role === 'student');
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Counted by `useNotifications` over the merged list, so the badge and the
+  // modal cannot disagree about what is unread.
+  const unreadCount = unreadNotificationCount;
 
   const pageTitleMap: Record<NavigationTab, { title: string; subtitle: string }> = {
     home: {
@@ -1226,10 +1225,25 @@ export default function App() {
               }}
               className="relative p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition cursor-pointer text-slate-600"
               title="Notifications & Milestones"
+              aria-label={
+                unreadCount > 0
+                  ? `Notifications, ${unreadCount} unread`
+                  : 'Notifications, none unread'
+              }
             >
               <Bell className="w-4 h-4" />
+              {/*
+                A bare dot. It carried no text of any kind, so the count was
+                available only to someone who could see the colour — and the
+                button's `title` said "Notifications & Milestones" whether there
+                was anything waiting or not. The count is on the button's label
+                now, where a screen reader announces it with the control.
+              */}
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-2 ring-white animate-pulse" />
+                <span
+                  data-testid="unread-dot"
+                  className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-2 ring-white animate-pulse"
+                />
               )}
             </button>
           </div>
@@ -1416,17 +1430,15 @@ export default function App() {
                 concepts={assignableConcepts}
                 assignableStudentIds={assignableLearnerIds}
                 onCreateAssignment={handleCreateAssignment}
-                onSendStudentNotification={handleSendStudentNotification}
               />
             )}
 
             {activeTab === 'district' && (
-              <DistrictAdminDashboard
-                onBackToStudent={() => setActiveTab('student')}
-                onDispatchNotification={(title, message) => {
-                  handleSendStudentNotification(studentProfiles[0]?.id || 'std-1', `${title}: ${message}`);
-                }}
-              />
+              // `onDispatchNotification` put an entry in the family bell claiming a
+              // district assignment was "now live across student course dashboards".
+              // `/api/lms/dispatch-assignment` writes to an in-memory demonstration
+              // store, so no learner was given anything.
+              <DistrictAdminDashboard onBackToStudent={() => setActiveTab('student')} />
             )}
 
             {activeTab === 'rewards' && (
@@ -1483,15 +1495,9 @@ export default function App() {
         <NotificationsModal
           notifications={notifications}
           onClose={() => setIsNotificationsOpen(false)}
-          onMarkAllAsRead={() => {
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-          }}
-          onClearNotifications={() => setNotifications([])}
-          onToggleRead={id => {
-            setNotifications(prev =>
-              prev.map(n => (n.id === id ? { ...n, read: !n.read } : n))
-            );
-          }}
+          onMarkAllAsRead={() => void markNotificationsRead()}
+          onClearNotifications={() => void clearNotifications()}
+          onToggleRead={id => void toggleNotificationRead(id)}
         />
       )}
 
