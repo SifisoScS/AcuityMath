@@ -482,12 +482,32 @@ export const attempts = mysqlTable(
     responseTimeMs: int('response_time_ms'),
     /** True when the attempt was queued offline and reconciled later. */
     wasOffline: boolean('was_offline').notNull().default(false),
+    /**
+     * An id the client makes when the child answers, not when the answer is
+     * sent. It is what makes a replay safe.
+     *
+     * An offline queue retries, and a retry that the server treats as a new
+     * answer moves mastery and the 3PL estimate a second time for one question.
+     * That is not a duplicate row a report can filter out later — the running
+     * scores have already absorbed it, and there is no way back to what they
+     * should have been.
+     *
+     * Nullable because attempts recorded before the queue existed have none, and
+     * because a learner answering online has nothing to reconcile. Unique when
+     * present, so the database refuses the second write rather than trusting the
+     * application to check first.
+     */
+    clientId: varchar('client_id', { length: 64 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   table => [
     index('attempts_learner_idx').on(table.learnerId, table.createdAt),
     index('attempts_concept_idx').on(table.learnerId, table.conceptId),
     index('attempts_session_idx').on(table.sessionId),
+    // Scoped to the learner: two children on one shared device generate ids
+    // independently, and a collision between them must not silence a real
+    // answer. MySQL treats NULLs as distinct, so online attempts are unaffected.
+    uniqueIndex('attempts_client_idx').on(table.learnerId, table.clientId),
   ],
 );
 

@@ -31,22 +31,29 @@ Donor repository, read-only reference:
 
 | Graft | Scope | State |
 | --- | --- | --- |
-| **A** | Generator verification, CI, test infrastructure | **Done**, merged to `main` (PR #1) |
-| **B1** | Schema, migration, identity model | **Done**, merged to `main` (PR #3) |
-| **B2** | Answer pipeline, mastery curve, test isolation | **Done**, open in **PR #4** — not yet in `main` |
-| **B3a** | tRPC routers, practice loop API, tier unification | **Done**, open in **PR #5** |
-| **B3b** | Curriculum import, seed, practice loop on real content | **Done**, merged (PR #8) |
-| **B3c** | Safety net, service layer, three a11y/authorisation fixes | **Done**, merged (PR #9) |
-| **B3d** | Practice view serving authored content | **Done**, open in **PR #10** |
-| **B3e** | The rest of the `App.tsx` lift — profiles, analytics, assignments | **After Graft C** |
-| **C1** | Sign in by emailed link | **Done**, merged (PR #11) |
-| **C2** | Step-up PIN, elevation, child access tokens | **Done**, open in **PR #12** |
-| **B3e** | Profiles from the server, demo family, real progress | **Done**, open in **PR #13** |
-| **C3** | The PIN gate on real elevation | **Done**, open in **PR #14** |
-| **B3f-1** | Parent analytics derived from real attempts | **Done**, merged (PR #15) |
-| **B3f-2** | Assignments onto the server, teacher entitlement | **Done**, merged (PR #17) |
-| **B3f-3** | Notifications onto the server, with real producers | **Done**, open in **PR #18** |
-| **D** | Content import, offline queue on IndexedDB | Not started |
+| **A** | Generator verification, CI, test infrastructure | **Merged** (PR #1) |
+| **B1** | Schema, migration, identity model | **Merged** (PR #3) |
+| **B2** | Answer pipeline, mastery curve, test isolation | **Merged** (PR #4) |
+| **B3a** | tRPC routers, practice loop API, tier unification | **Merged** (PR #5, repaired by #7) |
+| **B3b** | Curriculum import, seed, practice loop on real content | **Merged** (PR #8) |
+| **B3c** | Safety net, service layer, three a11y/authorisation fixes | **Merged** (PR #9) |
+| **B3d** | Practice view serving authored content | **Merged** (PR #10) |
+| **C1** | Sign in by emailed link | **Merged** (PR #11) |
+| **C2** | Step-up PIN, elevation, child access tokens | **Merged** (PR #12) |
+| **B3e** | Profiles from the server, demo family, real progress | **Merged** (PR #13) |
+| **C3** | The PIN gate on real elevation | **Merged** (PR #14) |
+| **B3f-1** | Parent analytics derived from real attempts | **Merged** (PR #15) |
+| **B3f-2** | Assignments onto the server, teacher entitlement | **Merged** (PR #17) |
+| **B3f-3** | Notifications onto the server, with real producers | **Merged** (PR #18) |
+| **D** | Offline queue on IndexedDB | **In progress** on `graft-d-offline-queue` |
+
+Every pull request is merged; nothing is open. The table used to say "open in
+PR #N" for work that had been in `main` for days — read it as a record of what
+landed, not as a to-do list.
+
+The content-import half of Graft D was delivered early, in B3b: the database
+holds 63 concepts, 1,138 authored problems and 572 hints. What remains of D is
+the offline queue alone.
 
 > **The gate is real now.** `handleNavigate` asks the account's role first, then
 > the server's elevation. `authenticatedRoles` — a client-side record any
@@ -74,14 +81,83 @@ Donor repository, read-only reference:
 > permanently-empty cases, because nothing writes `learner_rewards` and the
 > offline queue is Graft D.
 >
-> **Next is Graft D**, the offline reconciliation queue on IndexedDB.
+> **Graft D is half built, on `graft-d-offline-queue`.**
+>
+> Done, with 12 integration tests and three mutations proved: an offline queue
+> retries whatever it cannot confirm was delivered, and a retry the server treats
+> as a fresh answer moves mastery and the 3PL estimate a second time for one
+> question. That is not a duplicate row a report can filter out afterwards — the
+> running scores have absorbed it and there is no way back. So `attempts` now
+> carries a `client_id`, unique *per learner*, made by the client when the child
+> answers rather than when the answer is sent; `recordAttempt` returns the
+> original result on a replay; and `practice.submit` reports `replayed` so a
+> reconciler can tell "delivered" from "delivered twice".
+>
+> Still to build: the IndexedDB queue itself, real connectivity detection
+> (`isOffline` is a manual toggle today and nothing watches the network), the
+> reconciler, and an honest banner.
+>
+> **The live defect this exists to fix:** `triggerCloudSync` in `App.tsx` fires
+> the request fire-and-forget with a `.catch` that only logs, then a `setTimeout`
+> unconditionally empties `pendingActions` and writes "Synced to Server" into the
+> log. A failed sync reports success and discards the child's work.
 >
 > **Branch from `main`, and target `main`.** A stacked pull request merges into
 > its base branch, not into `main` — PR #5 was based on `graft-b-schema` and its
 > merge left `main` without the tRPC layer for an hour. PR #7 repaired it.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
-Working branch: `graft-c3-real-gate`
+Working branch: `graft-d-offline-queue`
+
+---
+
+## Picking Graft D back up
+
+Paused 2026-09-10 with the idempotency foundation committed on
+`graft-d-offline-queue` and the queue itself not started.
+
+**Before anything, start Docker** — MySQL is a container on port 3307 and every
+integration suite needs it. Then:
+
+```bash
+export DATABASE_URL="mysql://root:root@127.0.0.1:3307/acuitymath"
+pnpm db:migrate        # 0006 adds attempts.client_id
+pnpm db:seed           # curriculum: 63 concepts, 1,138 problems, 572 hints
+pnpm db:seed:demo      # family, teacher, classroom, and two real notifications
+pnpm test              # 483 tests; re-run this first, see the caveat below
+```
+
+**Caveat on the last verification.** The branch was committed with `tsc --noEmit`
+and `pnpm build` both clean, and the 12-test idempotency suite green *after* the
+database was rebuilt. The full suite was not re-run after that rebuild: the run
+that would have done it was cut short when the MySQL container was OOM-killed
+mid-run (exit 137, after many back-to-back full runs). So **run the full suite
+before building on this branch** — it is expected green, not observed green.
+
+### What to build next, in order
+
+1. **The queue.** IndexedDB, one record per unsent answer: `clientId`,
+   `learnerId`, `problemId`, `answer`, `responseTimeMs`, `answeredAt`. The
+   `clientId` is generated when the child answers, not when the record is sent —
+   that is what makes the retry safe, and it is already enforced server-side.
+2. **Connectivity.** `navigator.onLine` plus failed-request detection. Keep the
+   manual toggle for demonstrations, but label it as a simulation rather than
+   letting it stand in for the real thing.
+3. **The reconciler.** Drain oldest-first, removing an item only on a confirmed
+   response. `practice.submit` returns `replayed`, so an item already delivered
+   can be retired without being counted as work done. Anything not confirmed
+   stays queued and is retried with backoff.
+4. **The banner.** It currently reads "All math progress synced" unconditionally.
+   It must be able to say that items are waiting, and that the last attempt
+   failed.
+
+### The defect that makes this urgent
+
+`triggerCloudSync` in `src/App.tsx` calls `apiService.syncBatch(...)` without
+awaiting it, attaches `.catch(err => console.warn(...))`, and then a `setTimeout`
+clears `pendingActions` and appends "Synced to Server" log lines regardless of
+what happened. **A failed sync reports success and throws the child's answers
+away.** Replacing that path is the point of the graft, not a side errand.
 
 ---
 
@@ -376,6 +452,16 @@ Do not relitigate these without a reason that is new.
 
 Each of these looked like something else first.
 
+**Mutating a schema is not like mutating code.** Testing that the `client_id`
+uniqueness is scoped per learner meant generating and applying a real migration,
+which wrote to real databases. Reverting the source afterwards left behind: a dev
+database with the wrong index, an applied migration with no file, and — worst —
+a *scratch test database* carrying the mutant index, because `createTestDatabase`
+does `CREATE DATABASE IF NOT EXISTS` and then migrates, so it never rebuilds an
+existing one. The suite then failed on a mutation that no longer existed in any
+file. **After mutating the schema, drop the scratch databases**
+(`drop database acuitymath_<suite>`); they rebuild on the next run.
+
 **Two guards can hide each other, and a mutation finds it.** The mastery
 milestone has a crossing check (`was below 80, is now above`) and an
 already-raised check. Driven through `recordAttempt`, removing *either* left the
@@ -393,8 +479,11 @@ write disappear.
 
 **`git checkout <file>` discards uncommitted work.** Restoring a mutated file
 that way during mutation testing silently reverted a producer that had never been
-committed, and the next run failed ten tests. Copy the file aside and copy it
-back; only use `git checkout` on work that is already in a commit.
+committed, and the next run failed ten tests. It happened a second time on
+`drizzle/migrations/meta/_journal.json`, dropping the entry for a migration whose
+`.sql` file was untracked and therefore survived — leaving the journal and the
+migrations folder disagreeing. Copy the file aside and copy it back; only use
+`git checkout` on work that is already in a commit.
 
 **A roster is not a family.** `learners.list` returns the signed-in *guardian's*
 children, which is correct and was the only list the front end had. A teacher
