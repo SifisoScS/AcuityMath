@@ -29,7 +29,6 @@ import {
 import { playClickSound, playSuccessSound, speakText, playLevelUpFanfare } from '../utils/audio';
 import { fireConfettiBurst, fireMilestoneConfetti } from '../utils/confetti';
 import { InfiniteAdaptiveModal } from './InfiniteAdaptiveModal';
-import { usePracticeLearner } from '../hooks/usePracticeLearner';
 
 interface StudentDashboardProps {
   user: UserProfile;
@@ -67,12 +66,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   /**
    * The server learner this profile practises as.
    *
-   * Resolved here rather than inside the practice modal so the lookup happens
-   * once while the dashboard is open, and the modal opens on a question rather
-   * than on a wait. Null when offline or signed out, which the modal reads as
-   * "generate locally".
+   * Carried by the profile itself now. It used to be resolved by a bridge that
+   * found or created a learner matching a demonstration profile — that bridge
+   * existed because profiles were invented client-side and had no server
+   * identity. They are server rows now, so the id is simply present, and absent
+   * only for the placeholder shown to somebody who has not signed in.
    */
-  const { learnerId: practiceLearnerId } = usePracticeLearner(user);
+  const practiceLearnerId = user.learnerId ?? null;
   const activeTier: AgeTier = user.tier;
   const tierMeta = AGE_TIER_META[activeTier];
 

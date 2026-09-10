@@ -41,15 +41,53 @@ beforeEach(() => {
   window.sessionStorage.setItem(`dismissed_placement_prompt_${DEFAULT_PROFILE_ID}`, '1');
 });
 
-/** The profile the app selects when nothing has been stored. */
-const DEFAULT_PROFILE_ID = 'user-maya';
+/**
+ * Proves the suppression above is still doing something.
+ *
+ * Without this, a key that stops matching — as it did when profile ids changed
+ * — makes every other test in this file quietly racy rather than failing here.
+ */
+describe('the test setup itself', () => {
+  it('suppresses the placement prompt for the profile actually shown', async () => {
+    renderApp();
+    await new Promise(resolve => setTimeout(resolve, 1400));
+    expect(screen.queryByRole('dialog', { name: /placement quest/i })).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * The profile the app selects when nothing has been stored.
+ *
+ * `'guest'` since profiles moved to the server: with no reachable API there are
+ * no children, and the placeholder is what the shell shows.
+ *
+ * This was `'user-maya'`, one of the invented profiles, and when the ids changed
+ * the suppression below silently stopped matching — so the placement prompt
+ * started firing mid-test and covering the page again, about one run in five.
+ * A key built from data that moved is a suppression that fails quietly, which
+ * is why the test that depends on it now asserts the prompt is absent.
+ */
+const DEFAULT_PROFILE_ID = 'guest';
 
 const nav = () => screen.getByRole('navigation');
 
 describe('the shell', () => {
   it('opens on the landing page', async () => {
     renderApp();
-    expect(screen.getByRole('heading', { name: /welcome to acuitymath/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^welcome to acuitymath$/i })).toBeInTheDocument();
+  });
+
+  it('offers a sign-in rather than an invented learner', async () => {
+    // With no reachable server there are no children, and a dashboard greeting
+    // "Guest" over a row of zeroes is how a demo flatters itself. The honest
+    // answer is to say there is nobody yet and offer the way in.
+    const user = userEvent.setup();
+    renderApp();
+
+    await user.click(within(nav()).getByRole('button', { name: /dashboard/i }));
+
+    expect(await screen.findByText(/no learners yet|loading your learners/i)).toBeInTheDocument();
+    expect(screen.queryByText(/welcome to acuitymath, guest/i)).not.toBeInTheDocument();
   });
 
   it('survives an unreachable API', async () => {
@@ -72,8 +110,13 @@ describe('navigation', () => {
     // follows can arrive after a synchronous assertion — which made this test
     // pass or fail depending on machine speed. A flaky test in a safety net is
     // worse than no test, because people learn to re-run it.
+    // Matched on the landing page's own headline rather than any heading
+    // containing "welcome to acuitymath": the dashboard greets a learner with
+    // one too, and the loose query made this pass or fail on which was showing.
     await waitFor(() =>
-      expect(screen.queryByRole('heading', { name: /welcome to acuitymath/i })).not.toBeInTheDocument(),
+      expect(
+        screen.queryByRole('heading', { name: /^welcome to acuitymath$/i }),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -278,18 +321,21 @@ describe('accessibility toggles', () => {
 });
 
 describe('state that outlives a reload', () => {
-  it('remembers the chosen profile', async () => {
-    // Today this is `localStorage`. After the lift it is the server, and this
-    // test should still pass — that is its purpose.
+  it('no longer keeps the children in the browser', async () => {
+    // This asserted the opposite when it was written, and the change is the
+    // point of the lift: three invented children lived in `localStorage` and
+    // were whatever the last device said they were. They are rows now, so a
+    // parent sees the same children on a phone as on the family tablet — and a
+    // browser holding nobody's records is one that cannot leak them.
     renderApp();
-    expect(window.localStorage.getItem('acuity_math_active_profile_id')).not.toBeNull();
+    expect(window.localStorage.getItem('acuity_math_profiles')).toBeNull();
   });
 
-  it('remembers the profiles themselves', async () => {
-    renderApp();
-    const stored = window.localStorage.getItem('acuity_math_profiles');
-    expect(stored).not.toBeNull();
-    expect(JSON.parse(stored!).length).toBeGreaterThan(0);
+  it('keeps only the choice of which child, not the children', async () => {
+    // Which child this tab is looking at is about this browser, so it stays
+    // local. What moved is the children themselves.
+    const stored = Object.keys(window.localStorage);
+    expect(stored.some(key => key.includes('profiles'))).toBe(false);
   });
 
   it('does not remember which tab was open', async () => {
