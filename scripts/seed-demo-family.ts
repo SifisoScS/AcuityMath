@@ -27,6 +27,13 @@ import { recordAttempt } from '../server/learning/recordAttempt';
 import { closeDatabase, getDatabase, type Database } from '../server/db/client';
 
 export const DEMO_EMAIL = 'demo@acuitymath.local';
+/**
+ * A second account, because the surfaces are gated by role and one account has
+ * one role. The demonstration parent is a parent — showing the district command
+ * centre by making her an administrator would demonstrate a product whose
+ * access control does not work.
+ */
+export const DEMO_ADMIN_EMAIL = 'demo-admin@acuitymath.local';
 const DEMO_PIN = '8317';
 
 const CHILDREN = [
@@ -50,6 +57,23 @@ export async function seedDemoFamily(db: Database) {
   const [guardian] = await db.select().from(schema.users).where(eq(schema.users.email, DEMO_EMAIL)).limit(1);
 
   await setStepUpPin(db, guardian.id, DEMO_PIN);
+
+  const [existingAdmin] = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, DEMO_ADMIN_EMAIL))
+    .limit(1);
+  if (!existingAdmin) {
+    await db
+      .insert(schema.users)
+      .values({ email: DEMO_ADMIN_EMAIL, name: 'Dr. Adaeze Okonkwo', role: 'admin' });
+  }
+  const [admin] = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, DEMO_ADMIN_EMAIL))
+    .limit(1);
+  await setStepUpPin(db, admin.id, DEMO_PIN);
 
   const learnerIds: { name: string; id: number; answers: number }[] = [];
 
@@ -126,7 +150,9 @@ async function main() {
   for (const learner of result.learners) {
     console.log(`  learner     ${learner.name} (id ${learner.id}), ${learner.answers} answers`);
   }
-  console.log(`\nRun the app with DEV_AUTH_EMAIL=${DEMO_EMAIL} to sign in as them.`);
+  console.log(`\n  Sign in as the parent : DEV_AUTH_EMAIL=${DEMO_EMAIL}`);
+  console.log(`  Sign in as the admin  : DEV_AUTH_EMAIL=${DEMO_ADMIN_EMAIL}`);
+  console.log('  Same step-up PIN on both. Their roles differ, so the surfaces they reach differ.');
   console.log(`Done in ${((Date.now() - started) / 1000).toFixed(1)}s.`);
 
   await closeDatabase();

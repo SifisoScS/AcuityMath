@@ -42,19 +42,15 @@ Donor repository, read-only reference:
 | **C1** | Sign in by emailed link | **Done**, merged (PR #11) |
 | **C2** | Step-up PIN, elevation, child access tokens | **Done**, open in **PR #12** |
 | **B3e** | Profiles from the server, demo family, real progress | **Done**, open in **PR #13** |
-| **C3** | Wiring the PIN gate to real elevation | **Next** |
-| **B3f** | Analytics, assignments, notifications onto the server | After C3 |
+| **C3** | The PIN gate on real elevation | **Done**, open in **PR #14** |
+| **B3f** | Analytics, assignments, notifications onto the server | **Next** |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
-> **The client PIN gate is still demo theatre, on purpose.** `ParentPinModal`
-> calls the legacy `/api/auth/verify-pin`, which compares against demo accounts
-> in a JSON file. It guards the parent, teacher and district dashboards — all of
-> which read *demonstration data*. Swapping it for real elevation now would
-> replace one piece of theatre with another while the surfaces behind it still
-> show invented numbers. It becomes real in the same change that moves those
-> dashboards onto the server, where they must be built on `elevatedProcedure`.
+> **The gate is real now.** `handleNavigate` asks the account's role first, then
+> the server's elevation. `authenticatedRoles` — a client-side record any
+> devtools user could set, and which the API never saw — is gone.
 >
-> **Next up is Graft C3 / B3e — the remaining `App.tsx` lift.** The remaining `App.tsx` work touches
+> **Next up is B3f — analytics, assignments and notifications onto the server.** The remaining `App.tsx` work touches
 > the profile switcher, the PIN gates and learner selection, which are exactly
 > the surfaces Graft C rewrites. Doing it first means doing it twice.
 >
@@ -63,7 +59,7 @@ Donor repository, read-only reference:
 > merge left `main` without the tRPC layer for an hour. PR #7 repaired it.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
-Working branch: `graft-b3e-profiles`
+Working branch: `graft-c3-real-gate`
 
 ---
 

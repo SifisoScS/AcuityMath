@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { useModalA11y } from '../hooks/useModalA11y';
 import { ShieldCheck, X, Lock, KeyRound, AlertCircle } from 'lucide-react';
-import { apiService } from '../services/api';
+import { useStepUp, useStepUpStatus } from '../hooks/useStepUp';
 import { playClickSound, playErrorSound, playSuccessSound } from '../utils/audio';
 
 interface ParentPinModalProps {
@@ -24,29 +24,32 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
 
   // Called before the early return, because hooks cannot be conditional.
   const panelRef = useModalA11y(isOpen, onClose);
+  const { hasPin, isLoading } = useStepUpStatus();
+  const { elevate, setPin: choosePin, isWorking } = useStepUp();
 
   if (!isOpen) return null;
 
-  const heading =
-    targetRole === 'parent'
+  /**
+   * A guardian who has never chosen a PIN is asked to choose one.
+   *
+   * The alternative — refusing them until they find a settings page — locks a
+   * parent out of their own child's records on the strength of a step they were
+   * never prompted to take. Choosing the PIN proves an adult is present just as
+   * well as entering one does, and the server elevates on the same request.
+   */
+  const isChoosing = hasPin === false;
+
+  const heading = isChoosing
+    ? 'Choose a Parent PIN'
+    : targetRole === 'parent'
       ? 'Parent Authorization Required'
       : targetRole === 'teacher'
         ? 'Educator PIN Required'
         : 'District Administrator PIN Required';
 
-  /**
-   * The demonstration credential shown under the keypad.
-   *
-   * It was a two-branch ternary and gained a third role, so the district prompt
-   * offered the teacher's PIN — following the on-screen hint would have been
-   * refused by the server, which checks the role alongside the digits. A lookup
-   * fails to compile when a role is added without one, where a ternary silently
-   * picks a wrong branch.
-   */
-  const demoKey = { parent: '1234', teacher: '4321', admin: '9876' }[targetRole];
-
-  const description =
-    targetRole === 'admin'
+  const description = isChoosing
+    ? 'This PIN separates you from whoever is holding the device next. Avoid 1234, a birthday, or four of the same digit.'
+    : targetRole === 'admin'
       ? 'Enter your 4-digit PIN to access multi-campus analytics, standards audits, and learner data export.'
       : 'Enter your 4-digit PIN to access child analytics, screen time controls, and compliance settings.';
 
@@ -74,25 +77,27 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
     setError('');
   };
 
+  /**
+   * Either proves the adult is present, or records the PIN that will.
+   *
+   * Both paths end in the server issuing a short-lived elevation cookie, so the
+   * caller does not care which happened. The message on failure is the server's
+   * — "two attempts left" and "try again in 15 minutes" have different next
+   * steps, and only the server knows which applies.
+   */
   const verify = async (pinToVerify: string) => {
     setIsSubmitting(true);
-    try {
-      const res = await apiService.verifyPin(targetRole, pinToVerify);
-      if (res.valid) {
-        playSuccessSound();
-        onSuccess();
-      } else {
-        playErrorSound();
-        setError(res.error || 'Incorrect PIN. Please try again.');
-        setPin('');
-      }
-    } catch {
+    const result = isChoosing ? await choosePin(pinToVerify) : await elevate(pinToVerify);
+
+    if (result.ok) {
+      playSuccessSound();
+      onSuccess();
+    } else {
       playErrorSound();
-      setError('Connection error. Please retry.');
+      setError(result.message);
       setPin('');
-    } finally {
-      setIsSubmitting(false);
     }
+    setIsSubmitting(false);
   };
 
   return (
@@ -199,11 +204,13 @@ export const ParentPinModal: React.FC<ParentPinModalProps> = ({
           <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-600">
             <KeyRound className="w-3 h-3 text-indigo-500" />
             <span>
-              Demo Key: <strong className="text-indigo-600">{demoKey}</strong>
+              {isChoosing
+                ? 'You will be asked for this again after 15 minutes'
+                : 'Five wrong attempts locks this for 15 minutes'}
             </span>
           </div>
           <span className="text-[10px] text-slate-400 block mt-0.5">
-            Phase 1 Authenticated Gateway (Argon2 / Server Validated)
+            {isLoading ? 'Checking…' : 'Verified server-side. Stored hashed, never in plain text.'}
           </span>
         </div>
       </div>
