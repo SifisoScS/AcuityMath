@@ -145,9 +145,12 @@ export interface TeacherAssignment {
   targetStudents: string[];
   totalAssigned: number;
   completedCount: number;
-  averageScore: number;
   customInstructions: string;
-  difficulty: number;
+  /*
+   * `averageScore` and `difficulty` were here. Both were written when an
+   * assignment was created and never read anywhere, so keeping them would have
+   * meant deriving two figures for nobody — or, more likely, inventing them.
+   */
 }
 
 export interface NotificationItem {

@@ -109,50 +109,15 @@ export const INITIAL_PROFILES: UserProfile[] = [
  * Leo's name, and a child with no screen-time limit was shown Maya's.
  */
 
-export const INITIAL_ASSIGNMENTS: TeacherAssignment[] = [
-  {
-    id: 'asg-1',
-    title: 'Linear Equation Coordinate Mastery',
-    topic: 'Linear Equations & Slope',
-    tier: 'middle',
-    assignedDate: '2026-09-02',
-    dueDate: '2026-09-08',
-    targetStudents: ['user-leo', 'user-alex'],
-    totalAssigned: 18,
-    completedCount: 15,
-    averageScore: 91,
-    customInstructions: 'Please use the interactive coordinate grapher to plot the y-intercept first.',
-    difficulty: 6
-  },
-  {
-    id: 'asg-2',
-    title: 'Power Rule Calculus Benchmark',
-    topic: 'Differential Calculus',
-    tier: 'high',
-    assignedDate: '2026-09-04',
-    dueDate: '2026-09-10',
-    targetStudents: ['user-alex'],
-    totalAssigned: 12,
-    completedCount: 9,
-    averageScore: 94,
-    customInstructions: 'Work out the instantaneous rate of change at critical inflection points.',
-    difficulty: 8
-  },
-  {
-    id: 'asg-3',
-    title: 'Equivalent Fractions Pizza Party',
-    topic: 'Visual Fractions',
-    tier: 'elementary',
-    assignedDate: '2026-09-05',
-    dueDate: '2026-09-09',
-    targetStudents: ['user-leo'],
-    totalAssigned: 10,
-    completedCount: 7,
-    averageScore: 88,
-    customInstructions: 'Slice each pie into equal segments before submitting your answer.',
-    difficulty: 4
-  }
-];
+/*
+ * `INITIAL_ASSIGNMENTS` stood here: three invented quests, held in React
+ * state, so a teacher who set homework and reloaded had set nothing. They were
+ * not self-consistent either — one listed two target students while reporting
+ * eighteen assigned and fifteen returned.
+ *
+ * Assignments are rows now (`server/learning/assignments.ts`), and the counts
+ * are read from `assignment_targets` rather than stored beside them.
+ */
 
 export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {

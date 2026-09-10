@@ -44,7 +44,7 @@ Donor repository, read-only reference:
 | **B3e** | Profiles from the server, demo family, real progress | **Done**, open in **PR #13** |
 | **C3** | The PIN gate on real elevation | **Done**, open in **PR #14** |
 | **B3f-1** | Parent analytics derived from real attempts | **Done**, open in **PR #15** |
-| **B3f-2** | Assignments onto the server | **Next** |
+| **B3f-2** | Assignments onto the server, teacher entitlement | **Done**, open in **PR #16** |
 | **B3f-3** | Notifications onto the server | Needs a table; nothing emits them yet |
 | **D** | Content import, offline queue on IndexedDB | Not started |
 
@@ -57,11 +57,17 @@ Donor repository, read-only reference:
 > with no honest source — focus alerts, week-over-week change — say nothing
 > rather than inventing a number.
 >
-> **Next up is B3f-2, assignments.** `assignments` and `assignment_targets`
-> exist in the schema with no router over them; `classrooms` and
-> `classroom_learners` exist too, so the teacher path is buildable. It needs a
-> teacher entitlement rule — `learnerProcedure` is guardian-or-admin only, and
-> `server/trpc/index.ts:113` defers the teacher case deliberately.
+> **A teacher now reaches a learner through a classroom, and through nothing
+> else.** `learnerProcedure` stays guardian-or-admin — widening it would have
+> given a teacher a parent's powers over a child, which
+> `server/trpc/index.ts` refuses on purpose. `assignableLearnerIds` is a separate
+> rule for the one thing a teacher should be able to do, and it gives an
+> administrator no bypass: a district administrator is not a teacher.
+>
+> **Next up is B3f-3, notifications.** They have no table, and nothing in the app
+> emits one. Unlike analytics and assignments this is not a matter of moving
+> existing data — the producers have to be written first (a mastery milestone, an
+> assignment being set, a streak), or the feature is an empty list.
 >
 > **Branch from `main`, and target `main`.** A stacked pull request merges into
 > its base branch, not into `main` — PR #5 was based on `graft-b-schema` and its
@@ -265,6 +271,20 @@ Do not relitigate these without a reason that is new.
 
 Each of these looked like something else first.
 
+**A roster is not a family.** `learners.list` returns the signed-in *guardian's*
+children, which is correct and was the only list the front end had. A teacher
+signing in therefore saw an empty class and an assignment form with nobody in it.
+`learnerSummaries` was extracted so the same summary can be computed over a
+different set of children, with the scoping left to the caller — a teacher's
+classroom, a guardian's family — rather than baked into the aggregation where
+widening it would be invisible.
+
+**A default selection can name people the form will not show you.** The
+assignment form pre-selected every child on the roster. Once the checkbox list
+was limited to children the adult may actually set work for, that pre-selection
+included children with no checkbox to clear, so every submit was refused by the
+server with nothing on screen the teacher could change. It starts empty now.
+
 **A number can be wrong on both sides of a correct join.** The analytics
 endpoint was verified over HTTP and the profile list was verified over HTTP, and
 the parent dashboard still crashed on every load. The server keys analytics by
@@ -393,8 +413,18 @@ Recorded rather than hidden.
 - **Week-over-week change** is not computed. `learnerAnalytics` reads the last
   seven days only, so the "+18% vs last week" badge was removed rather than
   guessed at. Closing it means a second window in the query.
-- **Assignments and notifications** are still demonstration data in
-  `src/utils/storage.ts`. Assignments have tables and no router; notifications
-  have no table at all, and nothing in the app emits one.
+- **Notifications** are still demonstration data in `src/utils/storage.ts`. They
+  have no table, and nothing in the app emits one, so this is not a matter of
+  moving existing data: the producers have to be written first.
+- **Teacher pilot survey.** `POST /api/feedback` does not exist. The widget
+  claimed "88% report optimal ZPD (24 responses)" from hard-coded state nothing
+  could update, and said "Feedback logged!" over a request that always failed. It
+  now reports that the answer was not kept, which is true, and shows no
+  aggregate. Closing it means a table and an endpoint.
+- **LTI 1.3 / OneRoster.** The teacher dashboard claimed "LMS Two-Way Sync
+  Active", "Connected to Google Classroom & Canvas", "100% Rosters Synced" and an
+  assignment toggle that "writes to Google Classroom & Canvas course streams".
+  None of it is built. A school would have believed its gradebook was being
+  written to. All four now say the truth.
 - **Nothing writes `learner_rewards`.** Coins, XP and streaks read zero for
   every learner.

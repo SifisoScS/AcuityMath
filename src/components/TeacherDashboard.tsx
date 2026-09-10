@@ -29,17 +29,45 @@ import {
 import { LtiOnboardingWizardModal } from './LtiOnboardingWizardModal';
 import { playClickSound, playLevelUpFanfare } from '../utils/audio';
 
+/** A concept a teacher may set, as `curriculum.concepts` returns it. */
+export interface AssignableConcept {
+  id: string;
+  title: string;
+  strand: string;
+  tier: AgeTier;
+  ageBandLow: number;
+  ageBandHigh: number;
+}
+
+export interface NewAssignmentInput {
+  title: string;
+  instructions: string;
+  conceptId: string;
+  dueDate?: string;
+  targetStudents: string[];
+}
+
 interface TeacherDashboardProps {
   students: UserProfile[];
   assignments: TeacherAssignment[];
-  onAddAssignment: (assignment: TeacherAssignment) => void;
+  /** The curriculum, for choosing what to set. */
+  concepts: AssignableConcept[];
+  /**
+   * Profile ids this adult may set work for. A teacher reaches a learner
+   * through a classroom they teach and through nothing else, so the roster and
+   * the assignable list are not the same list.
+   */
+  assignableStudentIds: string[];
+  onCreateAssignment: (input: NewAssignmentInput) => Promise<void>;
   onSendStudentNotification: (studentName: string, assignmentTitle: string) => void;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   students,
   assignments,
-  onAddAssignment,
+  concepts,
+  assignableStudentIds,
+  onCreateAssignment,
   onSendStudentNotification
 }) => {
   const [filterTier, setFilterTier] = useState<string>('all');
@@ -48,12 +76,33 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   // New assignment form state
   const [newTitle, setNewTitle] = useState('');
-  const [newTopic, setNewTopic] = useState('Linear Equations & Graphing');
-  const [newTier, setNewTier] = useState<AgeTier>('middle');
-  const [newDifficulty, setNewDifficulty] = useState(5);
+  /*
+   * One concept id, where there were three fields.
+   *
+   * The form collected a free-text topic, a tier and a difficulty slider. None
+   * of them existed server-side, nothing checked the topic against the tier, and
+   * `difficulty` was never read back anywhere. A concept carries its own title
+   * and tier and can be practised, so it is the only one of the four worth
+   * asking for.
+   */
+  const [newConceptId, setNewConceptId] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [newDueDate, setNewDueDate] = useState('2026-09-12');
   const [newInstructions, setNewInstructions] = useState('Utilize the scratchpad and interactive grapher before submitting.');
-  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>(students.map(s => s.id));
+  /*
+   * Nobody, until the teacher chooses.
+   *
+   * This was `students.map(s => s.id)` — every child on the roster, selected in
+   * advance. Once the checkbox list is limited to children this adult may
+   * actually set work for, that pre-selection includes children who have no
+   * checkbox to clear, so every submit would be refused by the server with
+   * nothing on screen the teacher could change to fix it.
+   *
+   * Starting empty also makes assigning work to a whole class a deliberate act
+   * rather than the consequence of not noticing. The submit button stays
+   * disabled until at least one child is chosen.
+   */
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [syncToLms, setSyncToLms] = useState<boolean>(true);
   const [isLtiModalOpen, setIsLtiModalOpen] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -63,10 +112,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [surveySubmitted, setSurveySubmitted] = useState<boolean>(false);
   const [surveyTags, setSurveyTags] = useState<string[]>([]);
   const [isSubmittingSurvey, setIsSubmittingSurvey] = useState<boolean>(false);
-  const [pilotStats, setPilotStats] = useState<{ total: number; optimalPercent: number }>({
-    total: 24,
-    optimalPercent: 88
-  });
+  /*
+   * Whether the last response actually reached anything.
+   *
+   * `pilotStats` stood here, seeded `{ total: 24, optimalPercent: 88 }` and
+   * rendered as "88% report optimal ZPD (24 responses)". `/api/feedback` does
+   * not exist on the server, so the fetch below always failed, the catch
+   * swallowed it, and those two numbers were the only ones the widget could ever
+   * show — a fabricated research finding about a pilot that had no responses.
+   *
+   * The submitted state said "Feedback logged!" and played a fanfare regardless,
+   * so a teacher filling this in every period was told each time that their
+   * answer had been recorded when it had been discarded.
+   */
+  const [surveyOutcome, setSurveyOutcome] = useState<'recorded' | 'not-recorded' | null>(null);
 
   const handleSurveySubmit = async (sentiment: 'optimal' | 'too_fast' | 'too_slow') => {
     playClickSound();
@@ -85,21 +144,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           note: `Classroom session completed with ${students.length} pupils.`
         })
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.aggregate) {
-          setPilotStats({
-            total: data.aggregate.total,
-            optimalPercent: data.aggregate.optimalPercent
-          });
-        }
-      }
+      setSurveyOutcome(res.ok ? 'recorded' : 'not-recorded');
     } catch {
-      // Local fallback for offline/preview
+      setSurveyOutcome('not-recorded');
     } finally {
       setIsSubmittingSurvey(false);
       setSurveySubmitted(true);
-      playLevelUpFanfare();
     }
   };
 
@@ -118,33 +168,39 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     }
   };
 
-  const handleCreateAssignment = (e: React.FormEvent) => {
+  const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || !newConceptId || selectedStudentIds.length === 0) return;
 
-    const assignment: TeacherAssignment = {
-      id: `asg-${Date.now()}`,
-      title: newTitle.trim(),
-      topic: newTopic,
-      tier: newTier,
-      assignedDate: new Date().toISOString().split('T')[0],
-      dueDate: newDueDate,
-      targetStudents: selectedStudentIds,
-      totalAssigned: selectedStudentIds.length,
-      completedCount: 0,
-      averageScore: 0,
-      customInstructions: newInstructions,
-      difficulty: newDifficulty
-    };
+    const title = newTitle.trim();
 
-    onAddAssignment(assignment);
+    /*
+     * The fanfare and the toast used to fire before anything was saved, because
+     * nothing was saved: the assignment went into React state. The server can
+     * refuse this one (a learner the caller may not set work for, an expired
+     * step-up), so the celebration waits until it has been accepted.
+     */
+    setSubmitError(null);
+    try {
+      await onCreateAssignment({
+        title,
+        instructions: newInstructions,
+        conceptId: newConceptId,
+        dueDate: newDueDate || undefined,
+        targetStudents: selectedStudentIds
+      });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Could not save that assignment.');
+      return;
+    }
+
     selectedStudentIds.forEach(id => {
       const s = students.find(item => item.id === id);
-      if (s) onSendStudentNotification(s.name, assignment.title);
+      if (s) onSendStudentNotification(s.name, title);
     });
 
     playLevelUpFanfare();
-    setToast(`Assignment "${assignment.title}" assigned to ${selectedStudentIds.length} students!`);
+    setToast(`Assignment "${title}" assigned to ${selectedStudentIds.length} students!`);
     setTimeout(() => setToast(null), 4000);
 
     // Reset form
@@ -195,14 +251,21 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <Share2 className="w-4 h-4" />
           </div>
           <div>
+            {/*
+              This said "LMS Two-Way Sync Active", badged "LTI 1.3 AGS v2", over
+              "Connected to Google Classroom & Canvas. Student completion
+              automatically updates institutional gradebooks." None of it is
+              built. A school reading that would believe its gradebook was being
+              written to, and would find out at the end of term that it was not.
+            */}
             <div className="font-extrabold text-slate-900 flex items-center gap-1.5">
-              <span>LMS Two-Way Sync Active</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
-                LTI 1.3 AGS v2
+              <span>LMS Sync</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-700">
+                Not connected
               </span>
             </div>
             <div className="text-slate-500 text-[11px]">
-              Connected to Google Classroom & Canvas. Student completion automatically updates institutional gradebooks.
+              Assignments and completion stay in AcuityMath. LTI 1.3 and OneRoster are not built yet.
             </div>
           </div>
         </div>
@@ -218,8 +281,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <Server className="w-3 h-3 text-indigo-400" />
             <span>LTI 1.3 Wizard</span>
           </button>
-          <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> 100% Rosters Synced
+          {/* "100% Rosters Synced" stood here. Nothing syncs a roster. */}
+          <span className="text-[11px] text-slate-500 font-bold flex items-center gap-1">
+            No rosters synced
           </span>
         </div>
       </div>
@@ -244,9 +308,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
           </div>
 
+          {/*
+            "88% report optimal ZPD (24 responses)" stood here, from state that
+            nothing could ever update. There is no store of responses to
+            summarise, so there is no summary to show.
+          */}
           <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 self-start sm:self-auto">
-            <ThumbsUp className="w-3.5 h-3.5 text-emerald-600" />
-            <span><strong>{pilotStats.optimalPercent}%</strong> report optimal ZPD ({pilotStats.total} responses)</span>
+            <ThumbsUp className="w-3.5 h-3.5 text-slate-400" />
+            <span>Responses are not collected yet</span>
           </div>
         </div>
 
@@ -335,19 +404,43 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
           </div>
         ) : (
-          <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between gap-3 text-xs animate-in fade-in">
+          <div
+            className={`p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs animate-in fade-in ${
+              surveyOutcome === 'recorded'
+                ? 'bg-emerald-50 border-emerald-200'
+                : 'bg-amber-50 border-amber-200'
+            }`}
+          >
             <div className="flex items-center gap-2.5">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <CheckCircle2
+                className={`w-5 h-5 shrink-0 ${
+                  surveyOutcome === 'recorded' ? 'text-emerald-600' : 'text-amber-600'
+                }`}
+              />
               <div>
-                <span className="font-extrabold text-emerald-900">Feedback logged! </span>
-                <span className="text-emerald-700 text-[11px]">
-                  Thank you for keeping pilot algorithms tuned to genuine student learning velocity.
-                </span>
+                {surveyOutcome === 'recorded' ? (
+                  <>
+                    <span className="font-extrabold text-emerald-900">Feedback logged. </span>
+                    <span className="text-emerald-700 text-[11px]">Thank you.</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-extrabold text-amber-900">Not recorded. </span>
+                    <span className="text-amber-800 text-[11px]">
+                      There is nowhere to store this yet, so your answer was not kept. Saying it had
+                      been would be worse than saying nothing.
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             <button
               onClick={() => setSurveySubmitted(false)}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 hover:underline cursor-pointer shrink-0"
+              className={`text-xs font-bold hover:underline cursor-pointer shrink-0 ${
+                surveyOutcome === 'recorded'
+                  ? 'text-emerald-700 hover:text-emerald-900'
+                  : 'text-amber-800 hover:text-amber-900'
+              }`}
             >
               Log Another Period
             </button>
@@ -361,7 +454,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <div>
             <span className="text-xs font-bold text-slate-400 uppercase">Enrolled Students</span>
             <div className="text-2xl font-extrabold text-slate-900 mt-1">{students.length} Pupils</div>
-            <span className="text-xs text-emerald-600 font-semibold mt-1 block">Ages 3 through 18</span>
+            {/* This read "Ages 3 through 18" — the product's range, under a count of two. */}
+            <span className="text-xs text-slate-500 font-semibold mt-1 block">
+              {students.length === 0
+                ? 'Nobody enrolled'
+                : `Ages ${Math.min(...students.map(s => s.age))} to ${Math.max(...students.map(s => s.age))}`}
+            </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
             <Users className="w-6 h-6" />
@@ -706,74 +804,60 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
             <form onSubmit={handleCreateAssignment} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1" htmlFor="assignment-title">
                   Assignment Title
                 </label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Coordinate Geometry & Slope Challenge"
+                  id="assignment-title"
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Target Age Tier
-                  </label>
-                  <select
-                    value={newTier}
-                    onChange={e => setNewTier(e.target.value as AgeTier)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
-                  >
-                    <option value="early">Early Sprouts (Ages 3-6)</option>
-                    <option value="elementary">Math Navigators (Ages 7-10)</option>
-                    <option value="middle">Algebra Voyagers (Ages 11-14)</option>
-                    <option value="high">STEM Pioneers (Ages 15-18)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Difficulty Level (1-10)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={newDifficulty}
-                    onChange={e => setNewDifficulty(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none"
-                  />
-                </div>
-              </div>
-
+              {/*
+                The tier select and the difficulty slider went with the free-text
+                topic. A concept carries its own tier, and nothing anywhere read
+                the difficulty back.
+              */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Topic Domain
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1" htmlFor="assignment-concept">
+                  Concept
                 </label>
                 <select
-                  value={newTopic}
-                  onChange={e => setNewTopic(e.target.value)}
+                  id="assignment-concept"
+                  required
+                  value={newConceptId}
+                  onChange={e => setNewConceptId(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
                 >
-                  <option value="Linear Equations & Graphing">Linear Equations & Graphing</option>
-                  <option value="Visual Fractions & Slices">Visual Fractions & Slices</option>
-                  <option value="Counting & Early Shapes">Counting & Early Shapes</option>
-                  <option value="Calculus: Derivatives & Tangents">Calculus: Derivatives & Tangents</option>
-                  <option value="Quadratic Roots & Factoring">Quadratic Roots & Factoring</option>
+                  <option value="">Choose a concept</option>
+                  {(['early', 'elementary', 'middle', 'high'] as AgeTier[]).map(tier => {
+                    const inTier = concepts.filter(c => c.tier === tier);
+                    if (inTier.length === 0) return null;
+                    return (
+                      <optgroup key={tier} label={tier}>
+                        {inTier.map(concept => (
+                          <option key={concept.id} value={concept.id}>
+                            {concept.title} (ages {concept.ageBandLow}-{concept.ageBandHigh})
+                          </option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1" htmlFor="assignment-due-date">
                   Due Date
                 </label>
                 <input
                   type="date"
+                  id="assignment-due-date"
                   value={newDueDate}
                   onChange={e => setNewDueDate(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
@@ -781,11 +865,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1" htmlFor="assignment-instructions">
                   Teacher Guidance & Instructions
                 </label>
                 <textarea
                   rows={2}
+                  id="assignment-instructions"
                   value={newInstructions}
                   onChange={e => setNewInstructions(e.target.value)}
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none"
@@ -797,8 +882,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Assign to Students ({selectedStudentIds.length} Selected)
                 </label>
+                {assignableStudentIds.length === 0 && (
+                  <p className="text-[11px] text-slate-500 mb-1.5">
+                    No learners you can set work for. A teacher reaches a learner through a
+                    classroom they teach.
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200">
-                  {students.map(s => (
+                  {students.filter(s => assignableStudentIds.includes(s.id)).map(s => (
                     <label key={s.id} className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                       <input
                         type="checkbox"
@@ -812,26 +903,25 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 </div>
               </div>
 
-              <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Share2 className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <div>
-                    <div className="font-bold text-indigo-950 text-xs">Two-Way LMS & Classroom Auto-Sync</div>
-                    <div className="text-[10px] text-indigo-700">Writes assignment to Google Classroom & Canvas course streams.</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={syncToLms}
-                  onChange={e => setSyncToLms(e.target.checked)}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                />
-              </div>
+              {/*
+                A "Two-Way LMS & Classroom Auto-Sync" toggle stood here, saying it
+                "Writes assignment to Google Classroom & Canvas course streams".
+                Nothing does that. A wrong number on a dashboard is bad; a false
+                statement about where a pupil's work is sent is worse, so the
+                control is gone until LTI 1.3 exists.
+              */}
+
+              {submitError && (
+                <p role="alert" className="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5">
+                  {submitError}
+                </p>
+              )}
 
               <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+                  disabled={!newTitle.trim() || !newConceptId || selectedStudentIds.length === 0}
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Award className="w-4 h-4" />
                   <span>Publish & Dispatch Assignment</span>
