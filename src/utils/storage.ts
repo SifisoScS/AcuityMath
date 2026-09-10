@@ -119,40 +119,19 @@ export const INITIAL_PROFILES: UserProfile[] = [
  * are read from `assignment_targets` rather than stored beside them.
  */
 
-export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'notif-1',
-    title: 'Milestone Unlocked! 🎉',
-    message: 'Alex Rivera achieved Level 8 in STEM Pioneers and unlocked the Quantum Pioneer Avatar!',
-    type: 'milestone',
-    timestamp: '15 mins ago',
-    read: false
-  },
-  {
-    id: 'notif-2',
-    title: 'New Teacher Assignment',
-    message: 'Mr. Henderson posted "Power Rule Calculus Benchmark" due in 4 days.',
-    type: 'assignment',
-    timestamp: '2 hours ago',
-    read: false
-  },
-  {
-    id: 'notif-3',
-    title: 'Streak Shield Alert 🔥',
-    message: 'Leo Chen is on a 7-day streak! Keep up the daily math sprint to earn bonus Star Coins.',
-    type: 'streak',
-    timestamp: '1 day ago',
-    read: true
-  },
-  {
-    id: 'notif-4',
-    title: 'Parent Weekly Digest Ready',
-    message: 'Maya practiced 145 minutes this week with 94% accuracy. Click to view detailed radar analysis.',
-    type: 'reward',
-    timestamp: '2 days ago',
-    read: true
-  }
-];
+/*
+ * `INITIAL_NOTIFICATIONS` stood here: four invented items about children who
+ * do not exist — "Alex Rivera achieved Level 8", "Leo Chen is on a 7-day
+ * streak" — one of them repeating the invented analytics deleted in B3f-1
+ * ("Maya practiced 145 minutes this week with 94% accuracy").
+ *
+ * Their timestamps were strings: a notification written as '15 mins ago' was
+ * saved to localStorage saying '15 mins ago' and still said it days later.
+ *
+ * Notifications are rows now, raised by the two events that actually happen —
+ * a concept crossing into mastery, and work being set. See
+ * `server/learning/notifications.ts`.
+ */
 
 /**
  * @deprecated Import `tierForAge` from `services/tiers` instead.

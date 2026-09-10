@@ -59,7 +59,6 @@ interface TeacherDashboardProps {
    */
   assignableStudentIds: string[];
   onCreateAssignment: (input: NewAssignmentInput) => Promise<void>;
-  onSendStudentNotification: (studentName: string, assignmentTitle: string) => void;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
@@ -67,8 +66,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   assignments,
   concepts,
   assignableStudentIds,
-  onCreateAssignment,
-  onSendStudentNotification
+  onCreateAssignment
 }) => {
   const [filterTier, setFilterTier] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -194,10 +192,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       return;
     }
 
-    selectedStudentIds.forEach(id => {
-      const s = students.find(item => item.id === id);
-      if (s) onSendStudentNotification(s.name, title);
-    });
+    // The children are told by the server, inside the same call that wrote the
+    // assignment targets. Announcing from here as well put a second, local copy
+    // in the bell that disappeared on reload.
 
     playLevelUpFanfare();
     setToast(`Assignment "${title}" assigned to ${selectedStudentIds.length} students!`);
@@ -595,20 +592,18 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     {student.completedLessonsCount} Lessons
                   </td>
 
-                  <td className="py-4 px-6 text-right">
-                    <button
-                      onClick={() => {
-                        playClickSound();
-                        onSendStudentNotification(student.name, 'Speed Addition Challenge');
-                        setToast(`Reminder sent to ${student.name}!`);
-                        setTimeout(() => setToast(null), 3000);
-                      }}
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-xl font-bold transition flex items-center gap-1 ml-auto border border-slate-200 cursor-pointer"
-                    >
-                      <Send className="w-3 h-3" />
-                      <span>Nudge</span>
-                    </button>
-                  </td>
+                  {/*
+                    A "Nudge" button stood here. It raised a local notification
+                    about a hardcoded "Speed Addition Challenge" — the same
+                    phrase for every child, whatever they were working on — and
+                    toasted "Reminder sent to X!" although nothing was sent
+                    anywhere and the entry vanished on reload.
+
+                    A teacher nudging a pupil is a reasonable feature and is
+                    recorded as a gap. It needs a third notification type, a
+                    message the teacher actually writes, and the classroom
+                    entitlement check that `assignments.create` uses.
+                  */}
                 </tr>
               ))}
             </tbody>

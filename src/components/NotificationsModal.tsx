@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NotificationItem } from '../types';
-import { Bell, Check, Sparkles, BookOpen, Flame, Award, X, CheckCheck } from 'lucide-react';
+import { Bell, Check, Sparkles, BookOpen, Award, X, CheckCheck } from 'lucide-react';
 import { playClickSound } from '../utils/audio';
 
 interface NotificationsModalProps {
@@ -18,7 +18,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   onClearNotifications,
   onToggleRead
 }) => {
-  const [filter, setFilter] = useState<'all' | 'milestone' | 'assignment' | 'streak'>('all');
+  const [filter, setFilter] = useState<'all' | 'milestone' | 'assignment'>('all');
 
   const filtered = notifications.filter(n => filter === 'all' || n.type === filter);
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -29,8 +29,6 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
         return <Sparkles className="w-4 h-4 text-amber-500" />;
       case 'assignment':
         return <BookOpen className="w-4 h-4 text-indigo-500" />;
-      case 'streak':
-        return <Flame className="w-4 h-4 text-rose-500" />;
       default:
         return <Award className="w-4 h-4 text-purple-500" />;
     }
@@ -76,7 +74,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
         {/* Filter Pills */}
         <div className="flex items-center justify-between px-6 py-2.5 bg-white border-b border-slate-100 text-xs">
           <div className="flex gap-1">
-            {(['all', 'milestone', 'assignment', 'streak'] as const).map(f => (
+            {/* A "Streak" tab stood here. Nothing raises a streak notification. */}
+            {(['all', 'milestone', 'assignment'] as const).map(f => (
               <button
                 key={f}
                 onClick={() => {

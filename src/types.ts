@@ -157,7 +157,13 @@ export interface NotificationItem {
   id: string;
   title: string;
   message: string;
-  type: 'milestone' | 'assignment' | 'streak' | 'sync' | 'reward';
+  /*
+   * `streak`, `sync` and `reward` were here and had no producer: nothing writes
+   * `learner_rewards`, and the offline queue is Graft D. They are gone rather
+   * than kept as permanently-empty cases, which is what gave the bell a "Streak"
+   * filter tab that could never match anything.
+   */
+  type: 'milestone' | 'assignment';
   timestamp: string;
   read: boolean;
   targetId?: string;

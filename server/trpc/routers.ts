@@ -16,6 +16,14 @@ import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
 import {
+  announceAssignment,
+  clearNotifications,
+  markAllRead,
+  notificationsForLearner,
+  notificationsForUser,
+  setNotificationRead,
+} from '../learning/notifications';
+import {
   assignableLearnerIds,
   assignmentsForLearner,
   authoredAssignments,
@@ -436,6 +444,16 @@ const assignmentsRouter = router({
         .insert(schema.assignmentTargets)
         .values(requested.map(learnerId => ({ assignmentId: created.id, learnerId })));
 
+      // The children, not their guardians. A parent whose bell rings for every
+      // piece of homework stops reading the bell, which costs them the milestone
+      // notifications that are worth reading.
+      await announceAssignment(ctx.db, {
+        assignmentId: created.id,
+        title: input.title,
+        conceptId: input.conceptId,
+        learnerIds: requested,
+      });
+
       return { assignmentId: created.id, assigned: requested.length };
     }),
 
@@ -470,6 +488,49 @@ const assignmentsRouter = router({
 
       return { ok: true };
     }),
+});
+
+/**
+ * The bell.
+ *
+ * Split by audience the way `analytics` and `assignments` are, rather than one
+ * procedure taking an optional learner id. `forLearner` is built on
+ * `learnerProcedure`, so the entitlement check runs before the handler and
+ * cannot be forgotten; a single procedure branching on whether an argument was
+ * passed would have to check by hand.
+ */
+const notificationsRouter = router({
+  /** What the signed-in adult has been told. */
+  forMe: protectedProcedure.query(({ ctx }) => notificationsForUser(ctx.db, ctx.user.id)),
+
+  /** What one child has been told. */
+  forLearner: learnerProcedure.query(({ ctx }) => notificationsForLearner(ctx.db, ctx.learner.id)),
+
+  /**
+   * Marks one read, or unread.
+   *
+   * Not elevated. A bell is not a child's record — the sentences in it were
+   * written by this application about events the reader already knows about —
+   * and requiring a PIN to dismiss a notification would train the household to
+   * enter the PIN reflexively, which is the one thing a step-up must not become.
+   */
+  setRead: protectedProcedure
+    .input(z.object({ notificationId: z.number().int().positive(), read: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const ok = await setNotificationRead(ctx.db, ctx.user.id, input.notificationId, input.read);
+      if (!ok) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No such notification.' });
+      }
+      return { ok: true };
+    }),
+
+  markAllRead: protectedProcedure.mutation(async ({ ctx }) => ({
+    marked: await markAllRead(ctx.db, ctx.user.id),
+  })),
+
+  clear: protectedProcedure.mutation(async ({ ctx }) => ({
+    cleared: await clearNotifications(ctx.db, ctx.user.id),
+  })),
 });
 
 const practiceRouter = router({
@@ -594,6 +655,7 @@ export const appRouter = router({
   analytics: analyticsRouter,
   assignments: assignmentsRouter,
   curriculum: curriculumRouter,
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

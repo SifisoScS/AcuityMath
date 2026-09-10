@@ -36,6 +36,13 @@
       "when": 1789025170422,
       "tag": "0004_purple_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1789052384736,
+      "tag": "0005_loose_forge",
+      "breakpoints": true
     }
   ]
 }

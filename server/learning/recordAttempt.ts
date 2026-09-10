@@ -19,6 +19,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { AdaptiveEngine, type MisconceptionCode, type StudentAbilityProfile } from '../../src/services/adaptiveEngine';
 import { approximateAge } from '../../src/services/tiers';
 import * as schema from '../../drizzle/schema';
+import { raiseMasteryMilestone } from './notifications';
 import type { Database } from '../db/client';
 import { accuracyPercent, nextMastery } from './mastery';
 
@@ -96,6 +97,16 @@ export async function recordAttempt(db: Database, input: RecordAttemptInput): Pr
       .$returningId();
 
     const mastery = await updateConceptMastery(tx, input.learnerId, problem.conceptId, isCorrect);
+
+    // Inside the transaction, so a child cannot be congratulated for an answer
+    // the database ends up not having.
+    await raiseMasteryMilestone(tx, {
+      learnerId: input.learnerId,
+      conceptId: problem.conceptId,
+      previousMastery: mastery.previousMastery,
+      currentMastery: mastery.masteryScore,
+    });
+
     const ability = await updateAbility(tx, input.learnerId, problem, isCorrect, misconceptionCode);
 
     if (!isCorrect && misconceptionCode) {
@@ -170,7 +181,10 @@ async function updateConceptMastery(tx: Tx, learnerId: number, conceptId: string
 
   await tx.insert(schema.conceptMasteryHistory).values({ learnerId, conceptId, masteryScore, accuracy });
 
-  return { masteryScore, accuracy, attemptCount };
+  // `previousMastery` so the caller can see a *crossing* rather than a level.
+  // A notification raised on `masteryScore >= 80` alone fires on every answer
+  // after the first time a concept is mastered.
+  return { masteryScore, accuracy, attemptCount, previousMastery: existing?.masteryScore ?? 0 };
 }
 
 /**

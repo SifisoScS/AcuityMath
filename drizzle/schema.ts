@@ -711,6 +711,70 @@ export const learnerRewards = mysqlTable(
 );
 
 // ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+/**
+ * Something that happened, addressed to whoever should know about it.
+ *
+ * ## Recipient and subject are different columns
+ *
+ * `userId` and `learnerId` are *who reads it*, and exactly one is set. Both
+ * audiences want different sentences about the same event — the child is told
+ * "You have mastered Number Bonds", their guardian is told "Maya has mastered
+ * Number Bonds" — so one event writes two rows rather than one row whose wording
+ * is chosen at render time. Sharing a row would also share the read flag, so a
+ * parent opening the bell would mark the child's copy read.
+ *
+ * `aboutLearnerId` is *who it concerns*, set on both rows. Without it the
+ * guardian's copy has no machine-readable link to the child it is about, and
+ * "has this milestone already been raised" cannot be asked once for both rows.
+ *
+ * ## Why there is no unique index enforcing "once"
+ *
+ * The obvious guard — unique on `(learnerId, conceptId, type)` — is wrong twice
+ * over. It would stop a teacher setting a second assignment on the same concept
+ * to the same child, and MySQL treats NULLs as distinct, so the guardian's copy
+ * (whose `learnerId` is null) would slip past it and duplicate anyway.
+ * `raiseMasteryMilestone` asks whether one already exists instead. Two attempts
+ * by the same child on the same concept at the same instant could still race
+ * past that, which would produce one duplicate congratulation and nothing worse.
+ */
+export const notifications = mysqlTable(
+  'notifications',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    /** The adult who reads it. Null when this copy is addressed to a child. */
+    userId: int('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    /** The child who reads it. Null when this copy is addressed to an adult. */
+    learnerId: int('learner_id').references(() => learners.id, { onDelete: 'cascade' }),
+    /** The child it is about, on both copies. */
+    aboutLearnerId: int('about_learner_id').references(() => learners.id, { onDelete: 'cascade' }),
+    /**
+     * `streak`, `reward` and `sync` exist in the front-end type and have no
+     * producer: nothing writes `learner_rewards`, and the offline queue is
+     * Graft D. They are absent here rather than present and unused, so adding
+     * one is a migration and a decision rather than an oversight.
+     */
+    type: mysqlEnum('type', ['milestone', 'assignment']).notNull(),
+    title: varchar('title', { length: 200 }).notNull(),
+    message: text('message').notNull(),
+    conceptId: varchar('concept_id', { length: 120 }).references(() => concepts.id, {
+      onDelete: 'cascade',
+    }),
+    assignmentId: int('assignment_id').references(() => assignments.id, { onDelete: 'cascade' }),
+    /** Null while unread. A timestamp rather than a flag, so "when" survives. */
+    readAt: timestamp('read_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    index('notifications_user_idx').on(table.userId, table.createdAt),
+    index('notifications_learner_idx').on(table.learnerId, table.createdAt),
+    index('notifications_about_idx').on(table.aboutLearnerId, table.type),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Relations
 // ---------------------------------------------------------------------------
 
@@ -764,3 +828,5 @@ export type NewProblem = typeof problems.$inferInsert;
 export type Attempt = typeof attempts.$inferSelect;
 export type NewAttempt = typeof attempts.$inferInsert;
 export type LearnerAbility = typeof learnerAbility.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
