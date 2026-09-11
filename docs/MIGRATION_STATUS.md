@@ -363,31 +363,17 @@ CI is unaffected: the integration suites throw rather than skip when `CI` is set
 and `DATABASE_URL` is unset, so a pipeline cannot go green by skipping the half
 that needs a database.
 
-**This fork is temporary, and closing it is a commitment, not a hope.**
+**The fork that made this urgent is closed.** For a stretch, 3307 carried
+`0006`–`0009` while `main` had none of them, and the 3308 recipe was the only
+way to tell a branch failure from a database one. `0008` and `0009` landed in
+#23, 3307 was dropped and re-migrated from `main`, and the full suite runs green
+against it — the first time `main` and the dev database have agreed since
+`0006`.
 
-This paragraph first said "once PR #19's migrations merge". #19 was split and
-closes unmerged, so that milestone would never have arrived — the same drift
-this file keeps catching, one layer down. The milestone is now stated against
-migrations, which cannot be renumbered away:
-
-> **Close-out: when `0008` and `0009` are on `main`, reset 3307.** That is the
-> last migration either open branch introduces, so at that point `main` and 3307
-> are reconcilable for the first time since `0006`.
-
-```bash
-docker rm -f acuitymath-mysql
-docker run -d --name acuitymath-mysql \
-  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=acuitymath \
-  -p 3307:3306 mysql:8.4
-DATABASE_URL="mysql://root:root@127.0.0.1:3307/acuitymath" \
-  pnpm db:migrate && pnpm db:seed && pnpm db:seed:demo
-```
-
-Left alone, 3307 becomes a permanently forked dev database that every new
-contributor meets as a mystery, and the 3308 recipe above quietly turns from a
-workaround into the only way anything passes. **The recipe is worth keeping; the
-need for it is not.** When the reset happens, strike this block and leave the
-recipe.
+The recipe above stays. It was never only for that fork: **any branch that adds
+or drops a migration reopens the same gap** for as long as it is unmerged, and
+the next one will. What has gone is the standing mismatch, not the reason to
+verify on a database at your own branch's level.
 
 ---
 
@@ -541,6 +527,24 @@ Do not relitigate these without a reason that is new.
 ## Traps, and what they cost
 
 Each of these looked like something else first.
+
+**An assertion can check something adjacent to the thing it names.** This has
+now happened three times, and it is the hardest defect in this project to
+notice, because the test is green while it is wrong.
+
+| The assertion looked like | What it actually checked | The fix |
+| --- | --- | --- |
+| `expect(routes.length).toBeGreaterThan(15)` — a route count | a floor seven below the real count; ten routes could vanish | assert the exact number, measured after the deletions |
+| `grep -c verifyPin` on `main` — whether the routes are gone | a file-header comment describing the deletion | assert route *declarations*, which is what `legacyApi.test.ts` pins |
+| `expect(body).toMatch(/consent\.record/)` — that the 410 names the call site | `replacedBy: 'consent.record'`, a machine field elsewhere in the same handler | extract the `error:` string and assert it separately from the field |
+
+The shape is always the same: the assertion runs against a *container* of the
+property rather than the property. A floor contains the count; the file contains
+the routes; the handler contains the message. Each passes for a reason that has
+nothing to do with what it claims, and each was only found by changing the code
+it guards and watching it stay green. **Mutation is what distinguishes a test
+from a decoration** — and two of these three were caught only because a mutation
+was absorbed rather than because anything failed.
 
 **Mutating a schema is not like mutating code.** Testing that the `client_id`
 uniqueness is scoped per learner meant generating and applying a real migration,
