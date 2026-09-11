@@ -83,26 +83,29 @@ apiRouter.get('/bootstrap', (_req: Request, res: Response) => {
  * It is refused rather than deleted on purpose. Deleting it would break
  * `CoppaConsentModal` silently, and a silent failure here looks exactly like the
  * silent success it replaces. A 410 with a reason makes the gap visible to
- * anyone who hits it.
+ * anyone who hits it and forces the modal onto `consent.record`.
  *
- * The message states the present position and points nowhere. There is no
- * replacement procedure deployed yet, and a runtime error that cites a planning
- * document sends whoever hit it to read a plan instead of telling them what is
- * true right now: consent cannot be recorded by any route on this server. When
- * the replacement exists, this message names it — a pointer is worth having
- * once it resolves.
+ * The message names the **tRPC procedure**, not the table. Whoever reads it is a
+ * developer looking at a failed request and needs the call site; the storage is
+ * the next question, not the first.
+ *
+ * When this route was first closed there was no replacement, and the message
+ * said exactly that while carrying `replacementDeployed: false`. That flag is
+ * true now and the pointer resolves. The rule that survived both states is the
+ * one worth keeping: say what is true at the moment the message is read, and
+ * point only at something that exists. It still cites no planning document —
+ * a runtime error should hand a developer a call site, not reading material.
  */
 apiRouter.post('/auth/coppa-consent', (_req: Request, res: Response) => {
   res.status(410).json({
     error:
-      'Consent is not recorded here, and is not recorded anywhere else yet. ' +
-      'This endpoint wrote to data_store.json against a hardcoded user id, so ' +
-      'consent a parent granted was never stored against their account, and ' +
-      'the consent_events table has never been written to by anything. It is ' +
-      'refused rather than accepted silently. No replacement is deployed: ' +
-      'until one is, this product cannot record parental consent.',
+      'Consent is no longer recorded here. Call the tRPC procedure ' +
+      '`consent.record` instead (POST /trpc/consent.record); read the current ' +
+      'state with `consent.forFamily` and the disclosure with `consent.policy`. ' +
+      'This endpoint wrote to data_store.json against a hardcoded user.',
+    replacedBy: 'consent.record',
     gone: true,
-    replacementDeployed: false,
+    replacementDeployed: true,
   });
 });
 

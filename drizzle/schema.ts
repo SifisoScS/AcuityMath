@@ -147,6 +147,17 @@ export const learnerAccessTokens = mysqlTable(
  * COPPA obliges an operator to show *when* consent was given, by what method,
  * and whether it was later withdrawn, so each decision is its own row and the
  * current state is the most recent one.
+ *
+ * There is deliberately no `consented` column on `learners` to go with it. That
+ * would be a second source for something these rows already answer, and it is
+ * the one that would be wrong after a withdrawal.
+ *
+ * The `evidence` column that used to sit here — a single `varchar(500)`
+ * documented as "typed name *or* reference to the signed artifact, per the
+ * method used" — is gone. One free-text field standing for whatever the method
+ * happened to be is the same failure as a ledger with no policy version, one
+ * layer down. Its two jobs are columns now. A future method needing a document
+ * reference gets its own column then.
  */
 export const consentEvents = mysqlTable(
   'consent_events',
@@ -159,9 +170,72 @@ export const consentEvents = mysqlTable(
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
     decision: mysqlEnum('decision', ['granted', 'withdrawn']).notNull(),
-    method: mysqlEnum('method', ['credit_card_auth', 'email_plus_verification', 'signed_form', 'institutional_agreement']).notNull(),
-    /** Typed name or reference to the signed artifact, per the method used. */
-    evidence: varchar('evidence', { length: 500 }),
+    /**
+     * How the guardian was verified — as performed, not as chosen.
+     *
+     * The modal used to offer this as a dropdown including "Micro-Auth Credit
+     * Card Verification", when nothing charges a card. The method records what
+     * the *operator* did; letting a parent pick it writes a record of a
+     * verification that never happened.
+     *
+     * `email_verified_name_attested` is the only value this product writes, and
+     * it is named for exactly what it is. The first draft called it
+     * `email_plus_verification`, which overstates it: "email plus" is a term of
+     * art for a method with a second confirming step, and a name that needs the
+     * evidence read before it stops misleading is the wrong shape. The others
+     * stay in the enum because removing values to mean "not built yet" makes the
+     * schema harder to change than the UI is.
+     */
+    method: mysqlEnum('method', [
+      'credit_card_auth',
+      'email_plus_verification',
+      'signed_form',
+      'institutional_agreement',
+      'email_verified_name_attested',
+    ]).notNull(),
+
+    /**
+     * Which disclosure was agreed to, and proof it has not been edited since.
+     *
+     * A version string alone is a promise that nobody changed `v1` in place,
+     * worth as much as the discipline of whoever last touched the file. The
+     * hash is computed server-side from the server's own copy of the document —
+     * never sent by the client, which could otherwise claim consent to text that
+     * was never displayed.
+     *
+     * Both `notNull`: there were no rows to backfill, and a nullable column here
+     * would make "consent to something unrecorded" representable.
+     */
+    policyVersion: varchar('policy_version', { length: 32 }).notNull(),
+    policySha256: varchar('policy_sha256', { length: 64 }).notNull(),
+
+    /** The name the guardian typed. An attestation, not a signature. */
+    attestedName: varchar('attested_name', { length: 200 }).notNull(),
+    /**
+     * The address consent was given from, snapshotted rather than joined.
+     * `users.email` can change; what this row says must not.
+     */
+    verifiedEmail: varchar('verified_email', { length: 320 }).notNull(),
+    /**
+     * When the magic link proving control of that address was consumed.
+     *
+     * The link proves control at time T; consent is recorded at T+X, and a gap
+     * of weeks is an ordinary scenario. Storing it means the record shows the
+     * gap rather than implying the two were simultaneous. Null means no link on
+     * record — true for the development sign-in bypass, which production builds
+     * refuse.
+     */
+    emailVerifiedAt: timestamp('email_verified_at'),
+    /**
+     * Whether a confirming second communication was sent. Always false today.
+     *
+     * Recorded explicitly rather than left to inference, because it is the
+     * single fact separating what this product does from COPPA "email plus" —
+     * and because "show me every consent taken without a confirming step" should
+     * be a `WHERE` clause.
+     */
+    secondStepSent: boolean('second_step_sent').notNull().default(false),
+
     recordedAt: timestamp('recorded_at').defaultNow().notNull(),
   },
   table => [index('consent_learner_idx').on(table.learnerId, table.recordedAt)],

@@ -36,6 +36,7 @@ import { useStepUpStatus } from './hooks/useStepUp';
 import { useFamilyAnalytics } from './hooks/useAnalytics';
 import { useAuthoredAssignments, useLearnerAssignments } from './hooks/useAssignments';
 import { useNotifications } from './hooks/useNotifications';
+import { useConsent } from './hooks/useConsent';
 import { useRewards } from './hooks/useRewards';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
@@ -217,7 +218,22 @@ export default function App() {
   const [targetProtectedProfile, setTargetProtectedProfile] = useState<UserProfile | null>(null);
 
   const [isCoppaModalOpen, setIsCoppaModalOpen] = useState(false);
-  const [hasCoppaConsent, setHasCoppaConsent] = useState(true);
+  /** Set when the consent modal stood aside for the PIN prompt, so it can return. */
+  const [reopenConsentAfterPin, setReopenConsentAfterPin] = useState(false);
+  /*
+   * Consent, from the ledger.
+   *
+   * This was `useState(true)` — a fail-open default, of the same family as the
+   * `verifyPin` wrapper that returned `{ valid: true }` from its catch block.
+   * Until a legacy endpoint answered, the application assumed consent, and the
+   * badge below rendered green on that assumption.
+   *
+   * `allCovered` is false until every child on the account is covered under the
+   * current terms, which is also false while it is still loading. There is no
+   * state in which this asserts consent it has not read.
+   */
+  const consent = useConsent(isSignedIn);
+  const hasCoppaConsent = consent.allCovered;
 
   const [isScreenLocked, setIsScreenLocked] = useState(false);
   const [lockedTimeData, setLockedTimeData] = useState({ todayMinutes: 45, limitMinutes: 45 });
@@ -279,14 +295,11 @@ export default function App() {
     }
   }, [activeProfile.id, activeProfile.role, activeProfile.diagnosticComplete]);
 
-  // Bootstrap from Cloud Database on initialization
-  useEffect(() => {
-    apiService.getBootstrap().then(data => {
-      if (data && data.coppaStatus) {
-        setHasCoppaConsent(data.coppaStatus.isCompliant);
-      }
-    });
-  }, []);
+  /*
+   * A `getBootstrap()` call stood here, reading `coppaStatus.isCompliant` from
+   * `/api/bootstrap` — which reads `data_store.json`, the pre-migration JSON
+   * file nothing else consults. Consent comes from `consent_events` now.
+   */
 
   // Server-Authoritative Screen Time Heartbeat
   useEffect(() => {
@@ -1070,10 +1083,24 @@ export default function App() {
                   ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                   : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 animate-pulse'
               }`}
-              title="Child Data Safeguards (COPPA VPC Certified & Zero PII Mode)"
+              /*
+                The tooltip read "Child Data Safeguards (COPPA VPC Certified &
+                Zero PII Mode)" and the label "COPPA Verified" — a certification
+                claim, rendered green by a default that assumed consent. Nobody
+                certified anything. It says what the ledger says.
+              */
+              title={
+                hasCoppaConsent
+                  ? 'You have given permission for your children\'s progress to be recorded'
+                  : 'Permission to record your children\'s progress has not been given yet'
+              }
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">COPPA Verified</span>
+              <ShieldCheck
+                className={`w-3.5 h-3.5 ${hasCoppaConsent ? 'text-emerald-600' : 'text-amber-600'}`}
+              />
+              <span className="hidden sm:inline">
+                {hasCoppaConsent ? 'Permission given' : 'Permission needed'}
+              </span>
             </button>
 
             {/* Screen Time Badge — only when a parent has actually set a limit. */}
@@ -1515,6 +1542,10 @@ export default function App() {
           }
           setIsParentPinOpen(false);
           setIsProfileModalOpen(false);
+          if (reopenConsentAfterPin) {
+            setReopenConsentAfterPin(false);
+            setIsCoppaModalOpen(true);
+          }
         }}
         onClose={() => {
           setIsParentPinOpen(false);
@@ -1526,18 +1557,32 @@ export default function App() {
       <CoppaConsentModal
         isOpen={isCoppaModalOpen}
         onClose={() => setIsCoppaModalOpen(false)}
-        parentName="Sarah Jenkins"
-        parentEmail="sarah.jenkins@example.com"
-        hasConsented={hasCoppaConsent}
-        onConsentUpdated={() => {
-          setHasCoppaConsent(true);
-          // Consent changes what the server will return for these children, so
-          // re-read rather than patching a local copy. The legacy bootstrap
-          // call that used to rebuild the profile list from `/api` goes with the
-          // JSON store it reads from.
-          refreshProfiles();
+        /*
+          These were `"Sarah Jenkins"` and `"sarah.jenkins@example.com"`,
+          hardcoded — the same invented parent the deleted endpoint recorded
+          consent against. The signed-in account is the only one that can
+          consent, and it is the one the server records.
+        */
+        parentName={sessionUser?.name ?? ''}
+        parentEmail={sessionUser?.email ?? ''}
+        students={studentProfiles}
+        consent={consent}
+        onRequestStepUp={() => {
+          /*
+           * The consent modal closes while the PIN is entered, and reopens after.
+           *
+           * Both are `fixed inset-0 z-50`, and this one renders later in the
+           * tree — so leaving it open puts it over the keypad, and the parent
+           * gets a PIN prompt whose buttons cannot be clicked. Found by driving
+           * it; invisible to the tests, which never stack two modals.
+           */
+          setIsCoppaModalOpen(false);
+          setReopenConsentAfterPin(true);
+          setTargetProtectedRole('parent');
+          setTargetProtectedTab(null);
+          setTargetProtectedProfile(null);
+          setIsParentPinOpen(true);
         }}
-        students={studentProfiles.map(s => ({ id: s.id, name: s.name, age: s.age || 8 }))}
       />
 
       <ScreenTimeLockModal

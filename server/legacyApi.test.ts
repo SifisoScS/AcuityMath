@@ -67,6 +67,22 @@ const TOUCHES_LEGACY_STORE = [
   'GET /audit-logs',
 ];
 
+/**
+ * The human-readable `error:` string alone, without the machine fields beside
+ * it.
+ *
+ * Asserting `consent.record` against the whole handler was absorbed by a
+ * mutation: `replacedBy: 'consent.record'` satisfies the match, so the prose
+ * could stop naming the call site entirely and the test stayed green. The
+ * message and the machine field are two different promises to two different
+ * readers, and they need asserting separately.
+ */
+function errorMessageFor(route: string): string {
+  const body = handlerFor(route);
+  const match = body.match(/error:\s*([\s\S]*?)\n\s{4}\w+:/);
+  return match ? match[1] : '';
+}
+
 /** The body of one route handler, for asking what it touches. */
 function handlerFor(route: string): string {
   const [method, path] = route.split(' ');
@@ -136,23 +152,31 @@ describe('the legacy REST surface', () => {
       expect(routes).toContain('POST /auth/coppa-consent');
     });
 
-    it('says consent is recorded nowhere, and does not point at a plan', () => {
+    it('names the procedure that replaced it, not the table or a plan', () => {
       /*
-       * The message has to be true at the moment it is read. `consent_events`
-       * is named because that is the table standing empty; but nothing writes
-       * to it yet, so the message says so rather than implying a replacement
-       * the caller could go and use.
+       * Whoever reads this message is a developer looking at a failed request.
+       * They need the call site. Naming `consent_events` tells them where the
+       * data ends up, which is the second question, not the first — and sends
+       * them to a schema file when what they want is a procedure to call.
        *
-       * It must not cite a planning document either. A runtime error that
-       * sends a developer to read a migration plan tells them less than the
-       * one sentence that matters: this product cannot record consent today.
-       * When the replacement ships, that step names it here.
+       * `replacementDeployed` is asserted true rather than merely present. It
+       * was false while this route was closed and nothing had replaced it, and
+       * a caller can branch on it; a test that only checked the key existed
+       * would pass in both states and so would check nothing.
+       *
+       * The ban on citing a planning document outlives the state change. A
+       * runtime error hands back a call site, not reading material — that held
+       * when there was no replacement and it holds now there is one.
        */
-      const body = handlerFor('POST /auth/coppa-consent');
-      expect(body).toMatch(/consent_events/);
-      expect(body).toMatch(/replacementDeployed: false/);
-      expect(body, 'the 410 cites a document instead of stating the position')
+      const message = errorMessageFor('POST /auth/coppa-consent');
+      expect(message, 'the message a developer reads does not name the procedure')
+        .toMatch(/consent\.record/);
+      expect(message).toMatch(/trpc/i);
+      expect(message, 'the 410 cites a document instead of naming a call site')
         .not.toMatch(/MIGRATION_STATUS|docs\//);
+
+      // The machine field is a separate promise: a caller branches on it.
+      expect(handlerFor('POST /auth/coppa-consent')).toMatch(/replacementDeployed: true/);
     });
   });
 
