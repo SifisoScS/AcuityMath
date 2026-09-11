@@ -123,8 +123,16 @@ describe('the legacy REST surface', () => {
       expect(routes).toContain('POST /auth/coppa-consent');
     });
 
-    it('names where consent has to go instead', () => {
-      expect(handlerFor('POST /auth/coppa-consent')).toMatch(/consent_events/);
+    it('names the procedure that replaced it, not the table', () => {
+      /*
+       * Whoever reads this message is a developer looking at a failed request.
+       * They need the call site. Naming `consent_events` tells them where the
+       * data ends up, which is the second question, not the first — and sends
+       * them to a schema file when what they want is a procedure to call.
+       */
+      const body = handlerFor('POST /auth/coppa-consent');
+      expect(body).toMatch(/consent\.record/);
+      expect(body).toMatch(/trpc/i);
     });
   });
 

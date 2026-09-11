@@ -83,15 +83,20 @@ apiRouter.get('/bootstrap', (_req: Request, res: Response) => {
  * It is refused rather than deleted on purpose. Deleting it would break
  * `CoppaConsentModal` silently, and a silent failure here looks exactly like the
  * silent success it replaces. A 410 with a reason makes the gap visible to
- * anyone who hits it and forces the modal to be wired to `consent_events` when
- * Graft E lands.
+ * anyone who hits it and forces the modal onto `consent.record`.
+ *
+ * The message names the **tRPC procedure**, not the table. Whoever reads it is a
+ * developer looking at a failed request and needs the call site; the storage is
+ * the next question, not the first.
  */
 apiRouter.post('/auth/coppa-consent', (_req: Request, res: Response) => {
   res.status(410).json({
     error:
-      'Consent is no longer recorded here. This endpoint wrote to data_store.json ' +
-      'against a hardcoded user; it must be replaced by a procedure writing to ' +
-      'consent_events. See Graft E in docs/MIGRATION_STATUS.md.',
+      'Consent is no longer recorded here. Call the tRPC procedure ' +
+      '`consent.record` instead (POST /trpc/consent.record); read the current ' +
+      'state with `consent.forFamily` and the disclosure with `consent.policy`. ' +
+      'This endpoint wrote to data_store.json against a hardcoded user.',
+    replacedBy: 'consent.record',
     gone: true,
   });
 });

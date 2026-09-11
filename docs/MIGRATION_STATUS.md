@@ -46,7 +46,9 @@ Donor repository, read-only reference:
 | **B3f-2** | Assignments onto the server, teacher entitlement | **Merged** (PR #17) |
 | **B3f-3** | Notifications onto the server, with real producers | **Merged** (PR #18) |
 | **D** | Offline queue on IndexedDB | **Done**, open in **PR #19** |
-| **E** | Retire the legacy REST surface and the JSON store | **Planned.** Credential surface already closed |
+| **E1** | COPPA consent onto `consent_events` | **Done**, open in **PR #20** |
+| **E1b** | Gate on consent for under-13s | **Committed, not started.** See below |
+| **E2–E5** | Screen time, quarantine, delete the JSON store | Planned |
 
 Every pull request is merged; nothing is open. The table used to say "open in
 PR #N" for work that had been in `main` for days — read it as a record of what
@@ -150,11 +152,49 @@ of two id formats, not a property** — nothing enforces it, and a seed, a refac
 or a direct write removes it. The PIN check succeeded regardless, which is the
 durable part.
 
-### The order
+### Step 1 — done
 
-1. **COPPA consent onto `consent_events`,** behind `elevatedProcedure`, with
-   `CoppaConsentModal` calling the procedure. This is the one that has to be
-   right.
+Consent is recorded in `consent_events`, one row per child, by
+`consent.record` on `elevatedProcedure`. The design and the four decisions
+behind it are in the artifact linked from PR #20. The parts worth restating:
+
+- **The method is `email_verified_name_attested`.** The first draft called it
+  `email_plus_verification`, which overstates it — "email plus" is a term of art
+  for a method with a confirming second step this product does not perform. A
+  name that needs the evidence read before it stops misleading is the wrong
+  shape.
+- **The policy hash is computed server-side** from the server's own copy of the
+  disclosure, never sent by the client, which could otherwise claim consent to
+  text that was never displayed. The input is `.strict()`, so an attempt to
+  supply one is refused rather than silently stripped.
+- **`evidence` is gone.** One free-text `varchar(500)` standing for whatever the
+  method happened to be was the same failure as a ledger with no policy version,
+  one layer down. It is `attested_name`, `verified_email`, `email_verified_at`
+  and `second_step_sent` now — so "show me every consent taken without a
+  confirming step" is a `WHERE` clause.
+- **`email_verified_at`** records when the magic link was consumed. The link
+  proves control at T and consent is recorded at T+X; a gap of weeks is
+  ordinary, and a record that cannot show it implies there wasn't one. Deciding a
+  maximum acceptable age is a policy question — enforcing one is a one-line
+  change once there is a number.
+- **Precedence is one `status`**, not a decision plus a freshness flag:
+  `withdrawn` outranks everything, `superseded` applies only to a granted row
+  under an old version, and a child added after consent reads `none`.
+
+### E1b — gate on consent. Committed, not started.
+
+**This is a named step, not an open question.** Recording consent fixes the false
+claim; it does not stop the product collecting data from children nobody
+consented for, and that second half is the one that protects anybody. Left as
+"its own change, someday", someday is how it stays record-only permanently.
+
+What it needs deciding: what a child without consent may still do. Practice
+with nothing recorded? Nothing at all? The gate applies to under-13s, which the
+`birthYear` column already answers.
+
+### The rest of the order
+
+1. ~~COPPA consent onto `consent_events`.~~ Done.
 2. **Screen-time enforcement onto the real schema.** The legacy heartbeat and
    the unlock path retire with it; `screen_time_rules` and `screen_time_usage`
    already exist and nothing enforces them.
@@ -405,6 +445,25 @@ committed, and the next run failed ten tests. It happened a second time on
 `.sql` file was untracked and therefore survived — leaving the journal and the
 migrations folder disagreeing. Copy the file aside and copy it back; only use
 `git checkout` on work that is already in a commit.
+
+**A modal that names a requirement must offer a way to meet it.** The consent
+screen is elevated, so it told a parent "Enter your parent PIN to see or change
+this" — and gave them no control to do it. That is an error message with no
+remedy, the same shape as a withdrawal that records nothing and says nothing
+about deletion.
+
+**Two `z-50` modals do not stack; the later one wins.** Adding the PIN prompt to
+the consent screen produced a keypad the parent could not click, because the
+consent modal renders after it in `App.tsx` and covers it. No test caught this —
+none of them open two modals at once. The browser drive did, in one click.
+
+**"Cannot see it" is not "it is empty".** The consent modal read its child list
+from `consent.forFamily`, which is elevated — so before the PIN was entered, a
+household with four children was told "there are no children on this account
+yet". The roster comes from `learners.list`, which needs only a session; the
+statuses come from the elevated query and read "Hidden until you enter your PIN"
+rather than "not covered". This is the fail-open default wearing the opposite
+sign, and it is just as wrong.
 
 **A roster is not a family.** `learners.list` returns the signed-in *guardian's*
 children, which is correct and was the only list the front end had. A teacher

@@ -15,6 +15,18 @@ import * as schema from '../../drizzle/schema';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
+import {
+  consentForFamily,
+  currentPolicyHash,
+  recordConsent,
+  StalePolicy,
+} from '../learning/consent';
+import {
+  CONSENT_POLICY_CLAUSES,
+  CONSENT_POLICY_VERSION,
+  CONSENT_SUMMARY,
+  VERIFICATION_EXPLANATION,
+} from '../../src/data/consentPolicy';
 import { avatarById, FREE_AVATAR_IDS, STORE_AVATARS } from '../../src/data/avatars';
 import { spendCoins } from '../learning/rewards';
 import {
@@ -643,6 +655,94 @@ const notificationsRouter = router({
   })),
 });
 
+/**
+ * Parental consent.
+ *
+ * Replaces `POST /api/auth/coppa-consent`, which wrote to `data_store.json`
+ * against a hardcoded `'parent_sarah_1'` while this table went unwritten. The
+ * application told a parent their consent was recorded, and it was not.
+ *
+ * Elevated, because it is a decision only the adult may make and the device is
+ * shared with the children it concerns.
+ */
+const consentRouter = router({
+  /**
+   * The disclosure to display, and what the product can evidence about the
+   * person agreeing to it.
+   *
+   * Served rather than imported by the client so the text shown and the text
+   * hashed cannot drift across a half-finished deploy. Open to any signed-in
+   * adult: it is the terms, not a child's record.
+   */
+  policy: protectedProcedure.query(() => ({
+    version: CONSENT_POLICY_VERSION,
+    clauses: CONSENT_POLICY_CLAUSES,
+    summary: CONSENT_SUMMARY,
+    verification: VERIFICATION_EXPLANATION,
+  })),
+
+  /** Where every child on the account stands. */
+  forFamily: elevatedProcedure.query(({ ctx }) => consentForFamily(ctx.db, ctx.user.id)),
+
+  /**
+   * Records a decision for every child on the account.
+   *
+   * The input carries no user id and no learner id. That is the point: the
+   * hardcoded `'parent_sarah_1'` is not merely wrong here, it is
+   * unrepresentable. The guardian comes from the session and the children from
+   * the guardian.
+   *
+   * It also carries no policy hash. A client that supplies one can claim consent
+   * to text that was never displayed, which would make the column look like
+   * evidence while being the opposite.
+   */
+  record: elevatedProcedure
+    .input(
+      z
+        .object({
+          decision: z.enum(['granted', 'withdrawn']),
+          attestedName: z.string().trim().min(2).max(200),
+          policyVersion: z.string().min(1).max(32),
+        })
+        /*
+         * `.strict()` so an unexpected field is refused rather than dropped.
+         *
+         * Zod strips unknown keys by default, which is safe — a client sending
+         * `policySha256` would have it ignored and the server's own hash used.
+         * But silently is the wrong way to be safe here: a caller sending a
+         * policy hash is either confused about where it comes from or testing
+         * whether it is honoured, and both are worth an error rather than a
+         * success that quietly did something else.
+         */
+        .strict(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await recordConsent(ctx.db, {
+          guardianId: ctx.user.id,
+          decision: input.decision,
+          attestedName: input.attestedName,
+          policyVersion: input.policyVersion,
+        });
+      } catch (error) {
+        if (error instanceof StalePolicy) {
+          // Their tab has been open across a deploy: they agreed to something
+          // no longer on screen. Showing the current text and asking again is
+          // the only honest option.
+          throw new TRPCError({ code: 'CONFLICT', message: error.message });
+        }
+        throw error;
+      }
+    }),
+
+  /**
+   * The hash of the disclosure this server holds.
+   *
+   * Exposed for the integrity gate, not for the client to send back.
+   */
+  policyHash: protectedProcedure.query(() => ({ sha256: currentPolicyHash() })),
+});
+
 const practiceRouter = router({
   start: learnerProcedure
     .input(z.object({ targetLength: z.number().int().min(1).max(50).default(8) }))
@@ -780,6 +880,7 @@ export const appRouter = router({
   assignments: assignmentsRouter,
   curriculum: curriculumRouter,
   notifications: notificationsRouter,
+  consent: consentRouter,
 });
 
 export type AppRouter = typeof appRouter;
