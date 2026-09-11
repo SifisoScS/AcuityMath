@@ -218,19 +218,12 @@ class ApiService {
     }
   }
 
-  public async syncBatch(actions: Array<{ type: string; payload?: unknown; studentId?: string; updates?: unknown; elapsedSeconds?: number }>): Promise<{ success: boolean; processedCount?: number }> {
-    try {
-      const res = await fetch(`${this.baseUrl}/sync/batch`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ actions })
-      });
-      return await res.json();
-    } catch (err) {
-      console.warn('[ApiService] Sync batch failed:', err);
-      return { success: false };
-    }
-  }
+  /*
+   * `syncBatch` was removed with the fake offline queue it served. It posted to
+   * `/api/sync/batch`, which writes to the pre-migration JSON store. The real
+   * queue reconciles through `practice.submit`, which writes to MySQL and
+   * deduplicates on a client id.
+   */
 
   // Phase 3: Socratic AI Math Coach Request
   public async askSocraticCoach(params: {

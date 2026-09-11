@@ -1,102 +1,15 @@
-import { UserProfile, TeacherAssignment, NotificationItem, OfflineSyncState, AgeTier } from '../types';
+import { UserProfile, TeacherAssignment, NotificationItem, AgeTier } from '../types';
 import { INITIAL_ACHIEVEMENTS } from '../data/curriculumData';
 import { tierForAge } from '../services/tiers';
 
-export const INITIAL_PROFILES: UserProfile[] = [
-  {
-    id: 'user-maya',
-    name: 'Maya Patel',
-    role: 'student',
-    age: 5,
-    avatar: '🦊',
-    tier: 'early',
-    dynamicLevel: 2,
-    eloRating: 980,
-    xp: 420,
-    coins: 75,
-    streakDays: 4,
-    streakShields: 1,
-    accuracyRate: 94,
-    completedLessonsCount: 8,
-    unlockedAvatars: ['av-owl', 'av-fox'],
-    parentContact: 'sarah.rivera@example.com',
-    assignedTeacherId: 'user-teacher'
-  },
-  {
-    id: 'user-leo',
-    name: 'Leo Chen',
-    role: 'student',
-    age: 9,
-    avatar: '🤖',
-    tier: 'elementary',
-    dynamicLevel: 4,
-    eloRating: 1320,
-    xp: 1150,
-    coins: 160,
-    streakDays: 7,
-    streakShields: 2,
-    accuracyRate: 89,
-    completedLessonsCount: 16,
-    unlockedAvatars: ['av-owl', 'av-fox', 'av-robot'],
-    parentContact: 'sarah.rivera@example.com',
-    assignedTeacherId: 'user-teacher'
-  },
-  {
-    id: 'user-alex',
-    name: 'Alex Rivera',
-    role: 'student',
-    age: 16,
-    avatar: '🧑‍🚀',
-    tier: 'high',
-    dynamicLevel: 8,
-    eloRating: 1840,
-    xp: 3200,
-    coins: 380,
-    streakDays: 14,
-    streakShields: 3,
-    accuracyRate: 92,
-    completedLessonsCount: 32,
-    unlockedAvatars: ['av-owl', 'av-fox', 'av-robot', 'av-astronaut', 'av-einstein'],
-    parentContact: 'sarah.rivera@example.com',
-    assignedTeacherId: 'user-teacher'
-  },
-  {
-    id: 'user-parent',
-    name: 'Sarah Rivera (Parent)',
-    role: 'parent',
-    age: 42,
-    avatar: '🛡️',
-    tier: 'high',
-    dynamicLevel: 10,
-    eloRating: 2000,
-    xp: 0,
-    coins: 0,
-    streakDays: 0,
-    streakShields: 0,
-    accuracyRate: 100,
-    completedLessonsCount: 0,
-    unlockedAvatars: [],
-    pin: '1234'
-  },
-  {
-    id: 'user-teacher',
-    name: 'Mr. Henderson (Math Faculty)',
-    role: 'teacher',
-    age: 38,
-    avatar: '📐',
-    tier: 'high',
-    dynamicLevel: 10,
-    eloRating: 2400,
-    xp: 0,
-    coins: 0,
-    streakDays: 0,
-    streakShields: 0,
-    accuracyRate: 100,
-    completedLessonsCount: 0,
-    unlockedAvatars: [],
-    pin: '5678'
-  }
-];
+/*
+ * `INITIAL_PROFILES` stood here: Maya, Leo, Sophia and Alex, invented, with
+ * invented levels, ELO ratings, coins and streaks.
+ *
+ * Profiles have come from the server since B3e. This was the last piece of
+ * demonstration data in this file, and by the end it was dead: imported into
+ * `App.tsx` and referenced only by a comment explaining what had replaced it.
+ */
 
 /*
  * `INITIAL_ANALYTICS` stood here: three children's worth of invented weekly
