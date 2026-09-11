@@ -150,7 +150,7 @@ generator integrity gate is written in them.
 
 | Command | What it does |
 | --- | --- |
-| `pnpm test` | Everything. 347 tests; integration suites skip without `DATABASE_URL` |
+| `pnpm test` | Everything. 482 tests; integration suites skip without `DATABASE_URL` |
 | `pnpm test:integration` | Only the suites needing a database |
 | `pnpm audit:generator` | Both halves of the content gate, writes `data/generator-validation.json` |
 | `pnpm lint` | `tsc --noEmit` |
@@ -162,6 +162,41 @@ generator integrity gate is written in them.
 
 CI runs these in order: schema/migration → generator gate → typecheck → test →
 build.
+
+### Test against a database at your branch's migration level
+
+**The dev database on 3307 is not reset between checkouts.** It carries whatever
+migrations the last branch you worked on applied, so a branch *behind* it fails
+schema tests for reasons that have nothing to do with that branch.
+
+This has already happened. On 11 Sep 2026 the credential-surface fix (PR #20)
+failed `records consent as a sequence, not a flag` against 3307, because 3307 was
+four migrations ahead — carrying `0008` and `0009` from PR #19, which drop
+`evidence` from `consent_events`. The branch was correct and the database was
+wrong.
+
+Neither instinct is safe here. Chasing the failure wastes an hour on code that is
+fine; waving it away as "just the environment" is how a real schema regression
+gets shipped. **Take the ambiguity away instead** — verify on a throwaway
+database migrated to your own branch, and leave 3307 alone:
+
+```bash
+docker run -d --name acuitymath-verify   -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=acuitymath   -p 3308:3306 mysql:8.4
+
+export DATABASE_URL="mysql://root:root@127.0.0.1:3308/acuitymath"
+pnpm db:migrate && pnpm test
+
+docker rm -f acuitymath-verify
+```
+
+**A green `pnpm test` with no `DATABASE_URL` is not coverage.** The integration
+suites skip themselves and the run still reports success. On `main` at `6eecade`
+that is **299 passed, 183 skipped** out of 482 — well under two thirds of the
+suite actually executing. With a database at the right level, all 482 run.
+
+CI is unaffected: the integration suites throw rather than skip when `CI` is set
+and `DATABASE_URL` is unset, so a pipeline cannot go green by skipping the half
+that needs a database.
 
 ---
 
