@@ -28,30 +28,23 @@ export const ScreenTimeLockModal: React.FC<ScreenTimeLockModalProps> = ({
 
   if (!isOpen) return null;
 
+  /**
+   * The parental override, which is not available.
+   *
+   * This posted a PIN to `/students/:id/unlock` — an unauthenticated route that
+   * compared the PIN in plaintext against a JSON file. The route is deleted, so
+   * pretending to try would produce "Network error unlocking session", which
+   * reads as a transient problem a parent should retry.
+   *
+   * Saying so plainly is better than a retry loop against nothing. Rebuilding it
+   * against the real step-up elevation and `screen_time_rules` is Graft E.
+   */
   const handleUnlock = async () => {
-    if (!parentPin) {
-      setError('Please enter the 4-digit Parent PIN');
-      return;
-    }
-    setIsSubmitting(true);
-    setError('');
-    try {
-      const res = await apiService.unlockScreenTime(studentId, parentPin, overrideMinutes);
-      if (res.success) {
-        playSuccessSound();
-        setShowOverride(false);
-        setParentPin('');
-        onUnlocked();
-      } else {
-        playErrorSound();
-        setError(res.error || 'Incorrect Parent PIN');
-      }
-    } catch {
-      playErrorSound();
-      setError('Network error unlocking session');
-    } finally {
-      setIsSubmitting(false);
-    }
+    playErrorSound();
+    setError(
+      'The parental override is not available yet. It is being rebuilt against the ' +
+        'parent PIN you set up in the app; until then this lock cannot be lifted from here.',
+    );
   };
 
   return (

@@ -85,6 +85,44 @@ Working branch: `graft-c3-real-gate`
 
 ---
 
+## Graft E — retiring the legacy REST surface
+
+`server/api.ts` predates the MySQL migration: 22 routes under `/api`, nine of
+them reading `server/db.ts` — a JSON file (`data_store.json`, gitignored) that
+**nothing migrated reads**. The learning product runs on tRPC against MySQL.
+**The router has no authentication of any kind** — no session, no middleware.
+
+The exploitable part is closed by this change. What remains is a parallel data
+layer, and it has to come apart in order:
+
+1. **COPPA consent onto `consent_events`.** `POST /auth/coppa-consent` is
+   refused as of this change and nothing records consent at all. That is the
+   current state, not the destination, and it is the first step for that
+   reason.
+2. **Screen-time enforcement onto the real schema.** The legacy heartbeat and
+   the unlock path retire with it; `screen_time_rules` and `screen_time_usage`
+   already exist and nothing enforces them.
+3. **`/api/ai/socratic-coach` stays.** It proxies the AI coach and touches no
+   store. Moving it under tRPC is optional.
+4. **District and LMS endpoints quarantined** — a named module, a comment
+   saying they are stubs, and no path from a real user surface to them. Not
+   deleted, not left ambiguous.
+5. **`server/db.ts` and `data_store.json` deleted.** That is the completion
+   condition, not the starting point.
+
+`server/legacyApi.test.ts` pins the surface meanwhile: the three deleted routes
+stay deleted, no route here verifies a PIN, consent refuses, exactly nine named
+routes touch `db.`, and the surface is **exactly 22 routes**. It is an inventory
+rather than a ban, because banning the store while nine routes use it would only
+mean skipping the test.
+
+As each step lands, its routes come off that list. When the list is empty, the
+inventory becomes the assertion that **no route under `/api` reads
+`data_store.json`** — and the deletion in step 5 is verifiable rather than
+hopeful.
+
+---
+
 ## Getting running again
 
 ```bash
@@ -454,11 +492,16 @@ Recorded rather than hidden.
   to put an entry in the family bell saying the work was "now live across student
   course dashboards", and its `catch` reported success on failure. Both are
   fixed; the store itself is still demonstration data.
-- **Teacher pilot survey.** `POST /api/feedback` does not exist. The widget
-  claimed "88% report optimal ZPD (24 responses)" from hard-coded state nothing
-  could update, and said "Feedback logged!" over a request that always failed. It
-  now reports that the answer was not kept, which is true, and shows no
-  aggregate. Closing it means a table and an endpoint.
+- **Teacher pilot survey.** `POST /api/feedback` **does** exist — an earlier
+  entry here said it did not, which was wrong, and the reason matters because it
+  is what a later reader would trust when deciding whether the fix still applies.
+  It returns a real aggregate over `pilotFeedbackStore`, an in-memory array in
+  `server/api.ts` **pre-seeded with three fabricated testimonials** from teachers
+  who do not exist, and reset on every restart. So "88% report optimal ZPD (24
+  responses)" was the client's hard-coded fallback, and a real submission would
+  have averaged a teacher's answer into three invented ones. The widget now
+  reports whether the answer was kept and shows no aggregate. Closing it means a
+  table, and deleting the seeded testimonials.
 - **LTI 1.3 / OneRoster.** The teacher dashboard claimed "LMS Two-Way Sync
   Active", "Connected to Google Classroom & Canvas", "100% Rosters Synced" and an
   assignment toggle that "writes to Google Classroom & Canvas course streams".
