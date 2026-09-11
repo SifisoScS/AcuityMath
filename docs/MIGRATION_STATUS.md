@@ -45,7 +45,8 @@ Donor repository, read-only reference:
 | **B3f-1** | Parent analytics derived from real attempts | **Merged** (PR #15) |
 | **B3f-2** | Assignments onto the server, teacher entitlement | **Merged** (PR #17) |
 | **B3f-3** | Notifications onto the server, with real producers | **Merged** (PR #18) |
-| **D** | Offline queue on IndexedDB | **In progress** on `graft-d-offline-queue` |
+| **D** | Offline queue on IndexedDB | **Done**, open in **PR #19** |
+| **E** | Retire the legacy REST surface and the JSON store | **Planned.** Credential surface already closed |
 
 Every pull request is merged; nothing is open. The table used to say "open in
 PR #N" for work that had been in `main` for days — read it as a record of what
@@ -111,53 +112,71 @@ Working branch: `graft-d-offline-queue`
 
 ---
 
-## Picking Graft D back up
+## Graft E — retiring the legacy REST surface
 
-Paused 2026-09-10 with the idempotency foundation committed on
-`graft-d-offline-queue` and the queue itself not started.
+`server/api.ts` predates the MySQL migration: 22 routes at `/api`, nine of them
+reading `server/db.ts` — a JSON file (`data_store.json`, gitignored) that
+**nothing migrated reads**. The learning product runs on tRPC against MySQL.
 
-**Before anything, start Docker** — MySQL is a container on port 3307 and every
-integration suite needs it. Then:
+**The router has no authentication of any kind.** No session, no middleware. The
+part of that which was exploitable is already closed (see below); what remains is
+a parallel data layer that has to be dismantled in order.
 
-```bash
-export DATABASE_URL="mysql://root:root@127.0.0.1:3307/acuitymath"
-pnpm db:migrate        # 0006 adds attempts.client_id
-pnpm db:seed           # curriculum: 63 concepts, 1,138 problems, 572 hints
-pnpm db:seed:demo      # family, teacher, classroom, and two real notifications
-pnpm test              # 483 tests; re-run this first, see the caveat below
-```
+### The finding to lead with
 
-**Caveat on the last verification.** The branch was committed with `tsc --noEmit`
-and `pnpm build` both clean, and the 12-test idempotency suite green *after* the
-database was rebuilt. The full suite was not re-run after that rebuild: the run
-that would have done it was cut short when the MySQL container was OOM-killed
-mid-run (exit 137, after many back-to-back full runs). So **run the full suite
-before building on this branch** — it is expected green, not observed green.
+`POST /auth/coppa-consent` wrote consent to `data_store.json` against a hardcoded
+`'parent_sarah_1'`, while `consent_events` — the table this product has for the
+purpose — **has never been written to by anything**. Every other finding on this
+surface is a security defect. This one is a *representation* defect: the
+application told a parent their consent was recorded, and it was not. For a
+product holding children's records, an empty consent ledger with a gitignored
+JSON file standing in for it is the compliance claim being false.
 
-### What to build next, in order
+It now returns 410 naming where consent must go, rather than being deleted: a
+silent failure in `CoppaConsentModal` would look exactly like the silent success
+it replaces.
 
-1. **The queue.** IndexedDB, one record per unsent answer: `clientId`,
-   `learnerId`, `problemId`, `answer`, `responseTimeMs`, `answeredAt`. The
-   `clientId` is generated when the child answers, not when the record is sent —
-   that is what makes the retry safe, and it is already enforced server-side.
-2. **Connectivity.** `navigator.onLine` plus failed-request detection. Keep the
-   manual toggle for demonstrations, but label it as a simulation rather than
-   letting it stand in for the real thing.
-3. **The reconciler.** Drain oldest-first, removing an item only on a confirmed
-   response. `practice.submit` returns `replayed`, so an item already delivered
-   can be retired without being counted as work done. Anything not confirmed
-   stays queued and is retried with backoff.
-4. **The banner.** It currently reads "All math progress synced" unconditionally.
-   It must be able to say that items are waiting, and that the last attempt
-   failed.
+### Already done, ahead of the plan
 
-### The defect that makes this urgent
+Three routes gated destructive actions behind `db.verifyPin`, which compares
+`u.pinHash === pin` — plaintext, against a field named for a hash, over PINs
+stored as `1234`, `9876`, `4321`. `/auth/verify-pin`, `/auth/coppa-purge` and
+`/students/:id/unlock` are deleted, along with `apiService.verifyPin`, which
+returned `{ valid: true }` from its catch block and so **failed open**.
 
-`triggerCloudSync` in `src/App.tsx` calls `apiService.syncBatch(...)` without
-awaiting it, attaches `.catch(err => console.warn(...))`, and then a `setTimeout`
-clears `pendingActions` and appends "Synced to Server" log lines regardless of
-what happened. **A failed sync reports success and throws the child's answers
-away.** Replacing that path is the point of the graft, not a side errand.
+They had looked partly harmless because ids in the JSON file (`student_1..4`) do
+not match the ids the application uses (`learner-12..15`). **That is an accident
+of two id formats, not a property** — nothing enforces it, and a seed, a refactor
+or a direct write removes it. The PIN check succeeded regardless, which is the
+durable part.
+
+### The order
+
+1. **COPPA consent onto `consent_events`,** behind `elevatedProcedure`, with
+   `CoppaConsentModal` calling the procedure. This is the one that has to be
+   right.
+2. **Screen-time enforcement onto the real schema.** The legacy heartbeat and
+   the unlock path retire with it; `screen_time_rules` and `screen_time_usage`
+   already exist and nothing enforces them.
+3. **`/api/ai/socratic-coach` stays.** It proxies the AI coach and touches no
+   store. Moving it under tRPC for consistency is optional.
+4. **District and LMS endpoints quarantined** — a named module, a comment saying
+   they are stubs, and no path from a real user surface to them. Not deleted,
+   not left ambiguous.
+5. **`server/db.ts` and `data_store.json` deleted.** That is the completion
+   condition, not the starting point.
+
+### The gate
+
+`server/legacyApi.test.ts` pins the surface today: the three deleted routes stay
+deleted, **no route here verifies a PIN**, consent refuses, and exactly nine
+named routes touch `db.`. It is an inventory rather than a ban, because banning
+the store while nine routes use it would only mean skipping the test.
+
+As each step above lands, its routes come off that list. When the list is empty,
+turn the inventory into the assertion that **no route under `/api` reads
+`data_store.json`** — then the deletion in step 5 is verifiable rather than
+hopeful.
 
 ---
 
