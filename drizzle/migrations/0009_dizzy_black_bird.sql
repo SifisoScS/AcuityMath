@@ -1,0 +1,1 @@
+ALTER TABLE `consent_events` DROP COLUMN `evidence`;

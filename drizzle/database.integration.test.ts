@@ -24,6 +24,8 @@ import type mysql from 'mysql2/promise';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { createTestDatabase, type TestDatabase } from '../server/test-support/database';
+import { getTableConfig } from 'drizzle-orm/mysql-core';
+
 import * as schema from './schema';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -186,19 +188,18 @@ describeWithDb('schema against MySQL', () => {
     const { guardianId, learnerIds } = await seedFamily('consent@example.test');
     const [child] = learnerIds;
 
-    await db.insert(schema.consentEvents).values({
+    const row = {
       learnerId: child,
       grantedByUserId: guardianId,
-      decision: 'granted',
-      method: 'email_plus_verification',
-      evidence: 'Sarah Jenkins',
-    });
-    await db.insert(schema.consentEvents).values({
-      learnerId: child,
-      grantedByUserId: guardianId,
-      decision: 'withdrawn',
-      method: 'email_plus_verification',
-    });
+      method: 'email_verified_name_attested' as const,
+      policyVersion: '2026-09-v1',
+      policySha256: 'a'.repeat(64),
+      attestedName: 'Sarah Jenkins',
+      verifiedEmail: 'consent@example.test',
+    };
+
+    await db.insert(schema.consentEvents).values({ ...row, decision: 'granted' });
+    await db.insert(schema.consentEvents).values({ ...row, decision: 'withdrawn' });
 
     const events = await db
       .select()
@@ -207,6 +208,35 @@ describeWithDb('schema against MySQL', () => {
       .orderBy(schema.consentEvents.recordedAt, schema.consentEvents.id);
 
     expect(events.map(e => e.decision)).toEqual(['granted', 'withdrawn']);
+  });
+
+  it('refuses to record consent without saying what was consented to', async () => {
+    /*
+     * `policy_version` and `policy_sha256` are `NOT NULL` deliberately. A
+     * nullable column here would make "consent to something unrecorded"
+     * representable, which is the failure this table exists to prevent — a
+     * ledger full of rows that cannot say what was agreed is an empty ledger
+     * with better optics.
+     */
+    const { guardianId, learnerIds } = await seedFamily('nopolicy@example.test');
+
+    await expect(
+      db.execute(
+        sql`insert into consent_events
+              (learner_id, granted_by_user_id, decision, method, attested_name, verified_email)
+            values (${learnerIds[0]}, ${guardianId}, 'granted', 'email_verified_name_attested',
+                    'Sarah Jenkins', 'nopolicy@example.test')`,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('keeps no consent flag on the learner', async () => {
+    // Current state is the latest row. A boolean would be a second source for
+    // something the rows already answer, and the one that is wrong after a
+    // withdrawal.
+    const columns = getTableConfig(schema.learners).columns.map(c => c.name);
+    expect(columns).not.toContain('consented');
+    expect(columns).not.toContain('coppa_consent');
   });
 
   it('allows one row per learner per day of screen time, and no more', async () => {

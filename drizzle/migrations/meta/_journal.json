@@ -57,6 +57,20 @@
       "when": 1789125642430,
       "tag": "0007_shallow_titania",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1789132586612,
+      "tag": "0008_high_mauler",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1789132625174,
+      "tag": "0009_dizzy_black_bird",
+      "breakpoints": true
     }
   ]
 }
