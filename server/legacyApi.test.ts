@@ -77,9 +77,22 @@ function handlerFor(route: string): string {
 }
 
 describe('the legacy REST surface', () => {
-  it('declares the routes this file knows about', () => {
-    // Guards the guard: a regex that matches nothing passes everything below.
-    expect(routes.length).toBeGreaterThan(15);
+  it('declares the twenty-two routes this surface still has', () => {
+    /*
+     * Guards the guard: a regex that matches nothing passes every assertion
+     * below it, and a `toBeGreaterThan` floor absorbs that quietly.
+     *
+     * 22 is the count *after* the three credential routes were deleted — what
+     * `main` carries once this branch lands, not the 25 it has today. Measured
+     * post-deletion on purpose: a number taken before them would have gone
+     * stale the moment they went.
+     *
+     * Exact rather than a floor, because every route left is either on
+     * `TOUCHES_LEGACY_STORE` or a stub Graft E has to account for. Adding one
+     * here should cost a deliberate edit to this line. Graft E's steps lower
+     * the number; the completion condition is that the file is gone.
+     */
+    expect(routes.length).toBe(22);
   });
 
   describe('the credential surface', () => {

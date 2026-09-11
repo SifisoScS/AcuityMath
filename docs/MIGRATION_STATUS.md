@@ -160,7 +160,10 @@ durable part.
 
 Consent is recorded in `consent_events`, one row per child, by
 `consent.record` on `elevatedProcedure`. The design and the four decisions
-behind it are in the artifact linked from PR #20. The parts worth restating:
+behind it are in [The Consent Ledger][consent-ledger], linked from PR #19 —
+**not** PR #20, which was never allocated. The parts worth restating:
+
+[consent-ledger]: https://claude.ai/code/artifact/5ef4427d-c8a3-46d2-b621-405a3549e2b4
 
 - **The method is `email_verified_name_attested`.** The first draft called it
   `email_plus_verification`, which overstates it — "email plus" is a term of art
