@@ -46,13 +46,17 @@ Donor repository, read-only reference:
 | **B3f-2** | Assignments onto the server, teacher entitlement | **Merged** (PR #17) |
 | **B3f-3** | Notifications onto the server, with real producers | **Merged** (PR #18) |
 | **D** | Offline queue on IndexedDB | **Done**, open in **PR #19** |
-| **E1** | COPPA consent onto `consent_events` | **Done**, open in **PR #20** |
+| **E1** | COPPA consent onto `consent_events` | **Done**, open in **PR #19** |
 | **E1b** | Gate on consent for under-13s | **Committed, not started.** See below |
 | **E2–E5** | Screen time, quarantine, delete the JSON store | Planned |
 
-Every pull request is merged; nothing is open. The table used to say "open in
-PR #N" for work that had been in `main` for days — read it as a record of what
-landed, not as a to-do list.
+Everything up to and including B3f-3 is merged. **PR #19 is open**, carrying
+Graft D, rewards, focus traps, the legacy credential closure and Graft E1.
+
+This table has twice drifted from reality — claiming work was "open in PR #N"
+days after it merged, and naming a PR number that was never allocated. Read it
+as a record of what landed, and check `gh pr list` before trusting the right-hand
+column.
 
 The content-import half of Graft D was delivered early, in B3b: the database
 holds 63 concepts, 1,138 authored problems and 572 hints. What remains of D is
@@ -607,10 +611,9 @@ Recorded rather than hidden.
 - **Week-over-week change** is not computed. `learnerAnalytics` reads the last
   seven days only, so the "+18% vs last week" badge was removed rather than
   guessed at. Closing it means a second window in the query.
-- **Streaks, coins and rewards.** Nothing writes `learner_rewards`, so there are
-  no streak or reward notifications and the `streak`/`reward` types are absent
-  from the schema enum rather than present and empty. Closing it means a producer
-  in `recordAttempt`, and it would also fix the zeros on every child's dashboard.
+- ~~**Streaks, coins and rewards.**~~ Closed. `recordAttempt` awards coins, XP
+  and streaks inside the same transaction, after the replay check so a queued
+  answer delivered twice is paid for once.
 - **A teacher nudge.** The teacher roster had a "Nudge" button that raised a
   local notification about a hardcoded "Speed Addition Challenge" and toasted
   "Reminder sent" although nothing was sent. It is gone. A real one needs a third
@@ -636,5 +639,3 @@ Recorded rather than hidden.
   assignment toggle that "writes to Google Classroom & Canvas course streams".
   None of it is built. A school would have believed its gradebook was being
   written to. All four now say the truth.
-- **Nothing writes `learner_rewards`.** Coins, XP and streaks read zero for
-  every learner.
