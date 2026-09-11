@@ -19,6 +19,7 @@ import { adaptiveWorkerClient } from '../utils/adaptiveWorkerClient';
 import { BilingualTextHighlighter } from './BilingualTextHighlighter';
 import { apiService } from '../services/api';
 import { isQueued, usePractice } from '../hooks/usePractice';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface InfiniteAdaptiveModalProps {
   user: UserProfile;
@@ -40,6 +41,10 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
   onUpdateUserProfile,
   onOpenGlossary
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(true, onClose);
   // Ability Profile based on IRT
   const [abilityProfile, setAbilityProfile] = useState<StudentAbilityProfile>(() => {
     const p = AdaptiveEngine.createInitialProfile(user.age);
@@ -342,7 +347,9 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Adaptive practice session"
       tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">

@@ -4,6 +4,7 @@ import { MathLesson, UserProfile } from '../types';
 import { MathManipulatives } from './MathManipulatives';
 import { Scratchpad } from './Scratchpad';
 import { SocraticCoachModal } from './SocraticCoachModal';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   Volume2,
   VolumeX,
@@ -48,6 +49,10 @@ export const InteractiveLessonModal: React.FC<LessonModalProps> = ({
   onClose,
   onLessonComplete
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(true, onClose);
   const [currentProblemIdx, setCurrentProblemIdx] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
@@ -164,7 +169,9 @@ export const InteractiveLessonModal: React.FC<LessonModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Interactive lesson"
       tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto">

@@ -15,6 +15,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { playClickSound, playSuccessSound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface LtiOnboardingWizardModalProps {
   isOpen: boolean;
@@ -29,6 +30,10 @@ export const LtiOnboardingWizardModal: React.FC<LtiOnboardingWizardModalProps> =
   onClose,
   districtName = 'Lincoln Unified School District'
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(isOpen, onClose);
   if (!isOpen) return null;
 
   const [selectedLms, setSelectedLms] = useState<LmsPlatform>('canvas');
@@ -144,7 +149,9 @@ export const LtiOnboardingWizardModal: React.FC<LtiOnboardingWizardModalProps> =
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Learning management system setup"
       tabIndex={-1}
       className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">

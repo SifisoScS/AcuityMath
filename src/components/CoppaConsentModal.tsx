@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, X, FileText, CheckCircle2, Trash2, Download, AlertTriangle } from 'lucide-react';
 import { apiService } from '../services/api';
 import { playClickSound, playSuccessSound, playErrorSound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface CoppaConsentModalProps {
   isOpen: boolean;
@@ -22,6 +23,10 @@ export const CoppaConsentModal: React.FC<CoppaConsentModalProps> = ({
   onConsentUpdated,
   students
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(isOpen, onClose);
   const [method, setMethod] = useState<'email_plus_verification' | 'signed_form' | 'credit_card_auth'>('email_plus_verification');
   const [signature, setSignature] = useState(parentName || '');
   const [agreed, setAgreed] = useState(hasConsented);
@@ -105,7 +110,9 @@ export const CoppaConsentModal: React.FC<CoppaConsentModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Parental consent"
       tabIndex={-1}
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
