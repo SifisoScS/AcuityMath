@@ -67,6 +67,22 @@ const TOUCHES_LEGACY_STORE = [
   'GET /audit-logs',
 ];
 
+/**
+ * The human-readable `error:` string alone, without the machine fields beside
+ * it.
+ *
+ * Asserting `consent.record` against the whole handler was absorbed by a
+ * mutation: `replacedBy: 'consent.record'` satisfies the match, so the prose
+ * could stop naming the call site entirely and the test stayed green. The
+ * message and the machine field are two different promises to two different
+ * readers, and they need asserting separately.
+ */
+function errorMessageFor(route: string): string {
+  const body = handlerFor(route);
+  const match = body.match(/error:\s*([\s\S]*?)\n\s{4}\w+:/);
+  return match ? match[1] : '';
+}
+
 /** The body of one route handler, for asking what it touches. */
 function handlerFor(route: string): string {
   const [method, path] = route.split(' ');
@@ -152,12 +168,15 @@ describe('the legacy REST surface', () => {
        * runtime error hands back a call site, not reading material — that held
        * when there was no replacement and it holds now there is one.
        */
-      const body = handlerFor('POST /auth/coppa-consent');
-      expect(body).toMatch(/consent\.record/);
-      expect(body).toMatch(/trpc/i);
-      expect(body).toMatch(/replacementDeployed: true/);
-      expect(body, 'the 410 cites a document instead of naming a call site')
+      const message = errorMessageFor('POST /auth/coppa-consent');
+      expect(message, 'the message a developer reads does not name the procedure')
+        .toMatch(/consent\.record/);
+      expect(message).toMatch(/trpc/i);
+      expect(message, 'the 410 cites a document instead of naming a call site')
         .not.toMatch(/MIGRATION_STATUS|docs\//);
+
+      // The machine field is a separate promise: a caller branches on it.
+      expect(handlerFor('POST /auth/coppa-consent')).toMatch(/replacementDeployed: true/);
     });
   });
 
