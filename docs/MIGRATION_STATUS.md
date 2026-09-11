@@ -170,10 +170,26 @@ migrations the last branch you worked on applied, so a branch *behind* it fails
 schema tests for reasons that have nothing to do with that branch.
 
 This has already happened. On 11 Sep 2026 the credential-surface fix (PR #20)
-failed `records consent as a sequence, not a flag` against 3307, because 3307 was
-four migrations ahead — carrying `0008` and `0009` from PR #19, which drop
-`evidence` from `consent_events`. The branch was correct and the database was
-wrong.
+failed against 3307 because 3307 was four migrations ahead — carrying `0008`
+and `0009` from PR #19, which drop `evidence` from `consent_events`. The branch
+was correct and the database was wrong.
+
+**What it looks like.** The failure surfaces in
+`drizzle/database.integration.test.ts` as a query against a column the database
+no longer has, or does not have yet:
+
+```
+× schema against MySQL > records consent as a sequence, not a flag
+  → Failed query: insert into `consent_events` (`id`, `learner_id`,
+    `granted_by_user_id`, `decision`, `method`, `evidence`, `recorded_at`) ...
+```
+
+That file is the tell, because it is the one suite that asserts the schema
+itself rather than behaviour over it. **A failing query naming a column you did
+not touch is this, not a bug in your branch** — check
+`SELECT COLUMN_NAME FROM information_schema.COLUMNS` against the table it names
+before reading another line of your own diff. Behavioural suites can fail this
+way too, but they fail second and less legibly.
 
 Neither instinct is safe here. Chasing the failure wastes an hour on code that is
 fine; waving it away as "just the environment" is how a real schema regression
@@ -197,6 +213,15 @@ suite actually executing. With a database at the right level, all 482 run.
 CI is unaffected: the integration suites throw rather than skip when `CI` is set
 and `DATABASE_URL` is unset, so a pipeline cannot go green by skipping the half
 that needs a database.
+
+**This fork is temporary, and closing it is a commitment, not a hope.** 3307
+currently holds `0008` and `0009`, which `main` does not. **Once PR #19's
+migrations merge, 3307 gets reset and re-migrated from `main`** — drop the
+container, recreate it, `pnpm db:migrate && pnpm db:seed && pnpm db:seed:demo`.
+Left alone, it becomes a permanently forked dev database that every new
+contributor meets as a mystery, and the 3308 recipe above silently turns from a
+workaround into the only way anything passes. The recipe is worth keeping either
+way; needing it is not.
 
 ---
 
