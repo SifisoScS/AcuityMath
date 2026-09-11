@@ -3,6 +3,34 @@ import { db } from './db';
 import { generateSocraticResponse, SocraticRequest } from './gemini';
 import { institutionalStore } from './lms';
 
+/**
+ * The pre-migration REST surface.
+ *
+ * ## Read this before adding anything here
+ *
+ * These routes predate the MySQL migration. Most of them read and write
+ * `server/db.ts` — a JSON file — which **nothing migrated reads**. The learning
+ * product runs on tRPC (`server/trpc/routers.ts`) against MySQL, with
+ * `protectedProcedure`, `learnerProcedure` and `elevatedProcedure` deciding who
+ * may touch a child's record.
+ *
+ * **This router has no authentication of any kind.** No session, no middleware,
+ * nothing. That was survivable while every route was a read of demonstration
+ * data. It stopped being survivable for routes that took a PIN:
+ * `/auth/verify-pin`, `/auth/coppa-purge` and `/students/:id/unlock` gated
+ * destructive actions behind `db.verifyPin`, which compares `u.pinHash === pin`
+ * — a plaintext comparison against a field named for a hash. All three are
+ * deleted.
+ *
+ * Those three looked partly harmless because the ids in the JSON file
+ * (`student_1..4`) do not match the ids the application uses (`learner-12..15`),
+ * so the lookups failed. That is an accident of two id formats, not a property:
+ * nothing enforces it, and a seed, a refactor or a direct write removes it. The
+ * PIN check succeeded regardless, which made it a working credential oracle
+ * whatever happened downstream.
+ *
+ * New work belongs in the tRPC router. Graft E retires what is left here.
+ */
 export const apiRouter = Router();
 
 // Health Check
@@ -39,78 +67,35 @@ apiRouter.get('/bootstrap', (_req: Request, res: Response) => {
   });
 });
 
-// Auth PIN Verification (Rate-limited & logged)
-apiRouter.post('/auth/verify-pin', (req: Request, res: Response) => {
-  const { role, pin } = req.body;
-  if (!role || !pin) {
-    return res.status(400).json({ error: 'Role and PIN are required' });
-  }
 
-  const result = db.verifyPin(role as 'parent' | 'teacher' | 'admin', pin);
-  if (!result.valid || !result.user) {
-    return res.status(401).json({ valid: false, error: 'Incorrect PIN passcode' });
-  }
-
-  // Issue session authorization
-  res.json({
-    valid: true,
-    user: {
-      id: result.user.id,
-      name: result.user.name,
-      email: result.user.email,
-      role: result.user.role,
-      coppaConsent: result.user.coppaConsent
-    },
-    sessionToken: `sec_tok_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+/**
+ * Parental consent — refused, deliberately and loudly.
+ *
+ * This used to record consent by calling `db.updateCoppaConsent(...)` against
+ * `data_store.json`, and `CoppaConsentModal` called it with a hardcoded
+ * `'parent_sarah_1'`. So a parent granting consent had it written to a gitignored
+ * JSON file against a fictional user, while `consent_events` — the table this
+ * product actually has for the purpose — has never been written to by anything.
+ *
+ * That is not a bug in a feature. It is the compliance claim being false: the
+ * application told a parent their consent was recorded, and it was not.
+ *
+ * It is refused rather than deleted on purpose. Deleting it would break
+ * `CoppaConsentModal` silently, and a silent failure here looks exactly like the
+ * silent success it replaces. A 410 with a reason makes the gap visible to
+ * anyone who hits it and forces the modal to be wired to `consent_events` when
+ * Graft E lands.
+ */
+apiRouter.post('/auth/coppa-consent', (_req: Request, res: Response) => {
+  res.status(410).json({
+    error:
+      'Consent is no longer recorded here. This endpoint wrote to data_store.json ' +
+      'against a hardcoded user; it must be replaced by a procedure writing to ' +
+      'consent_events. See Graft E in docs/MIGRATION_STATUS.md.',
+    gone: true,
   });
 });
 
-// COPPA Verifiable Parental Consent Update
-apiRouter.post('/auth/coppa-consent', (req: Request, res: Response) => {
-  const { userId, granted, method, signature } = req.body;
-  if (!userId || granted === undefined) {
-    return res.status(400).json({ error: 'User ID and consent state are required' });
-  }
-
-  const updatedUser = db.updateCoppaConsent(userId, {
-    granted: Boolean(granted),
-    method: method || 'email_plus_verification',
-    signature: signature || 'Verified Parent Signature'
-  });
-
-  if (!updatedUser) {
-    return res.status(404).json({ error: 'Parent user not found' });
-  }
-
-  res.json({
-    success: true,
-    coppaConsent: updatedUser.coppaConsent
-  });
-});
-
-// COPPA Right to be Forgotten: Purge Student Records
-apiRouter.post('/auth/coppa-purge', (req: Request, res: Response) => {
-  const { studentId, parentUserId, confirmationPin } = req.body;
-  if (!studentId || !parentUserId) {
-    return res.status(400).json({ error: 'Student ID and Parent User ID are required' });
-  }
-
-  const pinVerification = db.verifyPin('parent', confirmationPin);
-  if (!pinVerification.valid) {
-    return res.status(401).json({ error: 'Parental PIN verification failed for data erasure' });
-  }
-
-  const purged = db.purgeStudentData(studentId, parentUserId);
-  if (!purged) {
-    return res.status(404).json({ error: 'Student record could not be found or purged' });
-  }
-
-  res.json({
-    success: true,
-    message: 'Student account and all associated telemetry purged in accordance with COPPA',
-    remainingStudents: db.getStudents()
-  });
-});
 
 // Student Management
 apiRouter.get('/students', (_req: Request, res: Response) => {
@@ -149,24 +134,6 @@ apiRouter.post('/students/:id/heartbeat', (req: Request, res: Response) => {
   }
 });
 
-// Parental Screen Time Override & Unlock
-apiRouter.post('/students/:id/unlock', (req: Request, res: Response) => {
-  const studentId = req.params.id;
-  const { additionalMinutes, parentPin } = req.body;
-
-  const pinCheck = db.verifyPin('parent', parentPin);
-  if (!pinCheck.valid) {
-    return res.status(401).json({ error: 'Valid Parent PIN required to unlock screen time' });
-  }
-
-  const student = db.unlockStudent(studentId, Number(additionalMinutes || 30));
-  if (!student) return res.status(404).json({ error: 'Student not found' });
-
-  res.json({
-    success: true,
-    student
-  });
-});
 
 // Tamper-Proof Lesson Attempt Submission
 apiRouter.post('/students/:id/attempts', (req: Request, res: Response) => {

@@ -114,14 +114,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
    * Whether the last response actually reached anything.
    *
    * `pilotStats` stood here, seeded `{ total: 24, optimalPercent: 88 }` and
-   * rendered as "88% report optimal ZPD (24 responses)". `/api/feedback` does
-   * not exist on the server, so the fetch below always failed, the catch
-   * swallowed it, and those two numbers were the only ones the widget could ever
-   * show — a fabricated research finding about a pilot that had no responses.
+   * rendered as "88% report optimal ZPD (24 responses)".
    *
-   * The submitted state said "Feedback logged!" and played a fanfare regardless,
-   * so a teacher filling this in every period was told each time that their
-   * answer had been recorded when it had been discarded.
+   * An earlier version of this comment said `/api/feedback` did not exist. It
+   * does — `server/api.ts` mounts it at `/api` — and it returns a real
+   * aggregate, so the fetch below succeeded and those numbers *could* be
+   * replaced. The defect is a different one, and worse in its way: the store it
+   * aggregates is an in-memory array in `server/api.ts`, pre-seeded with three
+   * fabricated testimonials from teachers who do not exist, and reset on every
+   * restart. So the percentage was real arithmetic over invented responses, and
+   * a teacher's own answer was averaged into three that were made up.
+   *
+   * The figure is gone for that reason rather than the one first given here.
+   * Recording it properly needs a table; until then the widget reports whether
+   * the answer was kept and claims no aggregate.
    */
   const [surveyOutcome, setSurveyOutcome] = useState<'recorded' | 'not-recorded' | null>(null);
 
@@ -306,9 +312,11 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
 
           {/*
-            "88% report optimal ZPD (24 responses)" stood here, from state that
-            nothing could ever update. There is no store of responses to
-            summarise, so there is no summary to show.
+            "88% report optimal ZPD (24 responses)" stood here. The endpoint does
+            return an aggregate — but over an in-memory array seeded with three
+            invented testimonials, reset on every restart. A percentage that
+            averages a teacher's answer into three made-up ones is worse than no
+            percentage.
           */}
           <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5 self-start sm:self-auto">
             <ThumbsUp className="w-3.5 h-3.5 text-slate-400" />

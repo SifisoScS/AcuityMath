@@ -543,11 +543,16 @@ Recorded rather than hidden.
   to put an entry in the family bell saying the work was "now live across student
   course dashboards", and its `catch` reported success on failure. Both are
   fixed; the store itself is still demonstration data.
-- **Teacher pilot survey.** `POST /api/feedback` does not exist. The widget
-  claimed "88% report optimal ZPD (24 responses)" from hard-coded state nothing
-  could update, and said "Feedback logged!" over a request that always failed. It
-  now reports that the answer was not kept, which is true, and shows no
-  aggregate. Closing it means a table and an endpoint.
+- **Teacher pilot survey.** `POST /api/feedback` **does** exist — an earlier
+  entry here said it did not, which was wrong, and the reason matters because it
+  is what a later reader would trust when deciding whether the fix still applies.
+  It returns a real aggregate over `pilotFeedbackStore`, an in-memory array in
+  `server/api.ts` **pre-seeded with three fabricated testimonials** from teachers
+  who do not exist, and reset on every restart. So "88% report optimal ZPD (24
+  responses)" was the client's hard-coded fallback, and a real submission would
+  have averaged a teacher's answer into three invented ones. The widget now
+  reports whether the answer was kept and shows no aggregate. Closing it means a
+  table, and deleting the seeded testimonials.
 - **LTI 1.3 / OneRoster.** The teacher dashboard claimed "LMS Two-Way Sync
   Active", "Connected to Google Classroom & Canvas", "100% Rosters Synced" and an
   assignment toggle that "writes to Google Classroom & Canvas course streams".

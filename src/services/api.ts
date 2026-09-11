@@ -99,23 +99,17 @@ class ApiService {
     }
   }
 
-  public async verifyPin(role: 'parent' | 'teacher', pin: string): Promise<{ valid: boolean; user?: unknown; error?: string; sessionToken?: string }> {
-    try {
-      const res = await fetch(`${this.baseUrl}/auth/verify-pin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, pin })
-      });
-      return await res.json();
-    } catch (err) {
-      console.warn('[ApiService] PIN verification network failure:', err);
-      // Fallback for offline mode
-      if (pin === '1234' || pin === '4321') {
-        return { valid: true, sessionToken: 'offline_token' };
-      }
-      return { valid: false, error: 'Network error verifying PIN' };
-    }
-  }
+  /*
+   * `verifyPin` was here, and it failed **open**.
+   *
+   * Its catch block returned `{ valid: true, sessionToken: 'offline_token' }`,
+   * so a network error — or an unreachable server, or a captive portal — was
+   * indistinguishable from a correct PIN. The endpoint it called compared
+   * `u.pinHash === pin` in plaintext and is deleted; the real step-up gate is
+   * `access.verifyPin` in the tRPC router, which uses scrypt and locks out.
+   *
+   * It had no callers by the time it was removed.
+   */
 
   public async sendHeartbeat(studentId: string, elapsedSeconds: number = 60): Promise<HeartbeatResult | null> {
     try {
@@ -132,19 +126,14 @@ class ApiService {
     }
   }
 
-  public async unlockScreenTime(studentId: string, parentPin: string, additionalMinutes: number = 30): Promise<{ success: boolean; error?: string }> {
-    try {
-      const res = await fetch(`${this.baseUrl}/students/${encodeURIComponent(studentId)}/unlock`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parentPin, additionalMinutes })
-      });
-      return await res.json();
-    } catch (err) {
-      console.warn('[ApiService] Screen unlock failed:', err);
-      return { success: false, error: 'Could not connect to authentication server' };
-    }
-  }
+  /*
+   * `unlockScreenTime` was here. It posted to `/students/:id/unlock`, which
+   * granted extra screen time behind the same plaintext PIN comparison and no
+   * authentication at all. The endpoint is deleted.
+   *
+   * A parental override belongs behind the real step-up elevation, against
+   * `screen_time_rules` rather than a JSON file. That is Graft E.
+   */
 
   public async submitAttempt(studentId: string, attempt: {
     lessonId: string;
