@@ -18,6 +18,29 @@ import { useEffect, useRef } from 'react';
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/**
+ * Whether a control can actually be tabbed to.
+ *
+ * This was `element.offsetParent !== null`, which is a layout question. Two
+ * problems with that: it is always null in jsdom, so no test could ever exercise
+ * the wrap-around — the trap was covered only by a grep for the import — and it
+ * is also null for any `position: fixed` element in a real browser, which is
+ * exactly what these dialog panels are.
+ *
+ * Asking about the things that actually make a control unreachable is both more
+ * accurate and testable.
+ */
+function canBeTabbedTo(element: HTMLElement): boolean {
+  if (element.hasAttribute('hidden') || element.closest('[hidden]')) return false;
+  if (element.getAttribute('aria-hidden') === 'true') return false;
+  if (element.hasAttribute('disabled')) return false;
+
+  const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+  if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+
+  return true;
+}
+
 export function useModalA11y(isOpen: boolean, onClose: () => void) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const returnFocusTo = useRef<HTMLElement | null>(null);
@@ -48,7 +71,7 @@ export function useModalA11y(isOpen: boolean, onClose: () => void) {
       panel.querySelectorAll<HTMLElement>(FOCUSABLE).forEach(node => nodes.push(node));
       // Hidden controls are still in the DOM but cannot be tabbed to, so
       // including them would make the trap skip a turn.
-      const focusable = nodes.filter(element => element.offsetParent !== null);
+      const focusable = nodes.filter(canBeTabbedTo);
       if (focusable.length === 0) {
         // Nothing to move to; keep focus on the panel rather than letting it
         // escape to the page behind.
@@ -72,9 +95,25 @@ export function useModalA11y(isOpen: boolean, onClose: () => void) {
     document.addEventListener('keydown', onKeyDown, true);
     return () => {
       document.removeEventListener('keydown', onKeyDown, true);
-      // Only restore focus if it is still inside the closing dialog. If the
-      // user has already clicked elsewhere, dragging them back is worse.
-      if (panel?.contains(document.activeElement)) {
+
+      /*
+       * Where focus should go now.
+       *
+       * The previous condition was `panel?.contains(document.activeElement)`,
+       * which never held for a dialog the parent unmounts — and that is most of
+       * them. By the time this cleanup runs the panel is detached and focus has
+       * already fallen to `<body>`, so the check said "the user moved on" and
+       * left them at the top of the document, where a screen reader starts
+       * reading the page from the beginning.
+       *
+       * Falling to `<body>` is the signal that nothing else claimed focus, so it
+       * is treated the same as focus still being inside the dialog. Anything
+       * else means the user clicked something, and dragging them back from it
+       * would be worse than not restoring at all.
+       */
+      const active = document.activeElement;
+      const focusWasLost = active === null || active === document.body;
+      if (focusWasLost || panel?.contains(active)) {
         returnFocusTo.current?.focus?.();
       }
     };

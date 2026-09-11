@@ -169,24 +169,18 @@ export interface NotificationItem {
   targetId?: string;
 }
 
-export interface SyncLogEntry {
-  id: string;
-  action: string;
-  timestamp: string;
-  status: 'synced' | 'pending';
-}
+/*
+ * `SyncLogEntry` and `OfflineSyncState` stood here.
+ *
+ * They described a queue held in React state and mirrored to localStorage,
+ * whose `syncLogs` only ever recorded the status `'synced'` — so the journal
+ * that rendered them drew a green tick beside every row, including the failures
+ * it had no way to represent.
+ *
+ * What is unsent now lives in IndexedDB and is described by `QueuedAttempt` in
+ * `src/offline/queue.ts`, where a failure is a first-class field.
+ */
 
-export interface OfflineSyncState {
-  isOffline: boolean;
-  pendingActions: {
-    id: string;
-    actionType: string;
-    payload: unknown;
-    timestamp: string;
-  }[];
-  syncLogs: SyncLogEntry[];
-  lastSyncedAt: string;
-}
 
 // Phase 4: Enterprise & District LMS Types
 export interface SchoolEntity {

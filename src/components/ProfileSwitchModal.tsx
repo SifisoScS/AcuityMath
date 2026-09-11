@@ -3,6 +3,7 @@ import { UserProfile, Role } from '../types';
 import { determineTierForAge } from '../utils/storage';
 import { Lock, UserPlus, Users, X, Check, KeyRound } from 'lucide-react';
 import { playClickSound, playSuccessSound, playErrorSound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface ProfileSwitchModalProps {
   profiles: UserProfile[];
@@ -19,6 +20,10 @@ export const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
   onAddNewStudent,
   onClose
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(true, onClose);
   const [activeTab, setActiveTab] = useState<'switch' | 'create'>('switch');
 
   // PIN check state
@@ -95,7 +100,9 @@ export const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Switch learner profile"
       tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto">

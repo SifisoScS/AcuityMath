@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { speakText, stopSpeaking } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface SocraticCoachModalProps {
   isOpen: boolean;
@@ -43,6 +44,10 @@ export const SocraticCoachModal: React.FC<SocraticCoachModalProps> = ({
   explanation,
   misconceptionDescription
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(isOpen, onClose);
   const [messages, setMessages] = useState<Array<{
     role: 'user' | 'coach';
     text: string;
@@ -145,7 +150,9 @@ export const SocraticCoachModal: React.FC<SocraticCoachModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Socratic mathematics coach"
       tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">

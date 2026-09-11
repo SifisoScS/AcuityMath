@@ -55,9 +55,25 @@ describe('modal accessibility', () => {
     }
   });
 
-  it('has at least one fully trapped dialog to model the rest on', () => {
-    const trapped = modalFiles.filter(file => sourceOf(file).includes('useModalA11y'));
-    expect(trapped.length).toBeGreaterThan(0);
+  it.each(modalFiles)('%s traps focus, unless it is the lock', file => {
+    /*
+     * This used to ask only for *one* trapped dialog "to model the rest on",
+     * because twelve of them were not. They all are now, so the guard asks for
+     * all of them — a dialog a keyboard user can walk out of puts them on
+     * controls they cannot see behind an overlay.
+     *
+     * `ScreenTimeLockModal` is the exception and always will be: see below.
+     */
+    if (file === 'ScreenTimeLockModal.tsx') return;
+    expect(sourceOf(file), `${file} does not trap focus`).toContain('useModalA11y');
+  });
+
+  it.each(modalFiles)('%s says it is modal, unless it is the lock', file => {
+    // Trapping focus without `aria-modal` is the inverse mistake: the trap works
+    // but assistive technology is never told the rest of the page is inert, so
+    // it still offers to read it.
+    if (file === 'ScreenTimeLockModal.tsx') return;
+    expect(sourceOf(file), `${file} traps focus without saying aria-modal`).toContain('aria-modal');
   });
 
   it('never dismisses the screen-time lock on Escape', () => {

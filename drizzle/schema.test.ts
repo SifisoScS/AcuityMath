@@ -58,6 +58,7 @@ const LEARNER_SCOPED = [
   'screen_time_usage',
   'assignment_targets',
   'learner_rewards',
+  'learner_avatars',
 ] as const;
 
 /**
@@ -209,7 +210,19 @@ describe('referential integrity is the database"s job', () => {
         // `external_id` is not a reference at all — it is the id a problem had
         // in the corpus it was imported from, which is what makes a re-import
         // idempotent. There is nothing in this database for it to point at.
-        const exempt = column.name === 'institution_id' || column.name === 'external_id';
+        //
+        // `client_id` is made by the browser when a child answers, so that an
+        // offline queue can retry without the answer being counted twice. It
+        // names nothing in this database; its uniqueness is what matters, and
+        // that is a separate index.
+        const exempt =
+          column.name === 'institution_id' ||
+          column.name === 'external_id' ||
+          column.name === 'client_id' ||
+          // `avatar_id` names an entry in the catalogue in `src/data/avatars.ts`,
+          // which the server reads so that the price charged is not the price a
+          // browser claimed. There is no table for it to reference.
+          column.name === 'avatar_id';
         if (isReference && !exempt && !constrained.has(column.name)) {
           missing.push(`${name}.${column.name}`);
         }

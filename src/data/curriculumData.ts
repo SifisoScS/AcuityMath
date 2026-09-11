@@ -547,13 +547,9 @@ export const INITIAL_ACHIEVEMENTS = [
   }
 ];
 
-export const STORE_AVATARS = [
-  { id: 'av-owl', name: 'Professor Archimedes', icon: '🦉', price: 0, unlocked: true, tier: 'early' },
-  { id: 'av-fox', name: 'Nova the Swift Fox', icon: '🦊', price: 50, unlocked: true, tier: 'early' },
-  { id: 'av-robot', name: 'Compute-O-Matic', icon: '🤖', price: 75, unlocked: true, tier: 'elementary' },
-  { id: 'av-astronaut', name: 'Cosmo Vector', icon: '🧑‍🚀', price: 100, unlocked: false, tier: 'elementary' },
-  { id: 'av-wizard', name: 'Archmage Euler', icon: '🧙‍♂️', price: 150, unlocked: false, tier: 'middle' },
-  { id: 'av-dragon', name: 'Matrix Drake', icon: '🐉', price: 200, unlocked: false, tier: 'middle' },
-  { id: 'av-einstein', name: 'Quantum Pioneer', icon: '⚛️', price: 250, unlocked: false, tier: 'high' },
-  { id: 'av-phoenix', name: 'Infinitum Bird', icon: '🔥', price: 300, unlocked: false, tier: 'high' }
-];
+/*
+ * The avatar catalogue moved to `./avatars`, which the server reads too. It used
+ * to live here alone, so the price a learner paid was the price their browser
+ * reported — and a child with a console could have had the phoenix for nothing.
+ */
+export { STORE_AVATARS } from './avatars';

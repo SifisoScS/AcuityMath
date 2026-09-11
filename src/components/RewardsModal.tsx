@@ -4,35 +4,52 @@ import { STORE_AVATARS, INITIAL_ACHIEVEMENTS } from '../data/curriculumData';
 import { playClickSound, playSuccessSound, playLevelUpFanfare } from '../utils/audio';
 import { X, Award, Sparkles, Check, Lock } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface RewardsModalProps {
   user: UserProfile;
   onClose: () => void;
-  onUpdateUser: (updated: Partial<UserProfile>) => void;
+  /** Buys one. The price is the server's, not this component's. */
+  onBuyAvatar: (avatarId: string) => Promise<void>;
+  onEquipAvatar: (avatarId: string) => Promise<void>;
+  isBusy: boolean;
 }
 
-export const RewardsModal: React.FC<RewardsModalProps> = ({ user, onClose, onUpdateUser }) => {
+export const RewardsModal: React.FC<RewardsModalProps> = ({
+  user,
+  onClose,
+  onBuyAvatar,
+  onEquipAvatar,
+  isBusy
+}) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(true, onClose);
   const [activeTab, setActiveTab] = React.useState<'badges' | 'avatars'>('avatars');
   const [achievements] = React.useState<Achievement[]>(INITIAL_ACHIEVEMENTS);
 
-  const handleBuyAvatar = (avatarId: string, price: number) => {
-    if (user.coins < price) return;
-    playLevelUpFanfare();
-    confetti({ particleCount: 50, spread: 60 });
-    onUpdateUser({
-      coins: user.coins - price,
-      unlockedAvatars: [...user.unlockedAvatars, avatarId]
-    });
+  /*
+   * The same purchase as the Rewards Vault, and it had the same defect: coins
+   * deducted in local state and handed to a function that discards them. Both
+   * go through the server now, which is also why neither passes a price.
+   */
+  const handleBuyAvatar = async (avatarId: string) => {
+    await onBuyAvatar(avatarId);
   };
 
-  const handleEquipAvatar = (avatarIcon: string) => {
+  const handleEquipAvatar = async (avatarId: string) => {
+    // Equipping is a server call too: the procedure refuses an avatar the
+    // learner has not unlocked, so the shop is not merely decorative.
+    await onEquipAvatar(avatarId);
     playSuccessSound();
-    onUpdateUser({ avatar: avatarIcon });
   };
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Rewards and avatar vault"
       tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto">
@@ -150,14 +167,14 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ user, onClose, onUpd
                         </div>
                       ) : isUnlocked ? (
                         <button
-                          onClick={() => handleEquipAvatar(av.icon)}
+                          onClick={() => void handleEquipAvatar(av.id)}
                           className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs cursor-pointer"
                         >
                           Equip
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleBuyAvatar(av.id, av.price)}
+                          onClick={() => void handleBuyAvatar(av.id)}
                           disabled={!canAfford}
                           className={`w-full py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
                             canAfford

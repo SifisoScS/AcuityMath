@@ -4,22 +4,7 @@ import { UserProfile } from '../types';
 import { MathManipulatives } from './MathManipulatives';
 import { Scratchpad } from './Scratchpad';
 import { SocraticCoachModal } from './SocraticCoachModal';
-import {
-  Volume2,
-  VolumeX,
-  PenTool,
-  Bot,
-  HelpCircle,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  Sparkles,
-  Flame,
-  X,
-  Activity,
-  Zap,
-  RotateCcw
-} from 'lucide-react';
+import { Activity, AlertCircle, ArrowRight, Bot, CheckCircle2, Clock, Flame, HelpCircle, PenTool, RotateCcw, Sparkles, Volume2, VolumeX, X, Zap } from 'lucide-react';
 import {
   playSuccessSound,
   playErrorSound,
@@ -33,7 +18,8 @@ import { AdaptiveEngine, StudentAbilityProfile, MisconceptionCode } from '../ser
 import { adaptiveWorkerClient } from '../utils/adaptiveWorkerClient';
 import { BilingualTextHighlighter } from './BilingualTextHighlighter';
 import { apiService } from '../services/api';
-import { usePractice } from '../hooks/usePractice';
+import { isQueued, usePractice } from '../hooks/usePractice';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface InfiniteAdaptiveModalProps {
   user: UserProfile;
@@ -55,6 +41,10 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
   onUpdateUserProfile,
   onOpenGlossary
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(true, onClose);
   // Ability Profile based on IRT
   const [abilityProfile, setAbilityProfile] = useState<StudentAbilityProfile>(() => {
     const p = AdaptiveEngine.createInitialProfile(user.age);
@@ -86,6 +76,16 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
   const practice = usePractice(learnerId ?? null);
   const useServer = typeof learnerId === 'number' && learnerId > 0;
   const [isCorrect, setIsCorrect] = useState(false);
+  /**
+   * True when the answer was queued rather than sent.
+   *
+   * A third state, not `isCorrect === false`. `practice.next` withholds the
+   * correct answer — anything it returns is readable in the network tab by the
+   * child being tested — so with no server there is genuinely nothing to mark
+   * against. Showing "Not quite" would be inventing a verdict, and showing
+   * "Correct!" would be worse.
+   */
+  const [awaitingMark, setAwaitingMark] = useState(false);
   const [detectedMisconception, setDetectedMisconception] = useState<MisconceptionCode | null>(null);
 
   // Tools state
@@ -166,6 +166,20 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
       // client never learns the answer before the learner has committed to one.
       try {
         const outcome = await practice.submit(answer);
+
+        if (isQueued(outcome)) {
+          /*
+           * Kept, not marked. No streak, no coins and no confetti: those are
+           * rewards for a correct answer, and nobody has checked this one yet.
+           * They arrive with the rest of the child's progress when the queue
+           * drains.
+           */
+          setSelectedOption(answer);
+          setIsAnswerSubmitted(true);
+          setAwaitingMark(true);
+          return;
+        }
+
         setSelectedOption(answer);
         setIsCorrect(outcome.isCorrect);
         setIsAnswerSubmitted(true);
@@ -203,9 +217,13 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
         });
         return;
       } catch {
-        // Fall through to local marking rather than stranding the learner
-        // mid-question. The attempt is lost, which is the honest cost of being
-        // offline until the reconciliation queue is built.
+        /*
+         * A refusal the server issued, rather than the network failing —
+         * `usePractice.submit` queues the second kind and only rethrows the
+         * first. Falling through to local marking is still better than stranding
+         * the learner mid-question, and for a generated problem the client does
+         * know the answer.
+         */
       }
     }
 
@@ -263,29 +281,29 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
       });
     });
 
-    // Record server heartbeat/attempt
-    apiService.syncBatch([
-      {
-        type: 'LESSON_ATTEMPT',
-        payload: {
-          id: `adaptive-${Date.now()}`,
-          studentId: user.id,
-          lessonId: currentProblem.id,
-          lessonTitle: `Adaptive CAT: ${currentProblem.topicDomain}`,
-          scorePercent: correct ? 100 : 0,
-          timeSpentSecs: 25,
-          coinsEarned: correct ? 3 : 0,
-          xpEarned: correct ? 15 : 5,
-          completedAt: new Date().toISOString()
-        }
-      }
-    ]);
+    /*
+     * A call to `apiService.syncBatch([...])` stood here, posting a
+     * `LESSON_ATTEMPT` to `/api/sync/batch`.
+     *
+     * That endpoint writes to `server/db.ts` — the JSON-file store this product
+     * used before the MySQL migration — which nothing migrated reads. So the
+     * write happened and then sat where no dashboard, report or analytic would
+     * ever find it.
+     *
+     * This branch is the local generator, whose problems have no row in
+     * `problems`, so there is nothing for an `attempts` foreign key to point at:
+     * generated practice genuinely cannot be recorded until a generated problem
+     * is persisted first. Recorded as a gap rather than papered over with a
+     * write to the wrong database.
+     */
+
   };
 
   const handleNextProblem = async () => {
     stopSpeaking();
     setIsSpeaking(false);
     setIsAnswerSubmitted(false);
+    setAwaitingMark(false);
     setSelectedOption(null);
     setTypedAnswer('');
     setDetectedMisconception(null);
@@ -329,7 +347,9 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Adaptive practice session"
       tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -468,14 +488,16 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
                 }}
                 placeholder="Type your answer"
                 className={`w-full px-4 py-3 rounded-xl border-2 text-lg font-bold tracking-tight transition outline-hidden ${
-                  isAnswerSubmitted
-                    ? isCorrect
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-900'
-                      : 'bg-rose-50 border-rose-500 text-rose-900'
-                    : 'bg-white border-slate-200 focus:border-indigo-500 text-slate-900'
+                  !isAnswerSubmitted
+                    ? 'bg-white border-slate-200 focus:border-indigo-500 text-slate-900'
+                    : awaitingMark
+                      ? 'bg-slate-50 border-slate-400 text-slate-900'
+                      : isCorrect
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-900'
+                        : 'bg-rose-50 border-rose-500 text-rose-900'
                 }`}
               />
-              {isAnswerSubmitted && !isCorrect && currentProblem.correctAnswer && (
+              {isAnswerSubmitted && !awaitingMark && !isCorrect && currentProblem.correctAnswer && (
                 <p className="text-xs font-bold text-emerald-700">
                   Correct answer: {currentProblem.correctAnswer}
                 </p>
@@ -489,7 +511,13 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
               const isSelected = selectedOption === opt;
               let btnStyle = 'bg-white border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 text-slate-800';
 
-              if (isAnswerSubmitted) {
+              if (isAnswerSubmitted && awaitingMark) {
+                // Nothing is revealed: the client does not know the answer, and
+                // dimming everything but the child's choice would imply one.
+                btnStyle = isSelected
+                  ? 'bg-slate-100 border-slate-400 text-slate-900 ring-2 ring-slate-300 font-bold'
+                  : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60';
+              } else if (isAnswerSubmitted) {
                 if (opt === currentProblem.correctAnswer) {
                   btnStyle = 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-400 font-bold';
                 } else if (isSelected && !isCorrect) {
@@ -509,10 +537,10 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
                   className={`min-h-[50px] p-4 rounded-xl border-2 text-left font-medium text-base transition flex items-center justify-between cursor-pointer ${btnStyle}`}
                 >
                   <span className="font-mono">{opt}</span>
-                  {isAnswerSubmitted && opt === currentProblem.correctAnswer && (
+                  {isAnswerSubmitted && !awaitingMark && opt === currentProblem.correctAnswer && (
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   )}
-                  {isAnswerSubmitted && isSelected && !isCorrect && (
+                  {isAnswerSubmitted && !awaitingMark && isSelected && !isCorrect && (
                     <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
                   )}
                 </button>
@@ -520,8 +548,25 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
             })}
           </div>
 
+          {/* Kept, not marked. */}
+          {isAnswerSubmitted && awaitingMark && (
+            <div
+              role="status"
+              className="p-4 rounded-2xl border text-sm animate-in fade-in bg-slate-50 border-slate-300 text-slate-800"
+            >
+              <div className="flex items-center gap-2 font-bold mb-1.5">
+                <Clock className="w-5 h-5 text-slate-500" />
+                <span>Answer saved on this device</span>
+              </div>
+              <p className="text-xs sm:text-sm leading-relaxed opacity-90">
+                We cannot mark it until this device can reach the server again. Your answer is kept
+                safely and will be marked automatically — nothing is lost.
+              </p>
+            </div>
+          )}
+
           {/* Diagnostic Misconception & Explanation */}
-          {isAnswerSubmitted && (
+          {isAnswerSubmitted && !awaitingMark && (
             <div className={`p-4 rounded-2xl border text-sm animate-in fade-in ${
               isCorrect ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950' : 'bg-rose-50/90 border-rose-300 text-rose-950'
             }`}>

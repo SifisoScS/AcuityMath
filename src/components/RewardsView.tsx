@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile, Achievement } from '../types';
-import { STORE_AVATARS, INITIAL_ACHIEVEMENTS } from '../data/curriculumData';
+import { INITIAL_ACHIEVEMENTS } from '../data/curriculumData';
+import type { StoreAvatar } from '../data/avatars';
 import { playClickSound, playSuccessSound, playLevelUpFanfare } from '../utils/audio';
 import { fireConfettiBurst, fireMilestoneConfetti } from '../utils/confetti';
 import { Award, Trophy, Star, Sparkles, Check, Lock, Flame } from 'lucide-react';
@@ -8,9 +9,22 @@ import { Award, Trophy, Star, Sparkles, Check, Lock, Flame } from 'lucide-react'
 interface RewardsViewProps {
   user: UserProfile;
   onUpdateUser: (updated: Partial<UserProfile>) => void;
+  /** The shop, from the server, so the price drawn is the price charged. */
+  catalogue: StoreAvatar[];
+  /** Buys one. The price is not passed: the server reads it from the catalogue. */
+  onBuyAvatar: (avatarId: string) => Promise<void>;
+  onEquipAvatar: (avatarId: string) => Promise<void>;
+  isBusy: boolean;
 }
 
-export const RewardsView: React.FC<RewardsViewProps> = ({ user, onUpdateUser }) => {
+export const RewardsView: React.FC<RewardsViewProps> = ({
+  user,
+  catalogue,
+  onBuyAvatar,
+  onEquipAvatar,
+  isBusy
+}) => {
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'avatars' | 'achievements'>('all');
   const [achievements] = useState<Achievement[]>(INITIAL_ACHIEVEMENTS);
 
@@ -19,19 +33,35 @@ export const RewardsView: React.FC<RewardsViewProps> = ({ user, onUpdateUser }) 
   const coinsNextTarget = Math.ceil((user.coins + 1) / 1000) * 1000;
   const coinsProgressPct = Math.min(100, Math.round(((user.coins % 1000) / 1000) * 100));
 
-  const handleBuyAvatar = (avatarId: string, price: number) => {
-    if (user.coins < price) return;
+  /*
+   * The fanfare fires after the purchase, not before it.
+   *
+   * This used to deduct the coins locally, celebrate, and hand the new balance
+   * to `onUpdateUser` — a function in `App` that discards its argument and
+   * re-reads from the server. The child saw confetti and a balance that snapped
+   * straight back.
+   */
+  const handleBuyAvatar = async (avatarId: string) => {
+    setPurchaseError(null);
+    try {
+      await onBuyAvatar(avatarId);
+    } catch (error) {
+      setPurchaseError(error instanceof Error ? error.message : 'That purchase did not go through.');
+      return;
+    }
     playLevelUpFanfare();
     fireConfettiBurst();
-    onUpdateUser({
-      coins: user.coins - price,
-      unlockedAvatars: [...user.unlockedAvatars, avatarId]
-    });
   };
 
-  const handleEquipAvatar = (avatarIcon: string) => {
+  const handleEquipAvatar = async (avatarId: string) => {
+    setPurchaseError(null);
+    try {
+      await onEquipAvatar(avatarId);
+    } catch (error) {
+      setPurchaseError(error instanceof Error ? error.message : 'Could not equip that one.');
+      return;
+    }
     playSuccessSound();
-    onUpdateUser({ avatar: avatarIcon });
   };
 
   return (
@@ -127,12 +157,21 @@ export const RewardsView: React.FC<RewardsViewProps> = ({ user, onUpdateUser }) 
             <p className="text-xs text-slate-500">Equip your favorite mathematical persona or unlock new guardians</p>
           </div>
           <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-            {user.unlockedAvatars.length} / {STORE_AVATARS.length} Unlocked
+            {user.unlockedAvatars.length} / {catalogue.length} Unlocked
           </span>
         </div>
 
+        {purchaseError && (
+          <p
+            role="alert"
+            className="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5"
+          >
+            {purchaseError}
+          </p>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-          {STORE_AVATARS.map(avatar => {
+          {catalogue.map(avatar => {
             const isUnlocked = user.unlockedAvatars.includes(avatar.id);
             const isEquipped = user.avatar === avatar.icon;
             const canAfford = user.coins >= avatar.price;
@@ -159,15 +198,16 @@ export const RewardsView: React.FC<RewardsViewProps> = ({ user, onUpdateUser }) 
                     </span>
                   ) : isUnlocked ? (
                     <button
-                      onClick={() => handleEquipAvatar(avatar.icon)}
-                      className="w-full py-1.5 text-[11px] font-bold bg-slate-200 hover:bg-indigo-600 hover:text-white text-slate-800 rounded-xl transition cursor-pointer"
+                      onClick={() => void handleEquipAvatar(avatar.id)}
+                      disabled={isBusy}
+                      className="w-full py-1.5 text-[11px] font-bold bg-slate-200 hover:bg-indigo-600 hover:text-white text-slate-800 rounded-xl transition cursor-pointer disabled:opacity-50"
                     >
                       Equip
                     </button>
                   ) : (
                     <button
-                      onClick={() => handleBuyAvatar(avatar.id, avatar.price)}
-                      disabled={!canAfford}
+                      onClick={() => void handleBuyAvatar(avatar.id)}
+                      disabled={!canAfford || isBusy}
                       className={`w-full py-1.5 text-[11px] font-bold rounded-xl transition flex items-center justify-center gap-1 cursor-pointer ${
                         canAfford
                           ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs'

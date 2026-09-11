@@ -20,6 +20,7 @@ import { AdaptiveEngine, type MisconceptionCode, type StudentAbilityProfile } fr
 import { approximateAge } from '../../src/services/tiers';
 import * as schema from '../../drizzle/schema';
 import { raiseMasteryMilestone } from './notifications';
+import { awardForAttempt, type RewardChange } from './rewards';
 import type { Database } from '../db/client';
 import { accuracyPercent, nextMastery } from './mastery';
 
@@ -31,16 +32,34 @@ export interface RecordAttemptInput {
   responseTimeMs?: number | null;
   /** True when the attempt was queued offline and is being reconciled now. */
   wasOffline?: boolean;
+  /**
+   * An id the client made when the child answered.
+   *
+   * Supplying one makes this call safe to repeat: a second call with the same id
+   * returns the first call's result instead of recording another answer.
+   */
+  clientId?: string | null;
 }
 
 export interface RecordAttemptResult {
   attemptId: number;
+  /**
+   * True when this call found the answer already recorded and returned it.
+   *
+   * The reconciler needs to tell "the server took it" from "the server took it
+   * twice" — both are success, but only one of them should be counted as work
+   * done — and a test cannot otherwise distinguish a replay that was ignored
+   * from one that was silently applied again.
+   */
+  replayed: boolean;
   isCorrect: boolean;
   misconceptionCode: MisconceptionCode | null;
   conceptId: string;
   mastery: number;
   accuracy: number;
   ability: StudentAbilityProfile;
+  /** Coins, XP and streak after this answer. Null on a replay, which pays once. */
+  rewards: RewardChange | null;
 }
 
 /**
@@ -58,6 +77,25 @@ export async function recordAttempt(db: Database, input: RecordAttemptInput): Pr
     .limit(1);
 
   if (!problem) throw new Error(`No problem ${input.problemId}`);
+
+  /*
+   * Already recorded?
+   *
+   * Checked before the transaction rather than relying on the unique index to
+   * reject the insert, because by then `updateConceptMastery` and
+   * `updateAbility` have already run inside the same transaction. The rollback
+   * would undo them, but the caller would see a database error where it should
+   * see the original answer — and a queue that treats an error as "not yet
+   * delivered" would retry the same item forever.
+   *
+   * The index is still there, and is what actually guarantees this: two
+   * reconcilers racing on the same item both pass this check, and one of them
+   * loses at the insert.
+   */
+  if (input.clientId) {
+    const existing = await replayOf(db, input.learnerId, input.clientId);
+    if (existing) return existing;
+  }
 
   const isCorrect = normalise(input.submittedAnswer) === normalise(problem.answer);
 
@@ -93,6 +131,7 @@ export async function recordAttempt(db: Database, input: RecordAttemptInput): Pr
         misconceptionCode,
         responseTimeMs: input.responseTimeMs ?? null,
         wasOffline: input.wasOffline ?? false,
+        clientId: input.clientId ?? null,
       })
       .$returningId();
 
@@ -108,6 +147,13 @@ export async function recordAttempt(db: Database, input: RecordAttemptInput): Pr
     });
 
     const ability = await updateAbility(tx, input.learnerId, problem, isCorrect, misconceptionCode);
+
+    /*
+     * After the replay check at the top of this function, and inside the same
+     * transaction. Awarding before the check would let a learner mint coins by
+     * losing their connection and letting the queue deliver one answer twice.
+     */
+    const rewards = await awardForAttempt(tx, { learnerId: input.learnerId, isCorrect });
 
     if (!isCorrect && misconceptionCode) {
       await tx
@@ -128,14 +174,96 @@ export async function recordAttempt(db: Database, input: RecordAttemptInput): Pr
 
     return {
       attemptId: inserted.id,
+      replayed: false,
       isCorrect,
       misconceptionCode,
       conceptId: problem.conceptId,
       mastery: mastery.masteryScore,
       accuracy: mastery.accuracy,
       ability,
+      rewards,
     };
   });
+}
+
+/**
+ * A stored ability row as the engine's profile.
+ *
+ * Shared by the live path and the replay path. The confidence interval is
+ * derived rather than stored, so computing it in two places is how the number a
+ * replay returns quietly stops matching the number the original answer did.
+ */
+function profileFromRow(row: typeof schema.learnerAbility.$inferSelect): StudentAbilityProfile {
+  const theta = Number(row.theta);
+  const standardError = Number(row.standardError);
+  return {
+    theta,
+    standardError,
+    dynamicLevel: Number(row.dynamicLevel),
+    eloRating: row.eloRating,
+    historyCount: row.historyCount,
+    // The tallies live in their own table for classroom-level questions; the
+    // engine only reads this map to add to it, and the write below is the row
+    // that counts.
+    misconceptionsMap: {} as StudentAbilityProfile['misconceptionsMap'],
+    confidenceInterval: [theta - 1.96 * standardError, theta + 1.96 * standardError],
+  };
+}
+
+/**
+ * The result of an answer that was already recorded under this client id.
+ *
+ * Rebuilt from the stored attempt and the learner's *current* mastery and
+ * ability, not from what they were at the time. A reconciler replaying an item
+ * wants to know where the learner stands now; returning the historical figures
+ * would hand the client numbers older than ones it may already have shown.
+ */
+async function replayOf(
+  db: Database,
+  learnerId: number,
+  clientId: string,
+): Promise<RecordAttemptResult | null> {
+  const [attempt] = await db
+    .select()
+    .from(schema.attempts)
+    .where(and(eq(schema.attempts.learnerId, learnerId), eq(schema.attempts.clientId, clientId)))
+    .limit(1);
+  if (!attempt) return null;
+
+  const [mastery] = await db
+    .select()
+    .from(schema.learnerConceptMastery)
+    .where(
+      and(
+        eq(schema.learnerConceptMastery.learnerId, learnerId),
+        eq(schema.learnerConceptMastery.conceptId, attempt.conceptId),
+      ),
+    )
+    .limit(1);
+
+  const [ability] = await db
+    .select()
+    .from(schema.learnerAbility)
+    .where(eq(schema.learnerAbility.learnerId, learnerId))
+    .limit(1);
+
+  return {
+    attemptId: attempt.id,
+    replayed: true,
+    isCorrect: attempt.isCorrect,
+    misconceptionCode: (attempt.misconceptionCode as MisconceptionCode) ?? null,
+    conceptId: attempt.conceptId,
+    mastery: mastery?.masteryScore ?? 0,
+    accuracy: mastery?.accuracy ?? 0,
+    // An ability row always exists by the time an attempt does, since
+    // `updateAbility` writes one in the same transaction. `blankProfile` is the
+    // answer if that ever stops being true, rather than a zeroed profile that
+    // would read as a learner who has done nothing.
+    ability: ability ? profileFromRow(ability) : await blankProfile(db, learnerId),
+    // Null rather than the current totals: a replay earns nothing, and handing
+    // back a balance would read to the caller as "this answer paid that".
+    rewards: null,
+  };
 }
 
 type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
@@ -208,20 +336,7 @@ async function updateAbility(
     .where(eq(schema.learnerAbility.learnerId, learnerId))
     .limit(1);
 
-  const current: StudentAbilityProfile = row
-    ? {
-        theta: Number(row.theta),
-        standardError: Number(row.standardError),
-        dynamicLevel: Number(row.dynamicLevel),
-        eloRating: row.eloRating,
-        historyCount: row.historyCount,
-        // The tallies live in their own table for classroom-level questions;
-        // the engine only reads this map to add to it, and the write below is
-        // the row that counts.
-        misconceptionsMap: {} as StudentAbilityProfile['misconceptionsMap'],
-        confidenceInterval: [Number(row.theta) - 1.96 * Number(row.standardError), Number(row.theta) + 1.96 * Number(row.standardError)],
-      }
-    : await blankProfile(tx, learnerId);
+  const current: StudentAbilityProfile = row ? profileFromRow(row) : await blankProfile(tx, learnerId);
 
   const updated = AdaptiveEngine.updateAbility(current, {
     itemParams: {
@@ -274,7 +389,10 @@ async function updateAbility(
  * no ability row exists yet. That is a fair price for not mis-pitching a child's
  * first session.
  */
-async function blankProfile(tx: Tx, learnerId: number): Promise<StudentAbilityProfile> {
+// `Tx | Database` because this only reads. The live path passes its transaction
+// handle so it sees the row it just wrote; the replay path has no transaction
+// and does not need one.
+async function blankProfile(tx: Tx | Database, learnerId: number): Promise<StudentAbilityProfile> {
   const [learner] = await tx
     .select({ birthYear: schema.learners.birthYear })
     .from(schema.learners)
