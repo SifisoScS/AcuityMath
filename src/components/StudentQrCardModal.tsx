@@ -1,6 +1,7 @@
 import React from 'react';
 import { QrCode, X, Printer, Sparkles, ShieldCheck } from 'lucide-react';
 import { playClickSound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface StudentQrCardModalProps {
   isOpen: boolean;
@@ -21,6 +22,10 @@ export const StudentQrCardModal: React.FC<StudentQrCardModalProps> = ({
   onClose,
   student
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(isOpen, onClose);
   if (!isOpen) return null;
 
   const handlePrint = () => {
@@ -30,7 +35,9 @@ export const StudentQrCardModal: React.FC<StudentQrCardModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Printable learner badge"
       tabIndex={-1}
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">

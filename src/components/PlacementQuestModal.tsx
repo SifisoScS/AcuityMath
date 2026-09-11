@@ -7,6 +7,7 @@ import { adaptiveWorkerClient } from '../utils/adaptiveWorkerClient';
 import { MathManipulatives } from './MathManipulatives';
 import { Scratchpad } from './Scratchpad';
 import { BilingualTextHighlighter } from './BilingualTextHighlighter';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   Compass,
   CheckCircle2,
@@ -45,6 +46,10 @@ export const PlacementQuestModal: React.FC<PlacementQuestModalProps> = ({
   onClose,
   onCompletePlacement
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(true, onClose);
   // Ability profile initialized to tier baseline
   const [abilityProfile, setAbilityProfile] = useState<StudentAbilityProfile>(() =>
     AdaptiveEngine.createInitialProfile(user.age)
@@ -183,7 +188,9 @@ export const PlacementQuestModal: React.FC<PlacementQuestModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Placement quest"
       tabIndex={-1}
       className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">

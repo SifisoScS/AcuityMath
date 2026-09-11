@@ -13,6 +13,7 @@ import {
 import { BILINGUAL_GLOSSARY, BilingualGlossaryTerm } from '../data/bilingualGlossaryData';
 import { AgeTier } from '../types';
 import { speakText, stopSpeaking, playClickSound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface BilingualGlossaryModalProps {
   isOpen?: boolean;
@@ -27,6 +28,10 @@ export const BilingualGlossaryModal: React.FC<BilingualGlossaryModalProps> = ({
   initialTier = 'elementary',
   targetTermId
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(isOpen, onClose);
   if (!isOpen) return null;
   const [selectedTier, setSelectedTier] = useState<AgeTier | 'all'>(initialTier);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -58,7 +63,9 @@ export const BilingualGlossaryModal: React.FC<BilingualGlossaryModalProps> = ({
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Bilingual mathematics glossary"
       tabIndex={-1}
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">

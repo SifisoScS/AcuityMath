@@ -16,10 +16,11 @@
  * Every figure here now comes from the queue itself.
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Wifi, WifiOff, RefreshCw, CheckCircle2, AlertTriangle, History, X, Clock } from 'lucide-react';
 
 import { playClickSound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 import type { Connectivity } from '../offline/useConnectivity';
 import type { QueuedAttempt } from '../offline/queue';
 
@@ -55,6 +56,11 @@ export const OfflineSyncBanner: React.FC<OfflineSyncBannerProps> = ({
   onTriggerSync
 }) => {
   const [showDetail, setShowDetail] = useState(false);
+  // `useCallback` because the hook's effect depends on this: an inline arrow
+  // would be a new function every render and re-install the key listener each
+  // time.
+  const closeDetail = useCallback(() => setShowDetail(false), []);
+  const panelRef = useModalA11y(showDetail, closeDetail);
   const simulated = status === 'simulated-offline';
   const offline = status !== 'online';
 
@@ -155,8 +161,11 @@ export const OfflineSyncBanner: React.FC<OfflineSyncBannerProps> = ({
 
       {showDetail && (
         <div
+          ref={panelRef}
           role="dialog"
+          aria-modal="true"
           aria-label="Answers waiting to be saved"
+          tabIndex={-1}
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4"
         >
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 text-slate-900 space-y-4">

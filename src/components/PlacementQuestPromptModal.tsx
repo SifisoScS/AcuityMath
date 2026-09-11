@@ -2,6 +2,7 @@ import React from 'react';
 import { Compass, Sparkles, X, Brain, CheckCircle2, ArrowRight } from 'lucide-react';
 import { UserProfile } from '../types';
 import { playClickSound, playLevelUpFanfare } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface PlacementQuestPromptModalProps {
   isOpen: boolean;
@@ -16,11 +17,17 @@ export const PlacementQuestPromptModal: React.FC<PlacementQuestPromptModalProps>
   onStartQuest,
   onDismiss
 }) => {
+  // Traps Tab, handles Escape, and returns focus where it came from.
+  // `aria-modal` on the panel below promises the rest of the page is
+  // inert; this is what makes that true rather than a claim.
+  const panelRef = useModalA11y(isOpen, onDismiss);
   if (!isOpen) return null;
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
+      aria-modal="true"
       aria-label="Start the placement quest"
       tabIndex={-1}
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
