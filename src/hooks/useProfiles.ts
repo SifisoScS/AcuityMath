@@ -118,7 +118,8 @@ export function useProfiles(): ProfilesState {
       streakShields: learner.streakShields,
       accuracyRate: learner.accuracyRate,
       completedLessonsCount: learner.conceptsMastered,
-      unlockedAvatars: [],
+      // Real now: what the learner has bought, plus the free ones.
+      unlockedAvatars: learner.unlockedAvatars,
       parentContact: user?.email,
     }));
   }, [learners.data, user?.email]);

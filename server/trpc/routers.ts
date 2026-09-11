@@ -15,6 +15,8 @@ import * as schema from '../../drizzle/schema';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
+import { avatarById, FREE_AVATAR_IDS, STORE_AVATARS } from '../../src/data/avatars';
+import { spendCoins } from '../learning/rewards';
 import {
   announceAssignment,
   clearNotifications,
@@ -74,6 +76,105 @@ const learnersRouter = router({
       rows.map(row => row.id),
     );
   }),
+
+  /** The avatars a learner already has, free ones included. */
+  avatars: learnerProcedure.query(async ({ ctx }) => {
+    const bought = await ctx.db
+      .select({ avatarId: schema.learnerAvatars.avatarId })
+      .from(schema.learnerAvatars)
+      .where(eq(schema.learnerAvatars.learnerId, ctx.learner.id));
+
+    // The free ones are not stored, so they are added here rather than written
+    // as rows nobody decided on.
+    return [...new Set([...FREE_AVATAR_IDS, ...bought.map(row => row.avatarId)])];
+  }),
+
+  /**
+   * Buys a companion avatar.
+   *
+   * The price is read from the catalogue here, never taken from the input. It
+   * used to be passed in by `RewardsView` from a client-side constant, so the
+   * price a learner paid was whatever their browser said it was.
+   *
+   * Not elevated: spending coins a child earned, on a cosmetic, is the child's
+   * decision. Requiring a parent's PIN to change an avatar would train the
+   * household to enter it reflexively.
+   */
+  buyAvatar: learnerProcedure
+    .input(z.object({ avatarId: z.string().min(1).max(64) }))
+    .mutation(async ({ ctx, input }) => {
+      const avatar = avatarById(input.avatarId);
+      if (!avatar) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No such avatar.' });
+      }
+
+      const [already] = await ctx.db
+        .select({ id: schema.learnerAvatars.id })
+        .from(schema.learnerAvatars)
+        .where(
+          and(
+            eq(schema.learnerAvatars.learnerId, ctx.learner.id),
+            eq(schema.learnerAvatars.avatarId, avatar.id),
+          ),
+        )
+        .limit(1);
+
+      // Owned already, or free. Either way there is nothing to charge, and
+      // charging again for a second click would be the worst outcome here.
+      if (already || avatar.price === 0) {
+        return { unlocked: true, charged: 0 };
+      }
+
+      const paid = await spendCoins(ctx.db, ctx.learner.id, avatar.price);
+      if (!paid) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Not enough Star Coins for that one yet.',
+        });
+      }
+
+      await ctx.db
+        .insert(schema.learnerAvatars)
+        .values({ learnerId: ctx.learner.id, avatarId: avatar.id });
+
+      return { unlocked: true, charged: avatar.price };
+    }),
+
+  /** Sets the avatar shown for a learner. Must be one they have. */
+  setAvatar: learnerProcedure
+    .input(z.object({ avatarId: z.string().min(1).max(64) }))
+    .mutation(async ({ ctx, input }) => {
+      const avatar = avatarById(input.avatarId);
+      if (!avatar) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No such avatar.' });
+      }
+
+      if (avatar.price > 0) {
+        const [owned] = await ctx.db
+          .select({ id: schema.learnerAvatars.id })
+          .from(schema.learnerAvatars)
+          .where(
+            and(
+              eq(schema.learnerAvatars.learnerId, ctx.learner.id),
+              eq(schema.learnerAvatars.avatarId, avatar.id),
+            ),
+          )
+          .limit(1);
+
+        if (!owned) {
+          // Otherwise the shop is decoration: anyone could wear anything by
+          // calling this directly.
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'That one has not been unlocked.' });
+        }
+      }
+
+      await ctx.db
+        .update(schema.learners)
+        .set({ avatar: avatar.icon })
+        .where(eq(schema.learners.id, ctx.learner.id));
+
+      return { avatar: avatar.icon };
+    }),
 
   create: protectedProcedure
     .input(
@@ -350,6 +451,15 @@ const analyticsRouter = router({
  * table of contents, not a child's record.
  */
 const curriculumRouter = router({
+  /**
+   * The avatar shop.
+   *
+   * Served rather than imported by the client so that the prices drawn and the
+   * prices charged cannot drift apart across a deploy.
+   */
+  avatars: publicProcedure.query(() => STORE_AVATARS),
+
+
   concepts: protectedProcedure.query(({ ctx }) =>
     ctx.db
       .select({

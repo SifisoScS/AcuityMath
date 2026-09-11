@@ -16,6 +16,7 @@
 import { inArray, sql } from 'drizzle-orm';
 
 import * as schema from '../../drizzle/schema';
+import { FREE_AVATAR_IDS } from '../../src/data/avatars';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import type { Database } from '../db/client';
 
@@ -35,6 +36,8 @@ export interface LearnerSummary {
   streakShields: number;
   accuracyRate: number;
   conceptsMastered: number;
+  /** Avatar ids this learner has, free ones included. */
+  unlockedAvatars: string[];
 }
 
 /**
@@ -66,6 +69,11 @@ export async function learnerSummaries(
     .select()
     .from(schema.learnerRewards)
     .where(inArray(schema.learnerRewards.learnerId, ids));
+
+  const avatars = await db
+    .select()
+    .from(schema.learnerAvatars)
+    .where(inArray(schema.learnerAvatars.learnerId, ids));
 
   const mastery = await db
     .select({
@@ -106,6 +114,13 @@ export async function learnerSummaries(
       accuracyRate:
         attempts > 0 ? Math.round(Number(progress?.weightedAccuracy ?? 0) / attempts) : 0,
       conceptsMastered: Number(progress?.mastered ?? 0),
+      // The free ones are not stored as rows, so they are added here.
+      unlockedAvatars: [
+        ...new Set([
+          ...FREE_AVATAR_IDS,
+          ...avatars.filter(row => row.learnerId === learner.id).map(row => row.avatarId),
+        ]),
+      ],
     };
   });
 }
