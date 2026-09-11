@@ -10,17 +10,14 @@ import {
   MathLesson,
   TeacherAssignment,
   NotificationItem,
-  OfflineSyncState,
   ParentAnalytics,
   AgeTier
 } from './types';
-import {
-  INITIAL_PROFILES,
-  getSavedItem,
-  saveItem
-} from './utils/storage';
+import { getSavedItem, saveItem } from './utils/storage';
 import { INITIAL_LESSONS, AGE_TIER_META } from './data/curriculumData';
 import { OfflineSyncBanner } from './components/OfflineSyncBanner';
+import { useOffline } from './offline/useOffline';
+import { OfflineProvider } from './offline/OfflineContext';
 import { StudentDashboard } from './components/StudentDashboard';
 import { CurriculumView } from './components/CurriculumView';
 import { ParentDashboard } from './components/ParentDashboard';
@@ -154,23 +151,18 @@ export default function App() {
     toggleRead: toggleNotificationRead
   } = useNotifications(activeProfile.learnerId ?? null, isSignedIn);
 
-  // Offline Sync State
-  const [syncState, setSyncState] = useState<OfflineSyncState>(() =>
-    getSavedItem<OfflineSyncState>('sync_state', {
-      isOffline: false,
-      pendingActions: [],
-      syncLogs: [
-        {
-          id: 'log-1',
-          action: 'Initial Cloud Profile Sync',
-          timestamp: 'Just now',
-          status: 'synced'
-        }
-      ],
-      lastSyncedAt: 'Just now'
-    })
-  );
-  const [isSyncing, setIsSyncing] = useState(false);
+  /*
+   * The offline queue.
+   *
+   * This was `syncState`: a `pendingActions` array in React state mirrored to
+   * localStorage, with a `syncLogs` list seeded with an invented "Initial Cloud
+   * Profile Sync" entry and a `lastSyncedAt` of "Just now" for an application
+   * that had just started and synced nothing.
+   *
+   * Every figure the banner shows now comes from the queue itself, and an item
+   * leaves that queue only when the server has confirmed it.
+   */
+  const offline = useOffline();
 
   // Accessibility flags
   const [highContrast, setHighContrast] = useState(false);
@@ -345,9 +337,8 @@ export default function App() {
   // would keep a stale copy whose 'read' flags disagree with the ones the bell
   // was actually cleared on.
 
-  useEffect(() => {
-    saveItem('sync_state', syncState);
-  }, [syncState]);
+  // The queue lives in IndexedDB and is its own record. Mirroring it to
+  // localStorage would give a second, stale copy of what is unsent.
 
   // Analytics is the server's answer now, so it is not written back to
   // localStorage. Persisting it copied one child's mastery and error patterns
@@ -388,104 +379,29 @@ export default function App() {
       xpEarned: results.xpEarned
     }).catch(err => console.warn('[App] Offline queue fallback for attempt:', err));
 
-    // Sync action queue handling
-    const actionDesc = `Lesson Completed (+${results.xpEarned} XP, +${results.coinsEarned} Coins, Lvl ${results.newLevel})`;
-
-    if (syncState.isOffline) {
-      setSyncState(prev => ({
-        ...prev,
-        pendingActions: [
-          ...prev.pendingActions,
-          {
-            id: `action-${Date.now()}`,
-            actionType: 'LESSON_COMPLETE',
-            payload: results,
-            timestamp: new Date().toLocaleTimeString()
-          }
-        ]
-      }));
-    } else {
-      setSyncState(prev => ({
-        ...prev,
-        lastSyncedAt: new Date().toLocaleTimeString(),
-        syncLogs: [
-          {
-            id: `log-${Date.now()}`,
-            action: actionDesc,
-            timestamp: new Date().toLocaleTimeString(),
-            status: 'synced'
-          },
-          ...prev.syncLogs.slice(0, 15)
-        ]
-      }));
-    }
-
     /*
-     * A "Level Up Celebration!" notification was raised here, client-side, from
-     * `results.newLevel > activeProfile.dynamicLevel`.
+     * The lesson-completion path used to push a `LESSON_COMPLETE` action onto
+     * `pendingActions` when the offline toggle was set, and otherwise append a
+     * "synced" log line. Neither did anything durable.
      *
-     * It is gone rather than moved. It lived only in React state, so it vanished
-     * on reload while the server-raised ones persisted — one bell with two kinds
-     * of memory. The event it reported is also not quite real: the dynamic level
-     * is a continuous 3PL estimate, and crossing a rounded boundary is an
-     * artefact of the rounding. `recordAttempt` raises a milestone when a
-     * concept is actually mastered, which is a moment rather than a rounding.
+     * Answers are queued where they are given — `usePractice.submit` — because
+     * that is the only place that knows the `clientId` the server deduplicates
+     * on. There is nothing to queue here.
      */
   };
 
-  // Offline toggle
-  const handleToggleOfflineMode = (offline: boolean) => {
-    setSyncState(prev => ({
-      ...prev,
-      isOffline: offline
-    }));
-    if (!offline && syncState.pendingActions.length > 0) {
-      triggerCloudSync();
-    }
-  };
-
-  // Trigger cloud sync
-  const triggerCloudSync = () => {
-    if (isSyncing) return;
-    setIsSyncing(true);
-
-    if (syncState.pendingActions.length > 0) {
-      apiService.syncBatch(syncState.pendingActions.map(act => ({
-        type: act.actionType,
-        payload: act.payload,
-        studentId: activeProfile.id
-      }))).catch(err => console.warn('[App] Batch sync error:', err));
-    }
-
-    setTimeout(() => {
-      const syncedCount = syncState.pendingActions.length;
-      const now = new Date().toLocaleTimeString();
-
-      const newLogs = syncState.pendingActions.map(act => ({
-        id: `log-${Date.now()}-${act.id}`,
-        action: `Synced to Server: ${act.actionType} (${act.timestamp})`,
-        timestamp: now,
-        status: 'synced' as const
-      }));
-
-      setSyncState(prev => ({
-        ...prev,
-        isOffline: false,
-        pendingActions: [],
-        lastSyncedAt: now,
-        syncLogs: [...newLogs, ...prev.syncLogs].slice(0, 20)
-      }));
-
-      setIsSyncing(false);
-
-      /*
-       * An "Offline Progress Synced to Cloud DB!" notification was raised here.
-       * The offline queue is Graft D and is not built; this counted items in a
-       * demonstration sync state. There is no `sync` notification type for the
-       * same reason.
-       */
-    }, 1200);
-  };
+  /*
+   * `handleToggleOfflineMode` and `triggerCloudSync` stood here.
+   *
+   * `triggerCloudSync` called `apiService.syncBatch(...)` without awaiting it,
+   * attached `.catch(err => console.warn(...))`, and then a `setTimeout` cleared
+   * `pendingActions` and wrote "Synced to Server: ..." log lines regardless of
+   * what had happened. A failed sync reported success and discarded the child's
+   * answers.
+   *
+   * `useOffline` replaces both. It drains on reconnect, on mount and on demand,
+   * and removes an item only once the server has said it has it.
+   */
 
   /**
    * A component reporting that the learner moved.
@@ -707,6 +623,9 @@ export default function App() {
   };
 
   return (
+    // Every surface that records an answer reaches the queue through this, so a
+    // new one cannot bypass it by not being handed a prop.
+    <OfflineProvider value={offline}>
     <div
       className={`h-screen w-full overflow-hidden flex flex-col lg:flex-row transition-colors duration-200 ${
         highContrast ? 'contrast-125 bg-black text-white' : 'bg-slate-50 text-slate-900'
@@ -1045,10 +964,14 @@ export default function App() {
         {/* Offline Banner */}
         <div className="shrink-0">
           <OfflineSyncBanner
-            syncState={syncState}
-            onToggleOfflineMode={handleToggleOfflineMode}
-            onTriggerSync={triggerCloudSync}
-            isSyncing={isSyncing}
+            status={offline.status}
+            pendingCount={offline.pendingCount}
+            pending={offline.pending}
+            lastSyncedAt={offline.lastSyncedAt}
+            lastError={offline.lastError}
+            isSyncing={offline.isSyncing}
+            onSetSimulatedOffline={offline.setSimulatedOffline}
+            onTriggerSync={() => void offline.sync()}
           />
         </div>
 
@@ -1674,5 +1597,6 @@ export default function App() {
         initialTier={activeProfile.tier}
       />
     </div>
+    </OfflineProvider>
   );
 }
