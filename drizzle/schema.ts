@@ -730,6 +730,34 @@ export const learnerRewards = mysqlTable(
   table => [uniqueIndex('rewards_learner_idx').on(table.learnerId)],
 );
 
+/**
+ * Companion avatars a learner has bought.
+ *
+ * One row per purchase. The free ones are not stored — `price === 0` in the
+ * catalogue already says they are available, and writing a row for every learner
+ * for every free avatar would be a table of things nobody decided.
+ *
+ * The price is *not* recorded here. It is the catalogue's, and a purchase is a
+ * fact about what was unlocked rather than a receipt; storing the price would
+ * invite reading it back as one, and the coins are already accounted for in
+ * `learner_rewards`.
+ */
+export const learnerAvatars = mysqlTable(
+  'learner_avatars',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    learnerId: int('learner_id')
+      .notNull()
+      .references(() => learners.id, { onDelete: 'cascade' }),
+    avatarId: varchar('avatar_id', { length: 64 }).notNull(),
+    unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
+  },
+  // Buying the same avatar twice is a bug, not a second purchase. The index
+  // makes the database refuse it rather than trusting the check that precedes
+  // it, which two tabs can both pass.
+  table => [uniqueIndex('learner_avatar_idx').on(table.learnerId, table.avatarId)],
+);
+
 // ---------------------------------------------------------------------------
 // Notifications
 // ---------------------------------------------------------------------------

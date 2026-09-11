@@ -36,6 +36,7 @@ import { useStepUpStatus } from './hooks/useStepUp';
 import { useFamilyAnalytics } from './hooks/useAnalytics';
 import { useAuthoredAssignments, useLearnerAssignments } from './hooks/useAssignments';
 import { useNotifications } from './hooks/useNotifications';
+import { useRewards } from './hooks/useRewards';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
@@ -128,6 +129,9 @@ export default function App() {
    * teacher who set homework and reloaded the page had set nothing.
    */
   const learnerAssignments = useLearnerAssignments(activeProfile.learnerId ?? null);
+
+  /** Buying and equipping avatars, against the server's catalogue and balance. */
+  const rewards = useRewards(activeProfile.learnerId ?? null);
 
   const {
     assignments: authoredAssignments,
@@ -1368,6 +1372,10 @@ export default function App() {
               <RewardsView
                 user={activeProfile}
                 onUpdateUser={handleUpdateActiveUser}
+                catalogue={rewards.catalogue}
+                onBuyAvatar={rewards.buyAvatar}
+                onEquipAvatar={rewards.equipAvatar}
+                isBusy={rewards.isBusy}
               />
             )}
 
@@ -1410,7 +1418,9 @@ export default function App() {
         <RewardsModal
           user={activeProfile}
           onClose={() => setIsRewardsModalOpen(false)}
-          onUpdateUser={handleUpdateActiveUser}
+          onBuyAvatar={rewards.buyAvatar}
+          onEquipAvatar={rewards.equipAvatar}
+          isBusy={rewards.isBusy}
         />
       )}
 

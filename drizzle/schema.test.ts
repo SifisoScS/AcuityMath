@@ -58,6 +58,7 @@ const LEARNER_SCOPED = [
   'screen_time_usage',
   'assignment_targets',
   'learner_rewards',
+  'learner_avatars',
 ] as const;
 
 /**
@@ -217,7 +218,11 @@ describe('referential integrity is the database"s job', () => {
         const exempt =
           column.name === 'institution_id' ||
           column.name === 'external_id' ||
-          column.name === 'client_id';
+          column.name === 'client_id' ||
+          // `avatar_id` names an entry in the catalogue in `src/data/avatars.ts`,
+          // which the server reads so that the price charged is not the price a
+          // browser claimed. There is no table for it to reference.
+          column.name === 'avatar_id';
         if (isReference && !exempt && !constrained.has(column.name)) {
           missing.push(`${name}.${column.name}`);
         }

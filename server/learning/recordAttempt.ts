@@ -20,6 +20,7 @@ import { AdaptiveEngine, type MisconceptionCode, type StudentAbilityProfile } fr
 import { approximateAge } from '../../src/services/tiers';
 import * as schema from '../../drizzle/schema';
 import { raiseMasteryMilestone } from './notifications';
+import { awardForAttempt, type RewardChange } from './rewards';
 import type { Database } from '../db/client';
 import { accuracyPercent, nextMastery } from './mastery';
 
@@ -57,6 +58,8 @@ export interface RecordAttemptResult {
   mastery: number;
   accuracy: number;
   ability: StudentAbilityProfile;
+  /** Coins, XP and streak after this answer. Null on a replay, which pays once. */
+  rewards: RewardChange | null;
 }
 
 /**
@@ -145,6 +148,13 @@ export async function recordAttempt(db: Database, input: RecordAttemptInput): Pr
 
     const ability = await updateAbility(tx, input.learnerId, problem, isCorrect, misconceptionCode);
 
+    /*
+     * After the replay check at the top of this function, and inside the same
+     * transaction. Awarding before the check would let a learner mint coins by
+     * losing their connection and letting the queue deliver one answer twice.
+     */
+    const rewards = await awardForAttempt(tx, { learnerId: input.learnerId, isCorrect });
+
     if (!isCorrect && misconceptionCode) {
       await tx
         .insert(schema.learnerMisconceptions)
@@ -171,6 +181,7 @@ export async function recordAttempt(db: Database, input: RecordAttemptInput): Pr
       mastery: mastery.masteryScore,
       accuracy: mastery.accuracy,
       ability,
+      rewards,
     };
   });
 }
@@ -249,6 +260,9 @@ async function replayOf(
     // answer if that ever stops being true, rather than a zeroed profile that
     // would read as a learner who has done nothing.
     ability: ability ? profileFromRow(ability) : await blankProfile(db, learnerId),
+    // Null rather than the current totals: a replay earns nothing, and handing
+    // back a balance would read to the caller as "this answer paid that".
+    rewards: null,
   };
 }
 
