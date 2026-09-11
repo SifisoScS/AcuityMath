@@ -160,8 +160,11 @@ durable part.
 
 Consent is recorded in `consent_events`, one row per child, by
 `consent.record` on `elevatedProcedure`. The design and the four decisions
-behind it are in [The Consent Ledger][consent-ledger], linked from PR #19 —
-**not** PR #20, which was never allocated. The parts worth restating:
+behind it are in [The Consent Ledger][consent-ledger], linked from PR #19.
+An earlier draft of this section cited "PR #20" for it, which at the time was
+not allocated to anything; #20 is now the credential-surface fix, which is a
+different change. The link above does not depend on a PR number. The parts
+worth restating:
 
 [consent-ledger]: https://claude.ai/code/artifact/5ef4427d-c8a3-46d2-b621-405a3549e2b4
 
