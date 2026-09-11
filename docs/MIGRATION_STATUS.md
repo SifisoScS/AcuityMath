@@ -45,11 +45,20 @@ Donor repository, read-only reference:
 | **B3f-1** | Parent analytics derived from real attempts | **Merged** (PR #15) |
 | **B3f-2** | Assignments onto the server, teacher entitlement | **Merged** (PR #17) |
 | **B3f-3** | Notifications onto the server, with real producers | **Merged** (PR #18) |
-| **D** | Offline queue on IndexedDB | **In progress** on `graft-d-offline-queue` |
+| **D** | Offline queue, rewards, focus traps | **Merged** (PR #22) |
+| **E-pre** | Legacy credential surface closed | **Merged** (PR #20) |
+| **E1** | COPPA consent onto `consent_events` | **Open** — this branch |
+| **E1b** | Gate on consent for under-13s | **Shape decided, not built.** See below |
+| **E2–E5** | Screen time, quarantine, delete the JSON store | Planned |
 
-Every pull request is merged; nothing is open. The table used to say "open in
-PR #N" for work that had been in `main` for days — read it as a record of what
-landed, not as a to-do list.
+One pull request is open: **E1, this branch.** The table has twice drifted —
+saying "open in PR #N" for work that had been in `main` for days, and naming a PR
+number that was never allocated. Read it as a record of what landed and check
+`gh pr list` before trusting the right-hand column.
+
+PR #19 was split rather than merged: its credential commit went to #20, its
+feature commits to #22, and its consent commits to this branch. It carries a
+comment mapping all ten commits to their destinations.
 
 The content-import half of Graft D was delivered early, in B3b: the database
 holds 63 concepts, 1,138 authored problems and 572 hints. What remains of D is
@@ -168,13 +177,12 @@ them reading `server/db.ts` — a JSON file (`data_store.json`, gitignored) that
 **nothing migrated reads**. The learning product runs on tRPC against MySQL.
 **The router has no authentication of any kind** — no session, no middleware.
 
-The exploitable part is closed by this change. What remains is a parallel data
+The exploitable part was closed in PR #20. What remains is a parallel data
 layer, and it has to come apart in order:
 
-1. **COPPA consent onto `consent_events`.** `POST /auth/coppa-consent` is
-   refused as of this change and nothing records consent at all. That is the
-   current state, not the destination, and it is the first step for that
-   reason.
+1. ~~**COPPA consent onto `consent_events`.**~~ **Done on this branch.** The
+   legacy route stays refused; `consent.record` writes the ledger. Detail
+   below.
 2. **Screen-time enforcement onto the real schema.** The legacy heartbeat and
    the unlock path retire with it; `screen_time_rules` and `screen_time_usage`
    already exist and nothing enforces them.
@@ -196,6 +204,71 @@ As each step lands, its routes come off that list. When the list is empty, the
 inventory becomes the assertion that **no route under `/api` reads
 `data_store.json`** — and the deletion in step 5 is verifiable rather than
 hopeful.
+
+### Step 1 — done
+
+Consent is recorded in `consent_events`, one row per child, by `consent.record`
+on `elevatedProcedure`. Design and the four decisions behind it:
+[The Consent Ledger][consent-ledger]. The parts worth restating:
+
+[consent-ledger]: https://claude.ai/code/artifact/5ef4427d-c8a3-46d2-b621-405a3549e2b4
+
+- **The method is `email_verified_name_attested`.** The first draft called it
+  `email_plus_verification`, which overstates it — "email plus" is a term of art
+  for a method with a confirming second step this product does not perform. A
+  name that needs the evidence read before it stops misleading is the wrong name.
+- **The policy hash is computed server-side** from the server's own copy of the
+  disclosure, never sent by the client, which could otherwise claim consent to
+  text that was never displayed. The input is `.strict()`, so an attempt to
+  supply one is refused rather than silently stripped.
+- **`evidence` is gone.** One free-text `varchar(500)` standing for whatever the
+  method happened to be was the same failure as a ledger with no policy version,
+  one layer down. It is `attested_name`, `verified_email`, `email_verified_at`
+  and `second_step_sent` now — so "every consent taken without a confirming
+  step" is a `WHERE` clause.
+- **`email_verified_at`** records when the magic link was consumed. The link
+  proves control at T and consent is recorded at T+X; a gap of weeks is
+  ordinary, and a record that cannot show it implies there wasn't one.
+- **Precedence is one `status`**, not a decision plus a freshness flag:
+  `withdrawn` outranks everything, `superseded` applies only to a granted row
+  under an old version, and a child added after consent reads `none`.
+
+### E1b — gate on consent. Shape decided, not built.
+
+Recording consent fixes a false claim; it does not stop the product collecting
+data from children nobody consented for, and that second half is the one that
+protects anybody. The policy is **allow practice, block recording, make it
+visible**, for under-13s, which `birthYear` already identifies.
+
+**The shape is client-only ephemeral.** The generator runs in the browser,
+nothing is written anywhere, and the only server call is the consent-state read.
+Two alternatives were considered and rejected:
+
+| Shape | Why not |
+| --- | --- |
+| Server-recognised ephemeral — the loop calls the server, the server skips the write | Simpler, but the child's attempts are still transmitted, which is the thing consent is about. "Nothing is being saved" would be true of the write and false of the transmit. |
+| Local record, deferred sync — attempts queue until consent arrives | The queue built in Graft D exists to flush. A queue that must not flush is a second code path wearing the first one's name. |
+
+Client-only is the only shape where **"nothing is being recorded" is true in the
+strong sense, including the network layer**, so the banner can say *"Practice
+mode — offline only. Nothing is being saved."* and be literally true. The
+generator already runs client-side for offline mode, so the path exists.
+
+**What this branch does not yet provide.** The shape needs the child's own
+session to know whether consent covers them, and it cannot ask today:
+
+- `consent.forFamily` is on `elevatedProcedure` — it requires a parent's
+  step-up PIN, so a learner session cannot call it.
+- `consent.policy` and `consent.policyHash` are `protectedProcedure`, but they
+  return the disclosure, not a learner's status.
+
+So E1b needs a **learner-scoped status read** that does not exist yet —
+something like `consent.statusForLearner` on `learnerProcedure`, returning only
+`granted | none` for that one learner, with no parent identity, no policy text
+and no evidence. It is deliberately **not added here**: an unused authorisation
+surface shipped ahead of its caller is the kind of thing that gets wired up
+carelessly later. It is named so E1b starts from a decision rather than a
+discovery.
 
 ---
 
@@ -290,14 +363,31 @@ CI is unaffected: the integration suites throw rather than skip when `CI` is set
 and `DATABASE_URL` is unset, so a pipeline cannot go green by skipping the half
 that needs a database.
 
-**This fork is temporary, and closing it is a commitment, not a hope.** 3307
-currently holds `0008` and `0009`, which `main` does not. **Once PR #19's
-migrations merge, 3307 gets reset and re-migrated from `main`** — drop the
-container, recreate it, `pnpm db:migrate && pnpm db:seed && pnpm db:seed:demo`.
-Left alone, it becomes a permanently forked dev database that every new
-contributor meets as a mystery, and the 3308 recipe above silently turns from a
-workaround into the only way anything passes. The recipe is worth keeping either
-way; needing it is not.
+**This fork is temporary, and closing it is a commitment, not a hope.**
+
+This paragraph first said "once PR #19's migrations merge". #19 was split and
+closes unmerged, so that milestone would never have arrived — the same drift
+this file keeps catching, one layer down. The milestone is now stated against
+migrations, which cannot be renumbered away:
+
+> **Close-out: when `0008` and `0009` are on `main`, reset 3307.** That is the
+> last migration either open branch introduces, so at that point `main` and 3307
+> are reconcilable for the first time since `0006`.
+
+```bash
+docker rm -f acuitymath-mysql
+docker run -d --name acuitymath-mysql \
+  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=acuitymath \
+  -p 3307:3306 mysql:8.4
+DATABASE_URL="mysql://root:root@127.0.0.1:3307/acuitymath" \
+  pnpm db:migrate && pnpm db:seed && pnpm db:seed:demo
+```
+
+Left alone, 3307 becomes a permanently forked dev database that every new
+contributor meets as a mystery, and the 3308 recipe above quietly turns from a
+workaround into the only way anything passes. **The recipe is worth keeping; the
+need for it is not.** When the reset happens, strike this block and leave the
+recipe.
 
 ---
 
