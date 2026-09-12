@@ -5,19 +5,20 @@
  * anything that touches one child's records on behalf of another. This hook is
  * the client's half.
  *
- * ## What is deliberately not wired yet
+ * ## This gate is real
  *
- * `ParentPinModal` still calls the legacy `/api/auth/verify-pin`, which compares
- * a PIN against demo accounts in a JSON file. That gate stands in front of the
- * parent, teacher and district dashboards — and every one of those reads
- * demonstration data, not a real learner's records. Replacing it now would swap
- * one piece of theatre for another while the surfaces behind it still show
- * invented numbers.
+ * This comment used to say `ParentPinModal` still called the legacy
+ * `/api/auth/verify-pin` and that the gate was theatre. Both halves are now
+ * false: the modal calls `useStepUp` below, C3 moved the gate onto real
+ * elevation, and the route was deleted with the rest of the credential surface.
+ * A reader trusting the old text would have concluded the PIN check was a prop.
  *
- * It becomes real in the same change that moves those dashboards onto the
- * server: at that point they read a real child's mastery, and they must be built
- * on `elevatedProcedure` rather than on a modal that can be reasoned around.
- * That is tracked in docs/MIGRATION_STATUS.md.
+ * What it guards is real too. The parent and teacher dashboards read a child's
+ * own attempts, and the procedures behind them are `elevatedProcedure` — the
+ * modal is the prompt, not the check, so reasoning around it reaches nothing.
+ *
+ * The district and LMS dashboards still read demonstration data. Graft E4
+ * quarantines them.
  */
 
 import { useCallback } from 'react';
