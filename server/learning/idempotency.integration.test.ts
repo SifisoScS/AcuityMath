@@ -21,6 +21,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import * as schema from '../../drizzle/schema';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
+import { grantConsentForAllFamilies } from '../test-support/consent';
 import { recordAttempt } from './recordAttempt';
 import { ensureGeneratorConcepts, serveNextProblem } from './serveProblem';
 
@@ -65,7 +66,11 @@ describeWithDb('replaying an attempt', () => {
       .where(eq(schema.learners.guardianId, sarah.id));
     maya = children.find(row => row.displayName === 'Maya')!.id;
     leo = children.find(row => row.displayName === 'Leo')!.id;
-  }, 60_000);
+  
+    // Graft E1b refuses to record an under-13's practice without consent.
+    // The learners exist by here, so this covers them.
+    await grantConsentForAllFamilies(db);
+}, 60_000);
 
   /** Serves a real problem and returns its id and correct answer. */
   async function aProblem(learnerId: number) {

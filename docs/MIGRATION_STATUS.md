@@ -48,10 +48,10 @@ Donor repository, read-only reference:
 | **D** | Offline queue, rewards, focus traps | **Merged** (PR #22) |
 | **E-pre** | Legacy credential surface closed | **Merged** (PR #20) |
 | **E1** | COPPA consent onto `consent_events` | **Open** — this branch |
-| **E1b** | Gate on consent for under-13s | **Shape decided, not built.** See below |
+| **E1b** | Gate on consent for under-13s | **Open** — this branch |
 | **E2** | Screen-time enforcement onto the real schema | **Merged** (PR #25) |
 | **E3/E5** | Every JSON-store route deleted, and the store with it | **Merged** (PR #28) |
-| **E4** | District, LMS and pilot feedback quarantined | **Open** — this branch |
+| **E4** | District, LMS and pilot feedback quarantined | **Merged** (PR #29) |
 
 One pull request is open: **E1, this branch.** The table has twice drifted —
 saying "open in PR #N" for work that had been in `main` for days, and naming a PR
@@ -314,42 +314,67 @@ Recording feedback properly needs a table, and when there is one it gets a
 writer in the same change — `drizzle/writers.test.ts` will not accept the
 alternative.
 
-### E1b — gate on consent. Shape decided, not built.
+### E1b — done
 
-Recording consent fixes a false claim; it does not stop the product collecting
-data from children nobody consented for, and that second half is the one that
-protects anybody. The policy is **allow practice, block recording, make it
-visible**, for under-13s, which `birthYear` already identifies.
+**The shape survived contact with the code, and cost less than expected.**
+`InfiniteAdaptiveModal` already chose between the server loop and the local
+generator — `useServer` is how it survives being offline — so the gate is one
+more input to a branch that existed, not a second code path. That is why the
+rejected "local record, deferred sync" option was rejected: a queue that must
+not flush is a new loop wearing Graft D's name. The path a child without consent
+takes is the same one everyone takes in a tunnel.
 
-**The shape is client-only ephemeral.** The generator runs in the browser,
-nothing is written anywhere, and the only server call is the consent-state read.
-Two alternatives were considered and rejected:
+**The gate is on the writer.** `recordAttempt` throws `ConsentMissing` before it
+reads the problem; `practice.submit` turns that into `FORBIDDEN`. Putting it
+only on the procedure would have left the rule held by whoever calls, and the
+function already had two callers. A third that forgot would write silently.
 
-| Shape | Why not |
-| --- | --- |
-| Server-recognised ephemeral — the loop calls the server, the server skips the write | Simpler, but the child's attempts are still transmitted, which is the thing consent is about. "Nothing is being saved" would be true of the write and false of the transmit. |
-| Local record, deferred sync — attempts queue until consent arrives | The queue built in Graft D exists to flush. A queue that must not flush is a second code path wearing the first one's name. |
+- **It throws rather than returning "did nothing".** A writer that accepts an
+  answer and quietly declines to store it is the shape the rest of Graft E spent
+  its time deleting — the caller cannot tell refusal from success, and the
+  offline queue would mark it delivered and drop it.
+- **The queue is covered by the same check**, and a test replays a queued
+  attempt with a `clientId` to prove it. The reconciler is exactly the path a
+  client cannot be trusted to guard.
+- **Withdrawal stops collection; it does not erase.** An attempt recorded while
+  consent stood is still there afterwards. Silent deletion on withdrawal is a
+  different feature with different consequences, and one a parent should be told
+  about rather than surprised by.
 
-Client-only is the only shape where **"nothing is being recorded" is true in the
-strong sense, including the network layer**, so the banner can say *"Practice
-mode — offline only. Nothing is being saved."* and be literally true. The
-generator already runs client-side for offline mode, so the path exists.
+**The age rounds the safe way.** `approximateAge` returns `year - birthYear` —
+the age *if the birthday has passed* — which is fine for choosing a tier and
+wrong for a gate: a child born in 2013 reads as 13 from the 1st of January,
+months early, and the optimistic reading is the one that starts recording a
+twelve-year-old's work. `youngestPossibleAge` subtracts the extra year, so a
+child turning 13 keeps cover until the year after. The cost of being wrong this
+way is a consent prompt a family did not strictly need; the other way it is
+records on a child nobody consented for.
 
-**What this branch does not yet provide.** The shape needs the child's own
-session to know whether consent covers them, and it cannot ask today:
+**`superseded` does not count as consent.** It means consent was given — to
+different text. Treating it as consent would make the policy version
+decorative, and the reason E1 records a version and a server-computed hash is
+that consent is to a particular disclosure.
 
-- `consent.forFamily` is on `elevatedProcedure` — it requires a parent's
-  step-up PIN, so a learner session cannot call it.
-- `consent.policy` and `consent.policyHash` are `protectedProcedure`, but they
-  return the disclosure, not a learner's status.
+**The session is told the decision, not the reason.** `consent.statusForLearner`
+is on `learnerProcedure` — the check runs every session, and one needing the
+parent's PIN each time is one nobody runs — and it collapses `withdrawn`,
+`superseded` and `none` into `none`. A guardian's surface needs all four; a
+practice session needs whether it may record, and carrying "withdrawn" would put
+a parent's decision in front of whoever is at the device.
 
-So E1b needs a **learner-scoped status read** that does not exist yet —
-something like `consent.statusForLearner` on `learnerProcedure`, returning only
-`granted | none` for that one learner, with no parent identity, no policy text
-and no evidence. It is deliberately **not added here**: an unused authorisation
-surface shipped ahead of its caller is the kind of thing that gets wired up
-carelessly later. It is named so E1b starts from a decision rather than a
-discovery.
+**Unknown is not yes.** `useRecordingPermission` returns `mayRecord: false`
+while the answer is in flight, so a session that opens before the check returns
+starts local and moves to the server once consent is confirmed — never the other
+way round. The last known answer survives a *failed refetch*, though: a consented
+child who walks into a tunnel keeps the offline queue Graft D built for them.
+Consent does not lapse because the network did.
+
+**The demo seed had to change, and that was the finding.** It recorded four
+children's practice with no consent on file — precisely the state the gate
+forbids — so it now grants consent through `recordConsent` before any attempt.
+A demonstration account that cannot be produced under the product's own rules is
+demonstrating the wrong product. Seven integration fixtures needed the same,
+which is the invariant working rather than a tax.
 
 ### Step 2 — done
 

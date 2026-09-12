@@ -19,6 +19,7 @@ import { adaptiveWorkerClient } from '../utils/adaptiveWorkerClient';
 import { BilingualTextHighlighter } from './BilingualTextHighlighter';
 import { isQueued, usePractice } from '../hooks/usePractice';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { useRecordingPermission } from '../hooks/useRecordingPermission';
 
 interface InfiniteAdaptiveModalProps {
   user: UserProfile;
@@ -73,7 +74,29 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
   const [explanation, setExplanation] = useState<string | null>(null);
 
   const practice = usePractice(learnerId ?? null);
-  const useServer = typeof learnerId === 'number' && learnerId > 0;
+
+  /*
+   * The consent gate, as an input to the branch that already exists.
+   *
+   * `useServer` has always chosen between the server loop and the local
+   * generator — that is how this modal survives being offline. An unconsented
+   * child takes the same local path, for the same reason it was built: there is
+   * somewhere to practise that writes nothing.
+   *
+   * Deliberately not a second code path. A parallel "ephemeral mode" would be a
+   * new loop wearing this one's name, and the first thing to rot when either
+   * changed. The permission is one more reason to stay local, alongside not
+   * having a learner id and not having a network.
+   *
+   * While the answer is unknown `mayRecord` is false, so a session that opens
+   * before the check returns starts local and moves to the server once consent
+   * is confirmed — never the other way round.
+   */
+  const permission = useRecordingPermission(learnerId);
+  const useServer = typeof learnerId === 'number' && learnerId > 0 && permission.mayRecord;
+
+  /** Shown only when the gate is the reason, not when the network is. */
+  const blockedByConsent = permission.requiresConsent && !permission.mayRecord && !permission.isDeciding;
   const [isCorrect, setIsCorrect] = useState(false);
   /**
    * True when the answer was queued rather than sent.
@@ -546,6 +569,24 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
               );
             })}
           </div>
+
+          {/* Practising without consent: nothing leaves this device. */}
+          {blockedByConsent && (
+            <div
+              role="status"
+              className="p-4 rounded-2xl border text-sm bg-sky-50 border-sky-300 text-sky-950"
+            >
+              <div className="flex items-center gap-2 font-bold mb-1.5">
+                <Sparkles className="w-5 h-5 text-sky-600" />
+                <span>Practice mode — nothing is being saved</span>
+              </div>
+              <p className="text-xs sm:text-sm leading-relaxed opacity-90">
+                These questions are made on this device and your answers stay here. No score,
+                streak or progress is being kept, because a grown-up has not given permission
+                yet. Everything still works — it just is not written down.
+              </p>
+            </div>
+          )}
 
           {/* Kept, not marked. */}
           {isAnswerSubmitted && awaitingMark && (

@@ -82,6 +82,29 @@ function statusOf(row: typeof schema.consentEvents.$inferSelect | undefined): Co
   return row.policyVersion === CONSENT_POLICY_VERSION ? 'granted' : 'superseded';
 }
 
+/**
+ * Where one learner's consent stands.
+ *
+ * Same precedence as `consentForFamily`, because it is literally the same
+ * `statusOf` — the rule is stated once above and read from here rather than
+ * reimplemented. A gate that decided `superseded` counted as consent while this
+ * file said otherwise would be two answers to one question, which is the defect
+ * this whole graft has been removing.
+ *
+ * Entitlement is the caller's job. This takes a learner id and answers about
+ * it; `learnerProcedure` is what establishes the asker may.
+ */
+export async function consentStatusFor(db: Database, learnerId: number): Promise<ConsentStatus> {
+  const [latest] = await db
+    .select()
+    .from(schema.consentEvents)
+    .where(eq(schema.consentEvents.learnerId, learnerId))
+    .orderBy(desc(schema.consentEvents.recordedAt), desc(schema.consentEvents.id))
+    .limit(1);
+
+  return statusOf(latest);
+}
+
 /** Every child on the account, with where their consent stands. */
 export async function consentForFamily(
   db: Database,

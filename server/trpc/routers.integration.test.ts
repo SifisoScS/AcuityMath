@@ -12,6 +12,7 @@ import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest';
 import * as schema from '../../drizzle/schema';
 import type { AuthenticatedUser } from '../auth/session';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
+import { grantConsentForAllFamilies } from '../test-support/consent';
 import { appRouter } from './routers';
 import type { Context } from './index';
 
@@ -73,7 +74,11 @@ describeWithDb('practice loop API', () => {
     maya = await makeLearner(sarah.id, 'Maya', 2020);
     leo = await makeLearner(sarah.id, 'Leo', 2016);
     stranger = await makeLearner(otherParent.id, 'Someone else', 2016);
-  }, 30_000);
+  
+    // Graft E1b refuses to record an under-13's practice without consent.
+    // The learners exist by here, so this covers them.
+    await grantConsentForAllFamilies(harness.db);
+}, 30_000);
 
   // -------------------------------------------------------------------------
   describe('authorization', () => {

@@ -25,6 +25,8 @@ import { approximateAge, tierForAge } from '../src/services/tiers';
 import { setStepUpPin } from '../server/auth/pin';
 import { ensureGeneratorConcepts, serveNextProblem } from '../server/learning/serveProblem';
 import { recordAttempt } from '../server/learning/recordAttempt';
+import { recordConsent } from '../server/learning/consent';
+import { CONSENT_POLICY_VERSION } from '../src/data/consentPolicy';
 import { closeDatabase, getDatabase, type Database } from '../server/db/client';
 
 export const DEMO_EMAIL = 'demo@acuitymath.local';
@@ -145,6 +147,41 @@ export async function seedDemoFamily(db: Database) {
     }
 
     learnerIds.push({ name: child.displayName, id: learner.id, answers: child.answers });
+  }
+
+  /*
+   * Consent, before any attempt is recorded — which is not decoration.
+   *
+   * E1b refuses to write a child's practice without it, so a seed that skipped
+   * this would fail at the first `recordAttempt`. That failure was the right one
+   * to have: the demo family previously modelled four children whose work was
+   * recorded and for whom nobody had consented, which is exactly the state the
+   * gate exists to prevent. A demonstration account that cannot be produced
+   * under the product's own rules is demonstrating the wrong product.
+   *
+   * `recordConsent` rather than a direct insert, so the seed goes through the
+   * server-computed policy hash and the same validation a parent's consent
+   * does. A row written around it would be a consent record no procedure ever
+   * produced — and this file is where someone looks to see what a real one
+   * should look like.
+   *
+   * One call covers the family: the procedure writes a row per child of the
+   * guardian, which is why it runs after every learner exists rather than
+   * inside the loop that creates them.
+   */
+  const [alreadyConsented] = await db
+    .select()
+    .from(schema.consentEvents)
+    .where(eq(schema.consentEvents.grantedByUserId, guardian.id))
+    .limit(1);
+
+  if (!alreadyConsented) {
+    await recordConsent(db, {
+      guardianId: guardian.id,
+      decision: 'granted',
+      attestedName: 'Sarah Example',
+      policyVersion: CONSENT_POLICY_VERSION,
+    });
   }
 
   // Give each child a history, through the real pipeline. A dashboard reading
