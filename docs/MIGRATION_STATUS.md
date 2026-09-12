@@ -49,8 +49,9 @@ Donor repository, read-only reference:
 | **E-pre** | Legacy credential surface closed | **Merged** (PR #20) |
 | **E1** | COPPA consent onto `consent_events` | **Open** — this branch |
 | **E1b** | Gate on consent for under-13s | **Shape decided, not built.** See below |
-| **E2** | Screen-time enforcement onto the real schema | **Open** — this branch |
-| **E3–E5** | Quarantine the stubs, delete the JSON store | Planned |
+| **E2** | Screen-time enforcement onto the real schema | **Merged** (PR #25) |
+| **E3/E5** | Every JSON-store route deleted, and the store with it | **Open** — this branch |
+| **E4** | Quarantine the district and LMS stubs | Planned |
 
 One pull request is open: **E1, this branch.** The table has twice drifted —
 saying "open in PR #N" for work that had been in `main` for days, and naming a PR
@@ -187,24 +188,28 @@ layer, and it has to come apart in order:
 2. ~~**Screen-time enforcement onto the real schema.**~~ **Done on this
    branch.** The legacy heartbeat and `/sync/batch` retire with it. Detail
    below.
-3. **`/api/ai/socratic-coach` stays.** It proxies the AI coach and touches no
-   store. Moving it under tRPC is optional.
+3. ~~**`/api/ai/socratic-coach` stays.**~~ **Decided, and it stays.** It
+   proxies the Gemini call, holds no state and reads no store, and
+   `SocraticCoachModal` calls it. Moving it under tRPC would buy consistency
+   and nothing else — it is not a data layer and never was. It is now the only
+   method left on `apiService`.
 4. **District and LMS endpoints quarantined** — a named module, a comment
    saying they are stubs, and no path from a real user surface to them. Not
-   deleted, not left ambiguous.
-5. **`server/db.ts` and `data_store.json` deleted.** That is the completion
-   condition, not the starting point.
+   deleted, not left ambiguous. **This is all that remains of Graft E.**
+5. ~~**`server/db.ts` and `data_store.json` deleted.**~~ **Done on this
+   branch**, together with step 3's deletions — see below. It was written as
+   the completion condition rather than the starting point, and that is how it
+   arrived: nothing read the store by the time the file went.
 
 `server/legacyApi.test.ts` pins the surface meanwhile: the three deleted routes
-stay deleted, no route here verifies a PIN, consent refuses, exactly seven named
-routes touch `db.`, and the surface is **exactly 20 routes**. It is an inventory
-rather than a ban, because banning the store while nine routes use it would only
-mean skipping the test.
+stay deleted, no route here verifies a PIN, consent refuses, **no route reads
+the JSON store**, and the surface is **exactly 13 routes**.
 
-As each step lands, its routes come off that list. When the list is empty, the
-inventory becomes the assertion that **no route under `/api` reads
-`data_store.json`** — and the deletion in step 5 is verifiable rather than
-hopeful.
+It began as an inventory rather than a ban, because nine routes used the store
+and forbidding it outright would only have meant skipping the test. Each graft
+took names off the list; E3 emptied it, and the assertion it was always going to
+become is the one now in place. The module is gone as well, so a route reaching
+for `db.` does not compile — the list cannot be quietly re-grown.
 
 ### Step 1 — done
 
@@ -233,6 +238,46 @@ on `elevatedProcedure`. Design and the four decisions behind it:
 - **Precedence is one `status`**, not a decision plus a freshness flag:
   `withdrawn` outranks everything, `superseded` applies only to a granted row
   under an old version, and a child added after consent reads `none`.
+
+### Steps 3 and 5 — done
+
+**Every route that read the JSON store is deleted, and so is the store.** The
+completion condition arrived the way it was written: nothing read
+`data_store.json` by the time the file went.
+
+Seven routes went — `/bootstrap`, the three `/students` routes,
+`/students/:id/attempts`, `/assignments`, `/audit-logs` — and **not one had a
+live caller.** The surface went 20 → 13, `server/db.ts` and `data_store.json`
+are gone, and `apiService` is down to one method.
+
+The one call that survived until now is worth recording. `App.tsx` still posted
+every finished lesson to `/students/:id/attempts` — a **second writer for a fact
+`practice.submit` already owned** — and it could not succeed: it sent
+`learner-12` to a route keyed `student_1..4`. The 404 landed in
+`.catch(err => console.warn('[App] Offline queue fallback for attempt'))`, which
+was false. Nothing was queued; the answer was dropped. The third instance of the
+id accident, after `verifyPin` and the heartbeat, and another error handler
+answering on the success path's behalf.
+
+`apiService.purgeStudentData` was still pointed at `/auth/coppa-purge`, deleted
+in PR #20. `getBootstrap`, `updateCoppaConsent` and `addAssignment` had no
+callers. All are gone; **`askSocraticCoach` is what remains**, on purpose.
+
+**One stale comment, corrected.** `useStepUp.ts` claimed under "what is
+deliberately not wired yet" that `ParentPinModal` still called
+`/api/auth/verify-pin` and that the gate was theatre. Both halves were false —
+the modal uses `useStepUp`, C3 moved the gate onto real elevation, and the route
+was deleted in #20. A reader trusting it would have concluded the PIN check was
+a prop.
+
+**And the gate's own helper was fixed.** `handlerFor` sliced from a route to the
+*next* `apiRouter.` call, so it swept up the prose between routes — and E3
+leaves a lot of prose where routes used to be. It reported `GET /health` as
+reading the store, because the comment describing the *consent* route's history
+mentions `db.updateCoppaConsent` and fell in the gap. It is bounded by the
+handler's own closing `});` now. This file's own lesson, turned on itself: the
+helper was returning the handler plus its surroundings, so every assertion built
+on it was asking about the surroundings too.
 
 ### E1b — gate on consent. Shape decided, not built.
 

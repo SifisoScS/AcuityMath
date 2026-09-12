@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Clock, Lock, Sparkles, KeyRound, AlertCircle } from 'lucide-react';
-import { apiService } from '../services/api';
 import { playClickSound, playSuccessSound, playErrorSound } from '../utils/audio';
 
 interface ScreenTimeLockModalProps {

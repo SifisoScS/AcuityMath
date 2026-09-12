@@ -50,7 +50,6 @@ import { DistrictAdminDashboard } from './components/DistrictAdminDashboard';
 import { PlacementQuestModal } from './components/PlacementQuestModal';
 import { PlacementQuestPromptModal } from './components/PlacementQuestPromptModal';
 import { BilingualGlossaryModal } from './components/BilingualGlossaryModal';
-import { apiService } from './services/api';
 import {
   Bell,
   Building2,
@@ -379,15 +378,16 @@ export default function App() {
     // instead of inventing a second set that disagrees after a refresh.
     refreshProfiles();
 
-    // Submit attempt to server database
-    apiService.submitAttempt(activeProfile.id, {
-      lessonId: results.lessonId,
-      lessonTitle: activeLesson?.title || 'Mathematics Lesson',
-      scorePercent: results.accuracy,
-      timeSpentSecs: 180,
-      coinsEarned: results.coinsEarned,
-      xpEarned: results.xpEarned
-    }).catch(err => console.warn('[App] Offline queue fallback for attempt:', err));
+    /*
+     * A second submission stood here, to `/api/students/:id/attempts`. It could
+     * not succeed — it sent `activeProfile.id` (`learner-12`) to a route keyed
+     * `student_1..4` — and its `.catch` logged "Offline queue fallback for
+     * attempt", which was false: nothing was queued and the answer was dropped.
+     *
+     * The attempt is already recorded. `usePractice.submit` sends it where the
+     * `clientId` is known, inside the transaction that moves mastery, and
+     * `refreshProfiles` above reads back what the server made of it.
+     */
 
     /*
      * The lesson-completion path used to push a `LESSON_COMPLETE` action onto

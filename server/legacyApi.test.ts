@@ -17,7 +17,7 @@
  * growing back.
  */
 
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
 
@@ -48,22 +48,19 @@ const DELETED = [
 ];
 
 /**
- * Routes still reading or writing `server/db.ts` — the JSON file nothing
- * migrated reads.
+ * Routes reading or writing the JSON store.
  *
- * Listed exactly, so adding a route that touches it fails here. Graft E empties
- * this list; the completion condition is that `server/db.ts` and
- * `data_store.json` can be deleted.
+ * **Empty, and now a ban rather than an inventory.** It was a list because nine
+ * routes used the store and forbidding it outright would only have meant
+ * skipping the test. The completion condition stated here from the start was
+ * that `server/db.ts` and `data_store.json` could be deleted. They are deleted,
+ * so the list is empty and the rule can be absolute.
+ *
+ * Nothing is left to add a name to: the module this guarded does not exist, so a
+ * route reaching for `db.` no longer compiles. This stays as the assertion that
+ * it cannot come back quietly.
  */
-const TOUCHES_LEGACY_STORE = [
-  'GET /bootstrap',
-  'GET /students',
-  'GET /students/:id',
-  'PATCH /students/:id',
-  'POST /students/:id/attempts',
-  'POST /assignments',
-  'GET /audit-logs',
-];
+const TOUCHES_LEGACY_STORE: string[] = [];
 
 /**
  * The human-readable `error:` string alone, without the machine fields beside
@@ -81,32 +78,52 @@ function errorMessageFor(route: string): string {
   return match ? match[1] : '';
 }
 
-/** The body of one route handler, for asking what it touches. */
+/**
+ * The body of one route handler, for asking what it touches.
+ *
+ * Bounded by the handler's own closing `});`, not by the next `apiRouter.`
+ * call. The looser version swept up everything between two routes — including
+ * the prose left where a deleted route used to be — and E3 leaves a lot of that
+ * prose. It reported `GET /health` as reading the JSON store, because the
+ * comment describing the *consent* route's history mentions
+ * `db.updateCoppaConsent` and happened to fall in the gap.
+ *
+ * That is this file's own lesson turned on itself: the helper was returning the
+ * handler plus its surroundings, so every assertion built on it was really
+ * asking about the surroundings too.
+ */
 function handlerFor(route: string): string {
   const [method, path] = route.split(' ');
   const start = source.indexOf(`apiRouter.${method.toLowerCase()}('${path}'`);
   if (start === -1) return '';
-  const next = source.indexOf('apiRouter.', start + 10);
-  return source.slice(start, next === -1 ? undefined : next);
+  // Handlers are registered at column zero, so their close is the first `});`
+  // at column zero; anything nested inside is indented.
+  const end = source.indexOf('\n});', start);
+  return end === -1 ? source.slice(start) : source.slice(start, end + 4);
 }
 
 describe('the legacy REST surface', () => {
-  it('declares the twenty routes this surface still has', () => {
+  it('declares the thirteen routes this surface still has', () => {
     /*
      * Guards the guard: a regex that matches nothing passes every assertion
      * below it, and a `toBeGreaterThan` floor absorbs that quietly.
      *
      * 25 before the credential closure, 22 after it, 20 after E2 took the
-     * screen-time heartbeat and `/sync/batch`. Measured after each deletion
-     * rather than before: the original `toBeGreaterThan(15)` floor sat seven
-     * routes below reality and would have passed while ten routes vanished.
+     * screen-time heartbeat and `/sync/batch`, 13 after E3 took every route
+     * that read the JSON store. Measured after each deletion rather than
+     * before: the original `toBeGreaterThan(15)` floor sat seven routes below
+     * reality and would have passed while ten routes vanished.
+     *
+     * What is left touches no store: a health check, the consent 410, the
+     * Socratic coach proxy, and the district/LMS/feedback stubs Graft E4
+     * quarantines.
      *
      * Exact rather than a floor, because every route left is either on
      * `TOUCHES_LEGACY_STORE` or a stub Graft E has to account for. Adding one
      * should cost a deliberate edit to this line. Graft E's steps lower the
      * number; the completion condition is that the file is gone.
      */
-    expect(routes.length).toBe(20);
+    expect(routes.length).toBe(13);
   });
 
   describe('the credential surface', () => {
@@ -179,15 +196,28 @@ describe('the legacy REST surface', () => {
   });
 
   describe('the JSON store', () => {
-    it('is read by exactly the routes listed here, and no others', () => {
+    it('is read by no route at all', () => {
       /*
-       * An inventory rather than a ban, because nine routes still use it and
-       * banning it today would just mean skipping this test. A new route that
-       * reaches for `db.` fails here, so the surface cannot quietly grow while
-       * Graft E is being planned.
+       * This began as an inventory of nine routes, because banning the store
+       * while nine routes used it would only have meant skipping the test. Each
+       * graft took names off the list, and E3 emptied it.
+       *
+       * The assertion the inventory existed to become: **no route under `/api`
+       * reads the JSON store.** That is what makes deleting `server/db.ts`
+       * verifiable rather than hopeful — and it is deleted.
        */
       const touching = routes.filter(route => /\bdb\./.test(handlerFor(route)));
-      expect(touching.sort()).toEqual([...TOUCHES_LEGACY_STORE].sort());
+      expect(touching, 'a route is reaching for the JSON store again').toEqual([]);
+      expect(TOUCHES_LEGACY_STORE).toEqual([]);
+    });
+
+    it('has no module left to import', () => {
+      // The durable half. A list can be edited; a missing file cannot be
+      // imported, so the ban above cannot be satisfied by moving the store.
+      expect(existsSync(join(process.cwd(), 'server/db.ts'))).toBe(false);
+      expect(source, 'server/api.ts imports the deleted JSON store').not.toMatch(
+        /from '\.\/db'/,
+      );
     });
 
     it('is not reached by anything under trpc', () => {

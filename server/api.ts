@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import { db } from './db';
 import { generateSocraticResponse, SocraticRequest } from './gemini';
 import { institutionalStore } from './lms';
 
@@ -8,11 +7,15 @@ import { institutionalStore } from './lms';
  *
  * ## Read this before adding anything here
  *
- * These routes predate the MySQL migration. Most of them read and write
- * `server/db.ts` — a JSON file — which **nothing migrated reads**. The learning
- * product runs on tRPC (`server/trpc/routers.ts`) against MySQL, with
- * `protectedProcedure`, `learnerProcedure` and `elevatedProcedure` deciding who
- * may touch a child's record.
+ * These routes predate the MySQL migration. Every one that read or wrote
+ * `server/db.ts` — a JSON file nothing migrated ever read — is gone, and so is
+ * the file. The learning product runs on tRPC (`server/trpc/routers.ts`)
+ * against MySQL, with `protectedProcedure`, `learnerProcedure` and
+ * `elevatedProcedure` deciding who may touch a child's record.
+ *
+ * What is left touches no store at all: a health check, a 410 that names where
+ * consent goes, the Socratic coach proxy, and the district/LMS/feedback stubs
+ * that Graft E4 quarantines.
  *
  * **This router has no authentication of any kind.** No session, no middleware,
  * nothing. That was survivable while every route was a read of demonstration
@@ -29,7 +32,8 @@ import { institutionalStore } from './lms';
  * PIN check succeeded regardless, which made it a working credential oracle
  * whatever happened downstream.
  *
- * New work belongs in the tRPC router. Graft E retires what is left here.
+ * New work belongs in the tRPC router. Graft E4 quarantines the stubs; this
+ * file has no reason to grow.
  */
 export const apiRouter = Router();
 
@@ -43,29 +47,12 @@ apiRouter.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// Full Bootstrap Data for Client Hydration
-apiRouter.get('/bootstrap', (_req: Request, res: Response) => {
-  const state = db.getState();
-  res.json({
-    users: state.users.map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      coppaConsent: u.coppaConsent,
-      createdAt: u.createdAt
-    })),
-    students: state.students,
-    attempts: state.attempts,
-    assignments: state.assignments,
-    notifications: state.notifications,
-    coppaStatus: {
-      isCompliant: state.users.every(u => u.role !== 'parent' || u.coppaConsent.granted),
-      totalMinorAccounts: state.students.length,
-      auditRecordsCount: state.auditLogs.length
-    }
-  });
-});
+/*
+ * `/bootstrap` was here. It hydrated the client from the JSON store — users,
+ * students, attempts, assignments, notifications and a `coppaStatus` computed
+ * over invented accounts. `apiService.getBootstrap` had no callers left; the
+ * application hydrates from tRPC against MySQL.
+ */
 
 
 /**
@@ -110,22 +97,13 @@ apiRouter.post('/auth/coppa-consent', (_req: Request, res: Response) => {
 });
 
 
-// Student Management
-apiRouter.get('/students', (_req: Request, res: Response) => {
-  res.json({ students: db.getStudents() });
-});
-
-apiRouter.get('/students/:id', (req: Request, res: Response) => {
-  const student = db.getStudentById(req.params.id);
-  if (!student) return res.status(404).json({ error: 'Student not found' });
-  res.json({ student });
-});
-
-apiRouter.patch('/students/:id', (req: Request, res: Response) => {
-  const updated = db.updateStudent(req.params.id, req.body);
-  if (!updated) return res.status(404).json({ error: 'Student not found' });
-  res.json({ student: updated });
-});
+/*
+ * The three student routes were here — list, fetch, patch — reading and writing
+ * `student_1..4` in the JSON store. No client called them, and none could have
+ * usefully: the application's learners are `learner-12..15` rows in MySQL,
+ * reachable through `learnerProcedure`, which proves the caller is entitled to
+ * the child before answering. These proved nothing and asked nobody.
+ */
 
 /*
  * The screen-time heartbeat was here, and it never worked.
@@ -142,37 +120,22 @@ apiRouter.patch('/students/:id', (req: Request, res: Response) => {
  */
 
 
-// Tamper-Proof Lesson Attempt Submission
-apiRouter.post('/students/:id/attempts', (req: Request, res: Response) => {
-  const studentId = req.params.id;
-  const { lessonId, lessonTitle, scorePercent, timeSpentSecs, coinsEarned, xpEarned } = req.body;
+/*
+ * `/students/:id/attempts` was here, under a comment calling it
+ * "tamper-proof". It was neither tamper-proof nor reachable: the client sent
+ * `learner-12` and the store is keyed `student_1..4`, so every submission
+ * 404ed. `App.tsx` caught that and logged "Offline queue fallback for attempt",
+ * which was false — nothing was queued and the answer was dropped.
+ *
+ * `practice.submit` records attempts, inside a transaction, against a
+ * `client_id` unique per learner, so a replay moves mastery once.
+ */
 
-  if (!lessonId || scorePercent === undefined) {
-    return res.status(400).json({ error: 'Missing required attempt fields' });
-  }
-
-  const result = db.recordAttempt({
-    studentId,
-    lessonId,
-    lessonTitle: lessonTitle || 'Mathematics Lesson',
-    scorePercent: Number(scorePercent),
-    timeSpentSecs: Number(timeSpentSecs || 120),
-    coinsEarned: Number(coinsEarned || 20),
-    xpEarned: Number(xpEarned || 50)
-  });
-
-  res.json({
-    success: true,
-    attempt: result.attempt,
-    student: result.student
-  });
-});
-
-// Assignments
-apiRouter.post('/assignments', (req: Request, res: Response) => {
-  const asg = db.addAssignment(req.body);
-  res.status(201).json({ assignment: asg });
-});
+/*
+ * `/assignments` was here, appending to the JSON store with no authentication
+ * and no teacher entitlement check. B3f-2 moved assignments onto rows with one,
+ * and `apiService.addAssignment` had no callers left.
+ */
 
 // Batch Offline Sync Reconciliation
 /*
@@ -183,10 +146,11 @@ apiRouter.post('/assignments', (req: Request, res: Response) => {
  * is why it retires with it rather than separately.
  */
 
-// Audit Logs (Parent / Teacher review)
-apiRouter.get('/audit-logs', (_req: Request, res: Response) => {
-  res.json({ logs: db.getState().auditLogs });
-});
+/*
+ * `/audit-logs` was here. It served the JSON store's audit trail to anyone who
+ * asked — unauthenticated, over a log of actions against demonstration
+ * accounts. Nothing called it.
+ */
 
 // Phase 3: Socratic AI Math Coach endpoint (Server-Side Gemini API)
 apiRouter.post('/ai/socratic-coach', async (req: Request, res: Response) => {

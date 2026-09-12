@@ -17,7 +17,6 @@ import { ProblemGenerator, GeneratedMathProblem } from '../services/problemGener
 import { AdaptiveEngine, StudentAbilityProfile, MisconceptionCode } from '../services/adaptiveEngine';
 import { adaptiveWorkerClient } from '../utils/adaptiveWorkerClient';
 import { BilingualTextHighlighter } from './BilingualTextHighlighter';
-import { apiService } from '../services/api';
 import { isQueued, usePractice } from '../hooks/usePractice';
 import { useModalA11y } from '../hooks/useModalA11y';
 
