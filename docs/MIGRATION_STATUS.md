@@ -1,6 +1,6 @@
 # Migration status
 
-**Last updated: 10 September 2026.** The resumption point for grafting the
+**Last updated: 12 September 2026.** The resumption point for grafting the
 Sovereign Mathematical Learning Engine's spine under AcuityMath.
 
 Read this first if you are picking the work up cold. It records what is done,
@@ -723,6 +723,45 @@ Do not relitigate these without a reason that is new.
 ## Traps, and what they cost
 
 Each of these looked like something else first.
+
+**A rule belongs at the narrowest thing that can break it, and the tell is the
+number of callers.** Put it on a caller and it is held by whoever calls — which
+means held by whoever calls *next*, including the one written a year later by
+someone who never read this.
+
+Graft E1b's consent gate went onto `practice.submit` first. `recordAttempt` is
+what writes the row, and it had two callers already: the procedure and the demo
+seed. The seed was recording four children's practice with no consent on file —
+so the check was on one of the two paths that could violate it, and the path it
+was not on was the one already violating it. Moving it onto the writer fixed
+both at once and made a third caller impossible to write wrong.
+
+**How it was caught before it shipped, rather than after.** The justification for
+putting the gate on the server rather than in the browser was already written
+down a few lines away: *a rule enforced only by the caller is a rule held by
+whoever calls*. Read back, that sentence indicts the placement it was written to
+defend — one level down. **The tell is prose: when the reason for a decision is
+written somewhere in the file, check whether it argues for more than the
+decision it was written for.** Every other entry here was found after a defect
+shipped; this one was found while writing the code.
+
+A rule at the writer must also **refuse loudly**. `recordAttempt` throws
+`ConsentMissing` rather than returning a result that says it did nothing: a
+writer that accepts input and silently declines is the fail-open entry below
+wearing different clothes, and here it would have let the offline queue mark a
+discarded answer as delivered.
+
+**The corollary is the shape of the guard, which depends on which way the thing
+grows.** Two in this repo, deliberately different:
+
+| Guard | Shape | Because |
+| --- | --- | --- |
+| `legacyApi.test.ts` route count | a bare number, exact | that surface only ever shrinks, so an exact count is stable and every change to it should be deliberate |
+| `writers.test.ts` writerless tables | an absolute rule **plus a meta-test** | tables grow, so the rule stays absolute while the machinery is checked — a parser that finds nothing would make the rule vacuous and silent |
+
+Pick the shape from the direction. A count on something that grows rots into a
+chore and then a rubber stamp; an unchecked parser on something that grows is an
+assertion about an empty list.
 
 **An error handler that returns what the success path returns has made the
 failure unobservable.** Not "the states look similar" — the mechanism is that
