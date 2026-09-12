@@ -109,7 +109,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [surveySentiment, setSurveySentiment] = useState<'optimal' | 'too_fast' | 'too_slow' | null>(null);
   const [surveySubmitted, setSurveySubmitted] = useState<boolean>(false);
   const [surveyTags, setSurveyTags] = useState<string[]>([]);
-  const [isSubmittingSurvey, setIsSubmittingSurvey] = useState<boolean>(false);
   /*
    * Whether the last response actually reached anything.
    *
@@ -129,32 +128,30 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
    * Recording it properly needs a table; until then the widget reports whether
    * the answer was kept and claims no aggregate.
    */
-  const [surveyOutcome, setSurveyOutcome] = useState<'recorded' | 'not-recorded' | null>(null);
+  /*
+   * There is no `surveyOutcome` any more, because there is only one outcome.
+   *
+   * It used to hold `'recorded' | 'not-recorded'`, decided by `res.ok` from
+   * `POST /api/feedback`. That route is deleted, so the state could only ever
+   * have been `'not-recorded'` — and the `'recorded'` branch would have been
+   * dead code waiting for something to return 200 without storing anything,
+   * which is exactly what the route it called used to do.
+   */
 
-  const handleSurveySubmit = async (sentiment: 'optimal' | 'too_fast' | 'too_slow') => {
+  /*
+   * Nothing is sent. `POST /api/feedback` appended to an in-memory array
+   * pre-seeded with three fabricated testimonials and reset on every restart,
+   * and it answered 200, so this told the teacher their answer was recorded
+   * while averaging it into three that were invented.
+   *
+   * The selection is kept in this component so the teacher sees what they
+   * chose. Posting it somewhere that forgets would be the same claim in a
+   * quieter voice.
+   */
+  const handleSurveySubmit = (sentiment: 'optimal' | 'too_fast' | 'too_slow') => {
     playClickSound();
     setSurveySentiment(sentiment);
-    setIsSubmittingSurvey(true);
-
-    try {
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          teacherId: 'teacher-faculty-1',
-          teacherName: 'Lincoln Faculty Member',
-          sentiment,
-          tags: surveyTags,
-          note: `Classroom session completed with ${students.length} pupils.`
-        })
-      });
-      setSurveyOutcome(res.ok ? 'recorded' : 'not-recorded');
-    } catch {
-      setSurveyOutcome('not-recorded');
-    } finally {
-      setIsSubmittingSurvey(false);
-      setSurveySubmitted(true);
-    }
+    setSurveySubmitted(true);
   };
 
   const filteredStudents = students.filter(s => {
@@ -329,7 +326,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <button
                 onClick={() => handleSurveySubmit('too_fast')}
-                disabled={isSubmittingSurvey}
                 className="p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/30 text-left transition flex items-center gap-3 cursor-pointer group disabled:opacity-50"
               >
                 <span className="text-xl">🐢</span>
@@ -345,7 +341,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
               <button
                 onClick={() => handleSurveySubmit('optimal')}
-                disabled={isSubmittingSurvey}
                 className="p-3 rounded-2xl border-2 border-indigo-200 bg-white hover:border-emerald-500 hover:bg-emerald-50/40 text-left transition flex items-center gap-3 cursor-pointer group shadow-xs disabled:opacity-50"
               >
                 <span className="text-xl">🎯</span>
@@ -361,7 +356,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
               <button
                 onClick={() => handleSurveySubmit('too_slow')}
-                disabled={isSubmittingSurvey}
                 className="p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-sky-400 hover:bg-sky-50/30 text-left transition flex items-center gap-3 cursor-pointer group disabled:opacity-50"
               >
                 <span className="text-xl">🚀</span>
@@ -409,43 +403,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
           </div>
         ) : (
-          <div
-            className={`p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs animate-in fade-in ${
-              surveyOutcome === 'recorded'
-                ? 'bg-emerald-50 border-emerald-200'
-                : 'bg-amber-50 border-amber-200'
-            }`}
-          >
+          <div className="p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs animate-in fade-in bg-amber-50 border-amber-200">
             <div className="flex items-center gap-2.5">
-              <CheckCircle2
-                className={`w-5 h-5 shrink-0 ${
-                  surveyOutcome === 'recorded' ? 'text-emerald-600' : 'text-amber-600'
-                }`}
-              />
+              <CheckCircle2 className="w-5 h-5 shrink-0 text-amber-600" />
               <div>
-                {surveyOutcome === 'recorded' ? (
-                  <>
-                    <span className="font-extrabold text-emerald-900">Feedback logged. </span>
-                    <span className="text-emerald-700 text-[11px]">Thank you.</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="font-extrabold text-amber-900">Not recorded. </span>
-                    <span className="text-amber-800 text-[11px]">
-                      There is nowhere to store this yet, so your answer was not kept. Saying it had
-                      been would be worse than saying nothing.
-                    </span>
-                  </>
-                )}
+                <span className="font-extrabold text-amber-900">Not recorded. </span>
+                <span className="text-amber-800 text-[11px]">
+                  There is nowhere to store this yet, so your answer was not kept. Saying it had
+                  been would be worse than saying nothing.
+                </span>
               </div>
             </div>
             <button
               onClick={() => setSurveySubmitted(false)}
-              className={`text-xs font-bold hover:underline cursor-pointer shrink-0 ${
-                surveyOutcome === 'recorded'
-                  ? 'text-emerald-700 hover:text-emerald-900'
-                  : 'text-amber-800 hover:text-amber-900'
-              }`}
+              className="text-xs font-bold hover:underline cursor-pointer shrink-0 text-amber-800 hover:text-amber-900"
             >
               Log Another Period
             </button>

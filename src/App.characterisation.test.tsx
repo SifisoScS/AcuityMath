@@ -214,9 +214,20 @@ describe('the gate on adult surfaces', () => {
   });
 
   it('gates every adult surface the same way', async () => {
-    // Including the district command centre, which was ungated entirely until
-    // it was found by a characterisation test in this file.
-    for (const surface of [/parent analytics/i, /^teacher/i, /district hub/i]) {
+    /*
+     * The District Hub was in this list, and was the reason the list exists —
+     * it was ungated entirely until this test found it.
+     *
+     * Graft E4 quarantined it, so there is no longer a surface here to gate.
+     * Its routes served an in-memory demonstration store, and removing them
+     * alone would have changed nothing: the component seeded its own invented
+     * campuses and only overwrote them when the server answered. The nav entry
+     * and the render branch are gone; `server/legacyApi.test.ts` pins that.
+     *
+     * It is removed from this loop rather than the loop being deleted, because
+     * the other two surfaces still need the gate and the gate is the point.
+     */
+    for (const surface of [/parent analytics/i, /^teacher/i]) {
       const user = userEvent.setup();
       const view = renderApp();
 
@@ -227,6 +238,25 @@ describe('the gate on adult surfaces', () => {
       window.localStorage.clear();
       window.sessionStorage.setItem(`dismissed_placement_prompt_${DEFAULT_PROFILE_ID}`, '1');
     }
+  });
+
+  it('offers no way into the quarantined district surface', async () => {
+    /*
+     * The other half of the quarantine, from the user's side rather than the
+     * source's. `legacyApi.test.ts` asserts that `App.tsx` neither imports nor
+     * renders the component; this asserts that nobody can reach it by pressing
+     * anything, which is the claim that matters to an administrator.
+     *
+     * A gate on a surface showing invented campuses would be the wrong fix —
+     * it would make the fabricated data harder to reach rather than absent.
+     */
+    renderApp();
+    await screen.findByRole('heading', { name: /^welcome to acuitymath$/i });
+
+    expect(
+      within(nav()).queryByRole('button', { name: /district hub/i }),
+      'the District Hub is reachable again',
+    ).toBeNull();
   });
 
   it('announces the dialog it opens, named and described', async () => {

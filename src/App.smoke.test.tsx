@@ -38,11 +38,20 @@ describe('App shell', () => {
   });
 
   it('keeps the role-gated surfaces reachable from the nav', () => {
-    // Parent, Teacher and District are the three views that Graft C puts behind
-    // real authentication. They must still be present and named the same.
+    /*
+     * Parent and Teacher are the views Graft C puts behind real authentication.
+     * They must still be present and named the same.
+     *
+     * District Hub was the third, and Graft E4 quarantined it: its routes
+     * served an in-memory demonstration store, and the component seeded its own
+     * invented campuses besides, so removing the routes alone would have left
+     * an administrator looking at the same numbers from a different source.
+     * There is no nav entry to find now, and `App.characterisation.test.tsx`
+     * asserts there is not.
+     */
     renderApp();
     const nav = screen.getByRole('navigation');
-    for (const surface of ['Parent Analytics', 'Teacher', 'District Hub']) {
+    for (const surface of ['Parent Analytics', 'Teacher']) {
       expect(within(nav).getByRole('button', { name: new RegExp(surface, 'i') })).toBeInTheDocument();
     }
   });

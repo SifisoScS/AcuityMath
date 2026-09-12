@@ -103,27 +103,28 @@ function handlerFor(route: string): string {
 }
 
 describe('the legacy REST surface', () => {
-  it('declares the thirteen routes this surface still has', () => {
+  it('declares the three routes this surface still has', () => {
     /*
      * Guards the guard: a regex that matches nothing passes every assertion
      * below it, and a `toBeGreaterThan` floor absorbs that quietly.
      *
      * 25 before the credential closure, 22 after it, 20 after E2 took the
      * screen-time heartbeat and `/sync/batch`, 13 after E3 took every route
-     * that read the JSON store. Measured after each deletion rather than
-     * before: the original `toBeGreaterThan(15)` floor sat seven routes below
-     * reality and would have passed while ten routes vanished.
+     * that read the JSON store, 3 after E4 quarantined the district, LMS and
+     * pilot-feedback stubs. Measured after each deletion rather than before:
+     * the original `toBeGreaterThan(15)` floor sat seven routes below reality
+     * and would have passed while ten routes vanished.
      *
-     * What is left touches no store: a health check, the consent 410, the
-     * Socratic coach proxy, and the district/LMS/feedback stubs Graft E4
-     * quarantines.
+     * What is left: a health check, the consent 410, and the Socratic coach
+     * proxy. None reads a store, none takes a credential, and the file has no
+     * reason to grow.
      *
      * Exact rather than a floor, because every route left is either on
      * `TOUCHES_LEGACY_STORE` or a stub Graft E has to account for. Adding one
      * should cost a deliberate edit to this line. Graft E's steps lower the
      * number; the completion condition is that the file is gone.
      */
-    expect(routes.length).toBe(13);
+    expect(routes.length).toBe(3);
   });
 
   describe('the credential surface', () => {
@@ -192,6 +193,69 @@ describe('the legacy REST surface', () => {
 
       // The machine field is a separate promise: a caller branches on it.
       expect(handlerFor('POST /auth/coppa-consent')).toMatch(/replacementDeployed: true/);
+    });
+  });
+
+  describe('the quarantined stubs', () => {
+    /*
+     * Quarantine means unreachable, not relabelled.
+     *
+     * Deleting these routes alone would have changed nothing an administrator
+     * saw: `DistrictAdminDashboard` seeds its own state with invented campuses,
+     * standards and LMS connections and only overwrote them when the server
+     * answered — its catch reads "Fallback to initial rich state". The numbers
+     * would have come from the client instead, and looked identical.
+     *
+     * So both halves are pinned: no route serves the data, and no rendered
+     * surface asks for it. A stub that is merely renamed is the failure this
+     * guards against — present, described as temporary, and unexamined.
+     */
+    const QUARANTINED = ['/district/', '/lms/', '/feedback'];
+
+    it.each(QUARANTINED)('serves nothing under %s', prefix => {
+      expect(routes.filter(route => route.includes(prefix))).toEqual([]);
+    });
+
+    it('keeps no in-memory store behind them', () => {
+      expect(source, 'the pilot feedback array is back').not.toMatch(/pilotFeedbackStore/);
+      expect(source, 'the institutional store is back').not.toMatch(/institutionalStore/);
+      expect(existsSync(join(process.cwd(), 'server/lms.ts'))).toBe(false);
+    });
+
+    it('is not rendered by the application', () => {
+      /*
+       * The half that matters to a user. The component file survives on purpose
+       * — what belongs there is a product decision — but nothing imports it, so
+       * no invented campus reaches a screen.
+       */
+      const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf-8');
+      expect(app, 'App.tsx renders the quarantined District Hub').not.toMatch(
+        /<DistrictAdminDashboard/,
+      );
+      expect(app, 'App.tsx imports the quarantined District Hub').not.toMatch(
+        /import .*DistrictAdminDashboard/,
+      );
+    });
+
+    it('is not posted to by the teacher survey', () => {
+      /*
+       * It told a teacher their answer was "recorded" while appending it to an
+       * array pre-seeded with three fabricated testimonials, reset on restart.
+       *
+       * Matched on the *call* rather than the path. The first version banned
+       * the string `/api/feedback` anywhere in the file and failed on the
+       * comment explaining why the call was removed — an assertion about a
+       * mention, standing in for one about a fetch. That is the same mistake
+       * `handlerFor` made one file over, and the reason the history is worth
+       * keeping in the comment is that the ban would have deleted it.
+       */
+      const teacher = readFileSync(
+        join(process.cwd(), 'src/components/TeacherDashboard.tsx'),
+        'utf-8',
+      );
+      expect(teacher, 'the survey posts to the deleted feedback route').not.toMatch(
+        /fetch\(\s*['"`]\/api\/feedback/,
+      );
     });
   });
 
