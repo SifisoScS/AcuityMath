@@ -50,8 +50,8 @@ Donor repository, read-only reference:
 | **E1** | COPPA consent onto `consent_events` | **Open** — this branch |
 | **E1b** | Gate on consent for under-13s | **Shape decided, not built.** See below |
 | **E2** | Screen-time enforcement onto the real schema | **Merged** (PR #25) |
-| **E3/E5** | Every JSON-store route deleted, and the store with it | **Open** — this branch |
-| **E4** | Quarantine the district and LMS stubs | Planned |
+| **E3/E5** | Every JSON-store route deleted, and the store with it | **Merged** (PR #28) |
+| **E4** | District, LMS and pilot feedback quarantined | **Open** — this branch |
 
 One pull request is open: **E1, this branch.** The table has twice drifted —
 saying "open in PR #N" for work that had been in `main` for days, and naming a PR
@@ -193,9 +193,9 @@ layer, and it has to come apart in order:
    `SocraticCoachModal` calls it. Moving it under tRPC would buy consistency
    and nothing else — it is not a data layer and never was. It is now the only
    method left on `apiService`.
-4. **District and LMS endpoints quarantined** — a named module, a comment
-   saying they are stubs, and no path from a real user surface to them. Not
-   deleted, not left ambiguous. **This is all that remains of Graft E.**
+4. ~~**District and LMS endpoints quarantined.**~~ **Done on this branch**,
+   and quarantine turned out to mean something stronger than the original
+   wording — see below. **Graft E is complete.**
 5. ~~**`server/db.ts` and `data_store.json` deleted.**~~ **Done on this
    branch**, together with step 3's deletions — see below. It was written as
    the completion condition rather than the starting point, and that is how it
@@ -203,7 +203,9 @@ layer, and it has to come apart in order:
 
 `server/legacyApi.test.ts` pins the surface meanwhile: the three deleted routes
 stay deleted, no route here verifies a PIN, consent refuses, **no route reads
-the JSON store**, and the surface is **exactly 13 routes**.
+the JSON store**, nothing is served under `/district/`, `/lms/` or `/feedback`,
+and the surface is **exactly 3 routes**: a health check, the consent 410, and
+the Socratic coach proxy.
 
 It began as an inventory rather than a ban, because nine routes used the store
 and forbidding it outright would only have meant skipping the test. Each graft
@@ -278,6 +280,39 @@ mentions `db.updateCoppaConsent` and fell in the gap. It is bounded by the
 handler's own closing `});` now. This file's own lesson, turned on itself: the
 helper was returning the handler plus its surroundings, so every assertion built
 on it was asking about the surroundings too.
+
+### Step 4 — done, and quarantine meant more than it sounded
+
+The plan said "a named module, a comment saying they are stubs, and no path from
+a real user surface to them". The first two turned out to be the weak part.
+
+**Deleting the routes would have changed nothing an administrator saw.**
+`DistrictAdminDashboard` seeds its own state with invented campuses, standards
+and LMS connections, and only *overwrites* them when the server answers — its
+catch reads `// Fallback to initial rich state`. Remove the routes and the same
+numbers appear, sourced from the client. A stub that is renamed or re-supplied
+is still a stub on screen: **present, described as temporary, and unexamined.**
+
+So the surface is unreachable rather than re-supplied. Ten routes gone,
+`server/lms.ts` gone, the nav entry and the render branch gone from `App.tsx`.
+`DistrictAdminDashboard.tsx` stays on disk, unimported — what belongs there is a
+product decision, and deleting it would foreclose one. `server/legacyApi.test.ts`
+pins both halves: no route serves the data, and `App.tsx` neither imports nor
+renders the component.
+
+**The pilot feedback store is the fourth time these testimonials have come up.**
+`POST /feedback` accepted writes into an in-memory array pre-seeded with three
+fabricated testimonials from teachers who do not exist — one praising an LMS
+sync that was never built — reset on every restart. `TeacherDashboard` posted to
+it and told the teacher their answer was **"recorded"**. It was averaged into
+three invented ones and discarded at the next restart.
+
+The survey sends nothing now and says so. The `'recorded'` branch is deleted
+rather than left unreachable: a branch waiting for something to return 200
+without storing anything is a description of the route that just went.
+Recording feedback properly needs a table, and when there is one it gets a
+writer in the same change — `drizzle/writers.test.ts` will not accept the
+alternative.
 
 ### E1b — gate on consent. Shape decided, not built.
 
@@ -421,6 +456,32 @@ generator integrity gate is written in them.
 
 CI runs these in order: schema/migration → generator gate → typecheck → test →
 build.
+
+### Probing `/api` by hand: use POST
+
+`server.ts` serves the SPA with `app.get('*')`, so **every unmatched GET returns
+200 with `index.html`**. `GET /api/anything-at-all` answers 200, and so does a
+route deleted ten minutes ago. A status code from a GET says nothing about
+whether a route exists.
+
+This was found the honest way: a probe after deleting seven routes reported
+`GET /api/students -> 200` and looked like a surviving route. It was the
+catch-all.
+
+**POST has no catch-all**, so a deleted route genuinely 404s. Any check of what
+this surface serves has to use POST — or read the content type, where
+`text/html` means the SPA answered and `application/json` means a route did.
+
+```bash
+curl -s -o /dev/null -X POST -w '%{http_code}\n' http://localhost:3000/api/feedback
+#   404 — gone
+
+curl -s -o /dev/null -w '%{http_code} %{content_type}\n' http://localhost:3000/api/health
+#   200 application/json — a real route
+
+curl -s -o /dev/null -w '%{http_code} %{content_type}\n' http://localhost:3000/api/district/overview
+#   200 text/html — the catch-all, not a route
+```
 
 ### Test against a database at your branch's migration level
 

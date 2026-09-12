@@ -46,13 +46,11 @@ import { CoppaConsentModal } from './components/CoppaConsentModal';
 import { ScreenTimeLockModal } from './components/ScreenTimeLockModal';
 import { StudentQrCardModal } from './components/StudentQrCardModal';
 import { ManipulativesHub } from './components/manipulatives/ManipulativesHub';
-import { DistrictAdminDashboard } from './components/DistrictAdminDashboard';
 import { PlacementQuestModal } from './components/PlacementQuestModal';
 import { PlacementQuestPromptModal } from './components/PlacementQuestPromptModal';
 import { BilingualGlossaryModal } from './components/BilingualGlossaryModal';
 import {
   Bell,
-  Building2,
   ChevronRight,
   Clock,
   Compass,
@@ -471,6 +469,9 @@ export default function App() {
   const roleRequiredFor = (tab: NavigationTab): 'parent' | 'teacher' | 'admin' | null => {
     if (tab === 'parent') return 'parent';
     if (tab === 'teacher') return 'teacher';
+    // Kept although the tab is unreachable: if the District Hub is rebuilt,
+    // this is what stops it appearing without a role behind it. Deleting the
+    // entry would make a returning surface ungated by default.
     if (tab === 'district') return 'admin';
     return null;
   };
@@ -836,30 +837,6 @@ export default function App() {
             >
               <Users className="w-4 h-4" />
               <span>Teacher</span>
-            </button>
-
-            <button
-              onClick={() => handleNavigate('district')}
-              aria-current={activeTab === 'district' ? 'page' : undefined}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
-                activeTab === 'district'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Building2 className="w-4 h-4" />
-                <span>District Hub</span>
-              </div>
-              <span
-                className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider ${
-                  activeTab === 'district'
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-indigo-100 text-indigo-800'
-                }`}
-              >
-                P4
-              </span>
             </button>
 
             <button
@@ -1380,13 +1357,19 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'district' && (
-              // `onDispatchNotification` put an entry in the family bell claiming a
-              // district assignment was "now live across student course dashboards".
-              // `/api/lms/dispatch-assignment` writes to an in-memory demonstration
-              // store, so no learner was given anything.
-              <DistrictAdminDashboard onBackToStudent={() => setActiveTab('student')} />
-            )}
+            {/*
+              * The District Hub was rendered here, and is quarantined in Graft E4.
+              *
+              * Its routes served an in-memory demonstration store, and deleting
+              * them alone would have changed nothing: the component seeds its own
+              * state with invented campuses, standards and LMS connections, and
+              * only overwrote them when the server answered. An administrator
+              * would have seen the same numbers from a different source.
+              *
+              * So the surface is unreachable rather than re-supplied. The file
+              * stays — what belongs there is a product decision, and deleting it
+              * would foreclose one.
+              */}
 
             {activeTab === 'rewards' && (
               <RewardsView
