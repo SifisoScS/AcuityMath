@@ -25,9 +25,6 @@ export interface StudentRecord {
   coins: number;
   streakDays: number;
   dynamicLevel: number;
-  screenTimeLimitMinutes: number;
-  todayMinutesSpent: number;
-  isLocked: boolean;
   pin: string;
   qrToken: string;
   pictureSequence: string[];
@@ -147,9 +144,6 @@ const INITIAL_STATE: DatabaseState = {
       coins: 240,
       streakDays: 4,
       dynamicLevel: 2,
-      screenTimeLimitMinutes: 30,
-      todayMinutesSpent: 8,
-      isLocked: false,
       pin: '1111',
       qrToken: 'ACUITY_STUDENT_QR_MAYA_EARLY_001',
       pictureSequence: ['🍎', '⭐', '🎈'],
@@ -166,9 +160,6 @@ const INITIAL_STATE: DatabaseState = {
       coins: 410,
       streakDays: 7,
       dynamicLevel: 4,
-      screenTimeLimitMinutes: 45,
-      todayMinutesSpent: 16,
-      isLocked: false,
       pin: '2222',
       qrToken: 'ACUITY_STUDENT_QR_LEO_ELEM_002',
       pictureSequence: ['🚀', '🪐', '⚡'],
@@ -185,9 +176,6 @@ const INITIAL_STATE: DatabaseState = {
       coins: 680,
       streakDays: 12,
       dynamicLevel: 6,
-      screenTimeLimitMinutes: 60,
-      todayMinutesSpent: 22,
-      isLocked: false,
       pin: '3333',
       qrToken: 'ACUITY_STUDENT_QR_SOPHIA_MID_003',
       pictureSequence: ['⚡', '📐', '🌌'],
@@ -204,9 +192,6 @@ const INITIAL_STATE: DatabaseState = {
       coins: 920,
       streakDays: 18,
       dynamicLevel: 8,
-      screenTimeLimitMinutes: 90,
-      todayMinutesSpent: 35,
-      isLocked: false,
       pin: '4444',
       qrToken: 'ACUITY_STUDENT_QR_ALEX_HIGH_004',
       pictureSequence: ['🌌', '∑', '🔬'],
@@ -366,41 +351,24 @@ class Database {
     return this.state.students[idx];
   }
 
-  public recordHeartbeat(studentId: string, elapsedSeconds: number = 60): { student: StudentRecord; isLocked: boolean; remainingMinutes: number } {
-    const student = this.getStudentById(studentId);
-    if (!student) throw new Error('Student not found');
-
-    const addedMinutes = Number((elapsedSeconds / 60).toFixed(2));
-    student.todayMinutesSpent = Number((student.todayMinutesSpent + addedMinutes).toFixed(1));
-
-    if (student.todayMinutesSpent >= student.screenTimeLimitMinutes) {
-      student.isLocked = true;
-    }
-
-    this.state.activeSessions[studentId] = {
-      lastHeartbeat: Date.now(),
-      startedAt: this.state.activeSessions[studentId]?.startedAt || Date.now()
-    };
-
-    this.persist(this.state);
-
-    const remainingMinutes = Math.max(0, Math.round(student.screenTimeLimitMinutes - student.todayMinutesSpent));
-    return {
-      student,
-      isLocked: student.isLocked,
-      remainingMinutes
-    };
-  }
-
-  public unlockStudent(studentId: string, additionalMinutes: number = 30): StudentRecord | null {
-    const student = this.getStudentById(studentId);
-    if (!student) return null;
-    student.isLocked = false;
-    student.screenTimeLimitMinutes += additionalMinutes;
-    this.logAudit('SCREEN_TIME_OVERRIDE', 'parent', { studentId, additionalMinutes });
-    this.persist(this.state);
-    return student;
-  }
+  /*
+   * `recordHeartbeat` and `unlockStudent` were here.
+   *
+   * Both kept screen time in this file: minutes spent, a limit, and a locked
+   * flag, all on a record keyed `student_1..4` that the application never asks
+   * for — it uses `learner-12`. So the heartbeat threw on every call and the
+   * lock was unreachable, while `screen_time_rules` held the limit a parent had
+   * actually set and nothing enforced it.
+   *
+   * `server/learning/screenTime.ts` owns this now, against the real schema. The
+   * fields went with the methods rather than being left unread: a second copy
+   * of a fact is what this migration exists to remove, and an orphaned
+   * `screenTimeLimitMinutes` here would be the same defect wearing the same
+   * name as the analytics field that survives.
+   *
+   * `unlockStudent` added minutes to that same phantom limit behind
+   * `/students/:id/unlock`, a route deleted in the credential closure.
+   */
 
   public recordAttempt(attempt: Omit<LessonAttemptRecord, 'id' | 'completedAt'>): { attempt: LessonAttemptRecord; student: StudentRecord } {
     const newAttempt: LessonAttemptRecord = {

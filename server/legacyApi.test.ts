@@ -60,10 +60,8 @@ const TOUCHES_LEGACY_STORE = [
   'GET /students',
   'GET /students/:id',
   'PATCH /students/:id',
-  'POST /students/:id/heartbeat',
   'POST /students/:id/attempts',
   'POST /assignments',
-  'POST /sync/batch',
   'GET /audit-logs',
 ];
 
@@ -93,14 +91,14 @@ function handlerFor(route: string): string {
 }
 
 describe('the legacy REST surface', () => {
-  it('declares the twenty-two routes this surface still has', () => {
+  it('declares the twenty routes this surface still has', () => {
     /*
      * Guards the guard: a regex that matches nothing passes every assertion
      * below it, and a `toBeGreaterThan` floor absorbs that quietly.
      *
-     * 22 is the count *after* the three credential routes above were deleted
-     * — what `main` carries once this lands, not the 25 it had before.
-     * Measured post-deletion on purpose: a floor taken before them sat seven
+     * 25 before the credential closure, 22 after it, 20 after E2 took the
+     * screen-time heartbeat and `/sync/batch`. Measured after each deletion
+     * rather than before: the original `toBeGreaterThan(15)` floor sat seven
      * routes below reality and would have passed while ten routes vanished.
      *
      * Exact rather than a floor, because every route left is either on
@@ -108,7 +106,7 @@ describe('the legacy REST surface', () => {
      * should cost a deliberate edit to this line. Graft E's steps lower the
      * number; the completion condition is that the file is gone.
      */
-    expect(routes.length).toBe(22);
+    expect(routes.length).toBe(20);
   });
 
   describe('the credential surface', () => {

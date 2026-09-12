@@ -38,6 +38,7 @@ import { useAuthoredAssignments, useLearnerAssignments } from './hooks/useAssign
 import { useNotifications } from './hooks/useNotifications';
 import { useConsent } from './hooks/useConsent';
 import { useRewards } from './hooks/useRewards';
+import { useScreenTime } from './hooks/useScreenTime';
 import { ProfileSwitchModal } from './components/ProfileSwitchModal';
 import { SignInPanel } from './components/SignInPanel';
 import { ParentPinModal } from './components/ParentPinModal';
@@ -301,40 +302,32 @@ export default function App() {
    * file nothing else consults. Consent comes from `consent_events` now.
    */
 
-  // Server-Authoritative Screen Time Heartbeat
+  /*
+   * Screen time, counted by the server.
+   *
+   * This was a `setInterval` posting to `/api/students/:id/heartbeat` with an
+   * `elapsedSeconds` this file chose. It sent `activeProfile.id` — `learner-12`
+   * — to a route reading a JSON store keyed `student_1..4`, so every beat
+   * 404ed, `sendHeartbeat` returned `null`, `if (res)` was false, and **no
+   * child was ever locked out.** The parent's limit saved, displayed, and did
+   * nothing.
+   *
+   * The hook beats only for a profile actually practising, so a parent opening
+   * a dashboard does not spend their child's allowance.
+   */
+  const screenTime = useScreenTime(
+    activeProfile.learnerId ?? null,
+    activeProfile.role === 'student',
+  );
+
   useEffect(() => {
-    if (activeProfile.role !== 'student') return;
-
-    // Initial check
-    apiService.sendHeartbeat(activeProfile.id, 0).then(res => {
-      if (res) {
-        refreshAnalytics();
-        if (res.isLocked) {
-          setIsScreenLocked(true);
-          setLockedTimeData({
-            todayMinutes: res.todayMinutesSpent,
-            limitMinutes: res.screenTimeLimitMinutes
-          });
-        }
-      }
+    if (!screenTime.isLocked) return;
+    setIsScreenLocked(true);
+    setLockedTimeData({
+      todayMinutes: screenTime.minutesSpent,
+      limitMinutes: screenTime.limitMinutes ?? 0,
     });
-
-    const interval = setInterval(async () => {
-      const res = await apiService.sendHeartbeat(activeProfile.id, 60);
-      if (res) {
-        refreshAnalytics();
-        if (res.isLocked) {
-          setIsScreenLocked(true);
-          setLockedTimeData({
-            todayMinutes: res.todayMinutesSpent,
-            limitMinutes: res.screenTimeLimitMinutes
-          });
-        }
-      }
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [activeProfile.id, activeProfile.role]);
+  }, [screenTime.isLocked, screenTime.minutesSpent, screenTime.limitMinutes]);
 
   // Save changes to localStorage
   //
@@ -1591,15 +1584,6 @@ export default function App() {
         todayMinutes={lockedTimeData.todayMinutes}
         limitMinutes={lockedTimeData.limitMinutes}
         studentId={activeProfile.id}
-        onUnlocked={() => {
-          setIsScreenLocked(false);
-          // Refresh analytics after unlocking
-          apiService.sendHeartbeat(activeProfile.id, 0).then(res => {
-            if (res) {
-              refreshAnalytics();
-            }
-          });
-        }}
       />
 
       {qrStudentData && (
