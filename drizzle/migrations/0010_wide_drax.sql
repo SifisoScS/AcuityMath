@@ -1,0 +1,1 @@
+ALTER TABLE `screen_time_usage` ADD `counted_through` timestamp DEFAULT (now()) NOT NULL;

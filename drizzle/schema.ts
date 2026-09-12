@@ -719,7 +719,7 @@ export const screenTimeRules = mysqlTable(
   table => [uniqueIndex('screen_time_learner_idx').on(table.learnerId)],
 );
 
-/** Minutes used, per learner per day. The heartbeat writes here. */
+/** Minutes used, per learner per day. `screenTime.heartbeat` writes here. */
 export const screenTimeUsage = mysqlTable(
   'screen_time_usage',
   {
@@ -728,15 +728,43 @@ export const screenTimeUsage = mysqlTable(
       .notNull()
       .references(() => learners.id, { onDelete: 'cascade' }),
     /**
-     * Calendar day in the guardian's timezone, resolved at write time.
+     * Calendar day, resolved at write time.
      *
      * `mode: 'string'` because this is a date and not an instant. Drizzle's
      * default maps DATE onto a JS `Date`, which carries a time and a zone, and
      * a screen-time day that shifts by an hour when the server moves is the
      * classic form of that bug.
+     *
+     * **This is the server's day, not the guardian's.** No timezone is stored
+     * anywhere, and `server/learning/rewards.ts` already resolves a streak day
+     * the same way. Giving screen time a timezone while streaks keep the
+     * server's would make the two disagree about when "today" started, which is
+     * a worse defect than the one it fixes. Both move together when a timezone
+     * column lands.
      */
     day: date('day', { mode: 'string' }).notNull(),
     minutesSpent: smallint('minutes_spent').notNull().default(0),
+    /**
+     * How far along this day's usage has already been counted.
+     *
+     * The heartbeat does not trust the client for elapsed time. A counter the
+     * caller increments is a counter the child it restricts can decline to
+     * increment — sending `0` forever costs nothing and buys unlimited screen
+     * time. The server measures instead: elapsed is `now - countedThrough`,
+     * capped, and only whole minutes are banked.
+     *
+     * It advances by exactly the minutes banked rather than to `now`, so the
+     * leftover seconds carry into the next beat. Flooring to `now` would
+     * discard up to 59 seconds per beat, and with beats arriving a shade over
+     * the minute — which is what jitter guarantees — the counter would stall
+     * near zero while a child practised all afternoon.
+     *
+     * Separate from `updatedAt` on purpose. That column answers "when was this
+     * row last touched"; this one answers "what period has been counted". One
+     * column holding both facts is how `screenTimeLimitMinutes` came to mean
+     * two different things.
+     */
+    countedThrough: timestamp('counted_through').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
   },
   table => [uniqueIndex('screen_time_day_idx').on(table.learnerId, table.day)],

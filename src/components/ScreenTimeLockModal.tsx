@@ -29,21 +29,32 @@ export const ScreenTimeLockModal: React.FC<ScreenTimeLockModalProps> = ({
   if (!isOpen) return null;
 
   /**
-   * The parental override, which is not available.
+   * The one-off override, which does not exist — and now matters.
    *
-   * This posted a PIN to `/students/:id/unlock` — an unauthenticated route that
-   * compared the PIN in plaintext against a JSON file. The route is deleted, so
-   * pretending to try would produce "Network error unlocking session", which
-   * reads as a transient problem a parent should retry.
+   * This posted a PIN to `/students/:id/unlock`, an unauthenticated route that
+   * compared the PIN in plaintext against a JSON file. That route is deleted.
    *
-   * Saying so plainly is better than a retry loop against nothing. Rebuilding it
-   * against the real step-up elevation and `screen_time_rules` is Graft E.
+   * Until E2 the message could say "not available yet" and cost nobody
+   * anything, because the lock never fired: the heartbeat could not match a
+   * child, so no limit was ever reached. Enforcement is real now, so this is
+   * the first time a family can actually arrive here — and a dead end is no
+   * longer an acceptable answer.
+   *
+   * There **is** a working path, and it is the one a parent should be sent to:
+   * the daily limit in the parent dashboard, behind the same step-up PIN, which
+   * writes `screen_time_rules` and which the next beat honours. Raising the
+   * limit for the day is what granting extra time means when the limit is the
+   * thing being enforced. A separate one-off grant would be a second source for
+   * the same fact — the defect E2 exists to close.
    */
   const handleUnlock = async () => {
     playErrorSound();
     setError(
-      'The parental override is not available yet. It is being rebuilt against the ' +
-        'parent PIN you set up in the app; until then this lock cannot be lifted from here.',
+      'There is no one-off override. To give more time today, open the parent ' +
+        'dashboard and raise the daily limit for ' +
+        studentName +
+        ' — it takes effect within a minute. The old override posted a PIN to an ' +
+        'unauthenticated route and has been removed.',
     );
   };
 

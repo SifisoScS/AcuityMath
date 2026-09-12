@@ -127,25 +127,19 @@ apiRouter.patch('/students/:id', (req: Request, res: Response) => {
   res.json({ student: updated });
 });
 
-// Server-Authoritative Screen Time Heartbeat
-apiRouter.post('/students/:id/heartbeat', (req: Request, res: Response) => {
-  const studentId = req.params.id;
-  const elapsedSeconds = Number(req.body.elapsedSeconds || 60);
-
-  try {
-    const result = db.recordHeartbeat(studentId, elapsedSeconds);
-    res.json({
-      success: true,
-      todayMinutesSpent: result.student.todayMinutesSpent,
-      screenTimeLimitMinutes: result.student.screenTimeLimitMinutes,
-      isLocked: result.isLocked,
-      remainingMinutes: result.remainingMinutes
-    });
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    res.status(404).json({ error: errorMessage });
-  }
-});
+/*
+ * The screen-time heartbeat was here, and it never worked.
+ *
+ * It took an `elapsedSeconds` the browser chose and looked the child up in
+ * `data_store.json`, which is keyed `student_1..4` while the application sends
+ * `learner-12`. Every beat 404ed, the client swallowed the failure, and no
+ * child was ever locked out — while the parent's limit saved, displayed, and
+ * did nothing.
+ *
+ * `screenTime.heartbeat` on the tRPC router replaces it. The server measures
+ * the interval rather than being told it, because the child being restricted
+ * was the one reporting how long they had been on.
+ */
 
 
 // Tamper-Proof Lesson Attempt Submission
@@ -181,37 +175,13 @@ apiRouter.post('/assignments', (req: Request, res: Response) => {
 });
 
 // Batch Offline Sync Reconciliation
-apiRouter.post('/sync/batch', (req: Request, res: Response) => {
-  const { actions } = req.body;
-  if (!Array.isArray(actions)) {
-    return res.status(400).json({ error: 'Actions array is required' });
-  }
-
-  let processedCount = 0;
-  for (const act of actions) {
-    if (act.type === 'LESSON_ATTEMPT' && act.payload) {
-      db.recordAttempt(act.payload);
-      processedCount++;
-    } else if (act.type === 'HEARTBEAT' && act.studentId) {
-      db.recordHeartbeat(act.studentId, act.elapsedSeconds || 60);
-      processedCount++;
-    } else if (act.type === 'STUDENT_UPDATE' && act.studentId && act.updates) {
-      db.updateStudent(act.studentId, act.updates);
-      processedCount++;
-    }
-  }
-
-  db.logAudit('OFFLINE_QUEUE_BATCH_RECONCILED', 'client', { count: processedCount });
-
-  res.json({
-    success: true,
-    processedCount,
-    state: {
-      students: db.getStudents(),
-      attempts: db.getState().attempts
-    }
-  });
-});
+/*
+ * `/sync/batch` was here. It reconciled an offline queue into the JSON store,
+ * unauthenticated, and had no caller left: Graft D replaced it with a real
+ * IndexedDB queue that submits through tRPC with a per-learner `client_id`, so
+ * a replayed answer is paid for once. It also drove the heartbeat above, which
+ * is why it retires with it rather than separately.
+ */
 
 // Audit Logs (Parent / Teacher review)
 apiRouter.get('/audit-logs', (_req: Request, res: Response) => {

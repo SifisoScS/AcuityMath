@@ -77,14 +77,6 @@ export interface BootstrapData {
   };
 }
 
-export interface HeartbeatResult {
-  success: boolean;
-  todayMinutesSpent: number;
-  screenTimeLimitMinutes: number;
-  isLocked: boolean;
-  remainingMinutes: number;
-}
-
 class ApiService {
   private baseUrl = '/api';
 
@@ -111,20 +103,19 @@ class ApiService {
    * It had no callers by the time it was removed.
    */
 
-  public async sendHeartbeat(studentId: string, elapsedSeconds: number = 60): Promise<HeartbeatResult | null> {
-    try {
-      const res = await fetch(`${this.baseUrl}/students/${encodeURIComponent(studentId)}/heartbeat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ elapsedSeconds })
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (err) {
-      console.warn('[ApiService] Heartbeat failed:', err);
-      return null;
-    }
-  }
+  /*
+   * `sendHeartbeat` was here, and it could not succeed.
+   *
+   * It posted `learner-12` to a route that looked the child up in
+   * `data_store.json`, keyed `student_1..4`. Every call 404ed and the catch
+   * returned `null`, which `App.tsx` read as "no news" — so the screen-time
+   * lock never engaged for any child, while the parent's limit saved and
+   * displayed.
+   *
+   * It also chose its own `elapsedSeconds`, which put the counter in reach of
+   * the person it restricts. `screenTime.heartbeat` on the tRPC router takes no
+   * duration: the server measures the interval. See `src/hooks/useScreenTime.ts`.
+   */
 
   /*
    * `unlockScreenTime` was here. It posted to `/students/:id/unlock`, which
