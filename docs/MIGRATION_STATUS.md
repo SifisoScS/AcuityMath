@@ -593,6 +593,54 @@ Do not relitigate these without a reason that is new.
 
 Each of these looked like something else first.
 
+**An error handler that returns what the success path returns has made the
+failure unobservable.** Not "the states look similar" — the mechanism is that
+**the catch block answers the question the caller asked**, so the caller has no
+way to tell the answer came from a failure. That is why reading the success path
+never finds it. Three instances, all fail-open:
+
+| Site | On failure it returned | Which the caller read as |
+| --- | --- | --- |
+| `apiService.verifyPin` | `{ valid: true, sessionToken: 'offline_token' }` | a correct PIN |
+| `apiService.sendHeartbeat` | `null` | "no news", not "no answer" |
+| `triggerCloudSync` | a log line, then the queue emptied | "Synced to Server" |
+
+The first made an unreachable server indistinguishable from correct credentials.
+The last discarded a child's work and reported success. **What to grep for is any
+`catch` whose return satisfies the check the caller performs on it** — a truthy
+flag, a `null` the happy path also produces, a shape the caller cannot
+interrogate.
+
+The escape is cheap, and this codebase already has it right once:
+`askSocraticCoach` falls back to a canned reply but stamps
+`source: 'client-offline-fallback'`, and `SocraticCoachModal` renders that
+source. The failure announces itself. A fallback is fine; an *unlabelled* one is
+the defect.
+
+One is still live. `Database.load` in `server/db.ts` catches a parse error,
+returns `INITIAL_STATE` and **persists it over the unreadable file** — so
+"corrupt" and "never existed" are the same outcome, and the first one destroys
+the evidence. It goes with the file in Graft E5.
+
+**A shared resource that does not match the branch produces a failure that names
+the wrong thing.** Two triggers, one shape, and the cost each time is an hour
+spent reading correct code.
+
+The dev database on 3307 is not reset between checkouts, so a branch *behind* it
+fails the schema suite — PR #20 failed `records consent as a sequence, not a
+flag` because 3307 carried `0008` and `0009` from a branch that had not merged.
+And a scratch database survives a run that died part-way, half-migrated, so every
+later run fails on `CREATE TABLE ... already exists`; that is the same mechanism
+reached from the other direction, and the schema-mutation trap below is its first
+recorded form.
+
+Both failures **name a table or a column**, which is what makes them convincing.
+Neither instinct is safe: chasing it wastes an hour on code that is fine, and
+"just the environment" is the shrug that ships a real schema regression. Remove
+the ambiguity instead — verify against a database migrated to your own branch
+(the recipe is under *Getting running again*), and drop the `acuitymath_*`
+scratch databases after a run that died.
+
 **A table can be designed, migrated, read and displayed while nothing ever
 writes to it.** Three times: `learner_rewards` showed every child zero coins and
 made buying an avatar do nothing (#22); `consent_events` let the application
