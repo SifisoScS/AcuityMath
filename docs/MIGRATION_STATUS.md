@@ -723,10 +723,26 @@ The escape is cheap, and this codebase already has it right once:
 source. The failure announces itself. A fallback is fine; an *unlabelled* one is
 the defect.
 
-One is still live. `Database.load` in `server/db.ts` catches a parse error,
-returns `INITIAL_STATE` and **persists it over the unreadable file** — so
-"corrupt" and "never existed" are the same outcome, and the first one destroys
-the evidence. It goes with the file in Graft E5.
+A fourth was `Database.load` in `server/db.ts`, which caught a parse error,
+returned `INITIAL_STATE` and **persisted it over the unreadable file** — so
+"corrupt" and "never existed" were one outcome, and the first destroyed its own
+evidence. It went with the file in Graft E3/E5, which is why this paragraph is
+written in the past tense: it was recorded as live, and recording it is what
+made deleting it deliberate rather than incidental.
+
+**The fifth was not a returned value but a rendered one, and that is the variant
+worth remembering.** `DistrictAdminDashboard` seeded its own state with invented
+campuses, standards and LMS connections, fetched the real ones, and overwrote
+the seed *only on success* — its catch read `// Fallback to initial rich state`.
+An unreachable server and a working one put the same numbers on screen. Nothing
+was returned to a caller to inspect; the failure path simply drew what the
+success path draws.
+
+So the grep is necessary and not sufficient. **Also ask what a component renders
+when its fetch fails** — if the answer is "the same thing, from a default", the
+failure is unobservable to the only person who matters. Graft E4 is what that
+cost: deleting those routes would have been cosmetic, because the numbers would
+have come from the client instead and looked identical.
 
 **A shared resource that does not match the branch produces a failure that names
 the wrong thing.** Two triggers, one shape, and the cost each time is an hour
@@ -777,6 +793,19 @@ nothing to do with what it claims, and each was only found by changing the code
 it guards and watching it stay green. **Mutation is what distinguishes a test
 from a decoration** — and two of these three were caught only because a mutation
 was absorbed rather than because anything failed.
+
+A fourth arrived in Graft E4, in a guard written *for* this file's lesson. A test
+that the teacher survey no longer posts to the deleted `/api/feedback` banned the
+string anywhere in `TeacherDashboard.tsx` — and failed on the comment explaining
+why the call had been removed. An assertion about a *mention*, standing in for
+one about a `fetch(`.
+
+**A guard that removes the explanation is worse than no guard.** The comment
+saying why something was deleted is the evidence the next reader needs, and it
+is the first casualty of a ban written too wide: the cheapest way to make such a
+test pass is to delete the paragraph. Scope the match to the construct — the
+call, the declaration, the import — never to the name, because the name is what
+the prose has to use in order to explain itself.
 
 **Mutating a schema is not like mutating code.** Testing that the `client_id`
 uniqueness is scoped per learner meant generating and applying a real migration,
