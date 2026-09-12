@@ -593,6 +593,19 @@ Do not relitigate these without a reason that is new.
 
 Each of these looked like something else first.
 
+**A table can be designed, migrated, read and displayed while nothing ever
+writes to it.** Three times: `learner_rewards` showed every child zero coins and
+made buying an avatar do nothing (#22); `consent_events` let the application
+report a consent it had not recorded (#23); `screen_time_usage` let a parent set
+a limit, confirmed it, displayed it, and locked nobody out (#25). Each shipped a
+false claim to a parent, each survived weeks, and each was found by someone
+happening to look.
+
+The common surface is that **a missing writer looks exactly like a zero**. Coins
+of zero, consent of none, minutes of nought — all indistinguishable from a child
+who has not started. `drizzle/writers.test.ts` now asserts every table has one;
+run against this history it reports three at `d634956` and none today.
+
 **An assertion can check something adjacent to the thing it names.** This has
 now happened three times, and it is the hardest defect in this project to
 notice, because the test is green while it is wrong.
