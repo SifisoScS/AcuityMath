@@ -49,7 +49,8 @@ Donor repository, read-only reference:
 | **E-pre** | Legacy credential surface closed | **Merged** (PR #20) |
 | **E1** | COPPA consent onto `consent_events` | **Open** — this branch |
 | **E1b** | Gate on consent for under-13s | **Shape decided, not built.** See below |
-| **E2–E5** | Screen time, quarantine, delete the JSON store | Planned |
+| **E2** | Screen-time enforcement onto the real schema | **Open** — this branch |
+| **E3–E5** | Quarantine the stubs, delete the JSON store | Planned |
 
 One pull request is open: **E1, this branch.** The table has twice drifted —
 saying "open in PR #N" for work that had been in `main` for days, and naming a PR
@@ -183,9 +184,9 @@ layer, and it has to come apart in order:
 1. ~~**COPPA consent onto `consent_events`.**~~ **Done on this branch.** The
    legacy route stays refused; `consent.record` writes the ledger. Detail
    below.
-2. **Screen-time enforcement onto the real schema.** The legacy heartbeat and
-   the unlock path retire with it; `screen_time_rules` and `screen_time_usage`
-   already exist and nothing enforces them.
+2. ~~**Screen-time enforcement onto the real schema.**~~ **Done on this
+   branch.** The legacy heartbeat and `/sync/batch` retire with it. Detail
+   below.
 3. **`/api/ai/socratic-coach` stays.** It proxies the AI coach and touches no
    store. Moving it under tRPC is optional.
 4. **District and LMS endpoints quarantined** — a named module, a comment
@@ -195,8 +196,8 @@ layer, and it has to come apart in order:
    condition, not the starting point.
 
 `server/legacyApi.test.ts` pins the surface meanwhile: the three deleted routes
-stay deleted, no route here verifies a PIN, consent refuses, exactly nine named
-routes touch `db.`, and the surface is **exactly 22 routes**. It is an inventory
+stay deleted, no route here verifies a PIN, consent refuses, exactly seven named
+routes touch `db.`, and the surface is **exactly 20 routes**. It is an inventory
 rather than a ban, because banning the store while nine routes use it would only
 mean skipping the test.
 
@@ -269,6 +270,70 @@ and no evidence. It is deliberately **not added here**: an unused authorisation
 surface shipped ahead of its caller is the kind of thing that gets wired up
 carelessly later. It is named so E1b starts from a decision rather than a
 discovery.
+
+### Step 2 — done
+
+**The limit was real and the enforcement was not.** `screen_time_rules` has had
+a writer (`learners.setScreenTimeLimit`, elevated), a reader (`learnerAnalytics`)
+and a slider in the parent dashboard since B1 — a parent set a limit, got a
+toast confirming it, and saw it displayed back. Nothing applied it.
+
+- **`screen_time_usage` had no writer** outside tests, while the comment above
+  it read "the heartbeat writes here". Third table in this project to exist
+  without one, after `learner_rewards` and `consent_events`.
+- **The heartbeat could not match a child.** `App.tsx` sent `activeProfile.id`
+  — `learner-12` — to a route reading `data_store.json`, keyed `student_1..4`.
+  `getStudentById` returned undefined, the route 404ed, `sendHeartbeat` caught
+  it and returned `null`, and `if (res)` was false. **No child has ever been
+  locked out.** The same id-format accident as `verifyPin`, and the same
+  conclusion: it was never a property that the ids disagree, just an accident.
+
+`screenTime.heartbeat` on `learnerProcedure` replaces it. What is worth
+restating:
+
+- **The beat carries no duration.** A counter the caller increments is a counter
+  the child it restricts can decline to increment — sending `0` forever costs
+  nothing and buys unlimited screen time. The server measures from
+  `counted_through` instead, caps at two minutes so a sleeping laptop is not
+  billed for the nap, and banks whole minutes only.
+- **`counted_through` advances by the minutes banked, not to `now`.** The
+  leftover seconds carry. Flooring to `now` would discard up to 59 seconds a
+  beat, and since jitter puts beats a shade *over* the minute, the counter would
+  have stalled near zero while a child practised all afternoon. It is its own
+  column: `updated_at` answers when the row was touched, this answers what
+  period has been counted, and one column holding both is how
+  `screenTimeLimitMinutes` came to mean two different things.
+- **No rule means no limit, not a limit of zero.** `screen_time_rules` has no
+  row until a parent opens the control; reading the absence as zero would lock
+  out every child whose parent never did. `src/utils/screenTime.ts` already drew
+  that distinction for the meter and enforcement had to agree with it.
+- **Enforcing is not an elevated act; setting the limit is.** The beat runs
+  continuously while a child practises, and a limit needing the parent's PIN
+  every minute would simply be switched off.
+- **Mount reads rather than beats.** Beating on mount banks the gap since the
+  last beat, which on a browser reopened the next morning is the whole night.
+- **The day is the server's.** No timezone is stored anywhere and
+  `server/learning/rewards.ts` already resolves a streak day this way; giving
+  screen time a timezone alone would make the two disagree about when "today"
+  started. Both move together when a timezone column lands.
+
+**The JSON copy went with it**, rather than being left unread:
+`StudentRecord.screenTimeLimitMinutes`, `todayMinutesSpent` and `isLocked`, plus
+`db.recordHeartbeat` and `db.unlockStudent`. An orphaned
+`screenTimeLimitMinutes` there would be the same defect wearing the same name as
+the analytics field that survives — and a second source for one fact is what
+this step exists to remove.
+
+`POST /sync/batch` went too. It drove the heartbeat and had no caller left:
+Graft D replaced it with an IndexedDB queue submitting through tRPC with a
+per-learner `client_id`.
+
+**One consequence of enforcement becoming real.** The lock modal used to say the
+parental override was "not available yet", which cost nobody anything while the
+lock could never fire. A family can arrive there now. It names the path that
+works instead — raise the daily limit in the parent dashboard, behind the same
+step-up PIN, honoured by the next beat. A separate one-off grant would be a
+second source for the same fact, one step after removing one.
 
 ---
 
