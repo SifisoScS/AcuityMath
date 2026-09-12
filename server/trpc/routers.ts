@@ -43,6 +43,7 @@ import {
   authoredAssignments,
 } from '../learning/assignments';
 import { recordAttempt } from '../learning/recordAttempt';
+import { recordScreenTime, screenTimeState } from '../learning/screenTime';
 import { serveNextProblem } from '../learning/serveProblem';
 import {
   checkStepUpPin,
@@ -232,6 +233,33 @@ const learnersRouter = router({
         .onDuplicateKeyUpdate({ set: { dailyLimitMinutes: input.dailyLimitMinutes } });
       return { dailyLimitMinutes: input.dailyLimitMinutes };
     }),
+
+  /**
+   * Bank the time since the last beat, and say whether the child is locked.
+   *
+   * `learnerProcedure` rather than `elevatedProcedure`: this runs continuously
+   * while a child practises, and a limit that needed the parent's PIN every
+   * minute would simply be switched off. Setting the limit is the elevated act
+   * — `setScreenTimeLimit` above — and enforcing it is not.
+   *
+   * A mutation, not a query. It writes, and marking it a query would invite
+   * every layer between here and the browser to cache or prefetch it, which
+   * for a call whose whole purpose is to advance a clock means banking minutes
+   * nobody spent.
+   *
+   * It takes **no duration**. See `recordScreenTime`: a counter the caller
+   * increments is a counter the child it restricts can decline to increment.
+   */
+  heartbeat: learnerProcedure.mutation(({ ctx }) => recordScreenTime(ctx.db, ctx.learner.id)),
+
+  /**
+   * Where the limit stands, without counting anything.
+   *
+   * The reload path uses this. Beating on mount would bank the time the browser
+   * spent closed, so a child who shut the laptop at the limit and opened it the
+   * next morning would be charged for the night.
+   */
+  screenTime: learnerProcedure.query(({ ctx }) => screenTimeState(ctx.db, ctx.learner.id)),
 
   /** Everything a dashboard needs for one child, in one round trip. */
   snapshot: learnerProcedure.query(async ({ ctx }) => {
