@@ -19,6 +19,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { AdaptiveEngine, type MisconceptionCode, type StudentAbilityProfile } from '../../src/services/adaptiveEngine';
 import { approximateAge } from '../../src/services/tiers';
 import * as schema from '../../drizzle/schema';
+import { ConsentMissing, recordingPermission } from './consentGate';
 import { raiseMasteryMilestone } from './notifications';
 import { awardForAttempt, type RewardChange } from './rewards';
 import type { Database } from '../db/client';
@@ -70,6 +71,23 @@ export interface RecordAttemptResult {
  * that is a rendering concern. This is the one that counts.
  */
 export async function recordAttempt(db: Database, input: RecordAttemptInput): Promise<RecordAttemptResult> {
+  /*
+   * The consent gate, on the writer rather than in front of it.
+   *
+   * The client keeps an unconsented child on the local generator and never
+   * reaches here — that is what makes "nothing is being saved" true of the
+   * network and not merely of the database. But a rule enforced only by the
+   * caller is a rule held by whoever calls, and this function has two callers
+   * already. Checking here means a third cannot be written that forgets.
+   *
+   * It throws rather than returning a "did nothing" result. A writer that
+   * accepts an answer and quietly declines to store it is the shape this graft
+   * has spent its time deleting: the caller cannot tell refusal from success,
+   * and the offline queue would count it delivered and drop it.
+   */
+  const permission = await recordingPermission(db, input.learnerId);
+  if (!permission.mayRecord) throw new ConsentMissing(input.learnerId);
+
   const [problem] = await db
     .select()
     .from(schema.problems)

@@ -18,6 +18,7 @@ import { issueElevation, ELEVATION_COOKIE } from '../auth/session';
 import { appRouter } from '../trpc/routers';
 import type { Context } from '../trpc';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
+import { grantConsentForAllFamilies, grantConsentForFamily } from '../test-support/consent';
 import { raiseMasteryMilestone } from './notifications';
 import { recordAttempt } from './recordAttempt';
 import { ensureGeneratorConcepts, serveNextProblem } from './serveProblem';
@@ -56,12 +57,17 @@ describeWithDb('notifications', () => {
     return { id: row.id, email: row.email, name: row.name, role };
   }
 
+  /** A child, with their guardian's consent — which E1b requires before any
+   * attempt of theirs can be recorded. Every producer tested here runs off a
+   * recorded attempt, so a child without it would produce nothing and the suite
+   * would be asserting about silence. */
   async function childOf(guardianId: number, displayName: string): Promise<number> {
     await db.insert(schema.learners).values({ guardianId, displayName, birthYear: 2016 });
     const mine = await db
       .select()
       .from(schema.learners)
       .where(eq(schema.learners.guardianId, guardianId));
+    await grantConsentForFamily(db, guardianId);
     return mine.find(row => row.displayName === displayName)!.id;
   }
 
@@ -344,7 +350,11 @@ describeWithDb('notifications', () => {
   describe('reading and clearing', () => {
     beforeEach(async () => {
       await giveMilestone(maya);
-    });
+    
+    // Graft E1b refuses to record an under-13's practice without consent.
+    // The learners exist by here, so this covers them.
+    await grantConsentForAllFamilies(db);
+});
 
     it('marks one read, and back to unread', async () => {
       const caller = callerFor(sarah);

@@ -14,6 +14,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import * as schema from '../../drizzle/schema';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
+import { grantConsentForAllFamilies } from '../test-support/consent';
 import { recordAttempt } from './recordAttempt';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -94,7 +95,11 @@ describeWithDb('recordAttempt', () => {
       { problemId, value: '2', misconceptionCode: 'OFF_BY_ONE_COUNTING' },
       { problemId, value: '10', misconceptionCode: 'GENERAL_CALCULATION_SLIP' },
     ]);
-  }, 30_000);
+  
+    // Graft E1b refuses to record an under-13's practice without consent.
+    // The learners exist by here, so this covers them.
+    await grantConsentForAllFamilies(db);
+}, 30_000);
 
   it('decides correctness from the stored problem, not the client', async () => {
     const result = await recordAttempt(db, { learnerId: learnerIds[0], problemId, submittedAnswer: '3' });

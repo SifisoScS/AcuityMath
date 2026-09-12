@@ -16,6 +16,7 @@ import * as schema from '../../drizzle/schema';
 import { recordAttempt } from '../learning/recordAttempt';
 import { serveNextProblem } from '../learning/serveProblem';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
+import { grantConsentForAllFamilies, grantConsentForFamily } from '../test-support/consent';
 import { curriculumCounts, seedCurriculum } from './seedCurriculum';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -40,19 +41,31 @@ describeWithDb('curriculum seed', () => {
       .values({ email: 'seed@example.test', name: 'Seed', role: 'parent' })
       .$returningId();
     guardianId = guardian.id;
-  }, 120_000);
+  
+    // Graft E1b refuses to record an under-13's practice without consent.
+    // The learners exist by here, so this covers them.
+    await grantConsentForAllFamilies(db);
+}, 120_000);
 
   afterAll(async () => {
     await harness?.close();
   });
 
-  /** A learner of a given age, born the right number of years ago. */
+  /**
+   * A learner of a given age, born the right number of years ago, with consent.
+   *
+   * Consent is re-granted per learner because E1b writes one row per child of
+   * the guardian *at the time it runs* — a child created after the setup hook
+   * is not covered by the grant made there. That is the product's behaviour, not
+   * a quirk of the helper.
+   */
   async function learnerAged(age: number, name = `Aged ${age}`) {
     const birthYear = new Date().getFullYear() - age;
     const [row] = await db
       .insert(schema.learners)
       .values({ guardianId, displayName: name, birthYear })
       .$returningId();
+    await grantConsentForFamily(db, guardianId);
     const [learner] = await db.select().from(schema.learners).where(eq(schema.learners.id, row.id));
     return learner;
   }

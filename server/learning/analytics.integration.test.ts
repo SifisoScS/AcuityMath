@@ -19,6 +19,7 @@ import { issueElevation, ELEVATION_COOKIE } from '../auth/session';
 import { appRouter } from '../trpc/routers';
 import type { Context } from '../trpc';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
+import { grantConsentForAllFamilies } from '../test-support/consent';
 import { learnerAnalytics } from './analytics';
 import { recordAttempt } from './recordAttempt';
 import { serveNextProblem } from './serveProblem';
@@ -55,6 +56,10 @@ describeWithDb('parent analytics', () => {
     await db.insert(schema.learners).values({ guardianId: sarah.id, displayName: 'Maya', birthYear: 2016 });
     const [learner] = await db.select().from(schema.learners).where(eq(schema.learners.guardianId, sarah.id));
     maya = learner.id;
+
+    // Graft E1b refuses to record an under-13's practice without consent, and
+    // every assertion in this file is about a learner who has practised.
+    await grantConsentForAllFamilies(db);
   }, 30_000);
 
   /** Answers `count` questions, getting `correct` of them right. */

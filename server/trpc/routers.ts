@@ -44,6 +44,7 @@ import {
 } from '../learning/assignments';
 import { recordAttempt } from '../learning/recordAttempt';
 import { recordScreenTime, screenTimeState } from '../learning/screenTime';
+import { ConsentMissing, recordingPermission } from '../learning/consentGate';
 import { serveNextProblem } from '../learning/serveProblem';
 import {
   checkStepUpPin,
@@ -713,6 +714,27 @@ const consentRouter = router({
   forFamily: elevatedProcedure.query(({ ctx }) => consentForFamily(ctx.db, ctx.user.id)),
 
   /**
+   * Whether one learner's practice may be recorded.
+   *
+   * `learnerProcedure`, not `elevatedProcedure`: this is read at the start of
+   * every practice session, and a check that needed the parent's PIN each time
+   * would be a check nobody runs. Setting consent is the elevated act;
+   * consulting it is not — the same split as screen time, where the parent sets
+   * the limit and the child's session merely obeys it.
+   *
+   * It answers the decision and nothing else. `forFamily` above returns the
+   * attested name, the verified email, the policy version and whether a second
+   * step was sent, all of which a guardian is entitled to and none of which a
+   * practice session needs. `withdrawn` and `superseded` collapse into `none`
+   * here: the session needs to know it may not record, not that a parent
+   * withdrew — which is the guardian's business and not the business of whoever
+   * is sitting at the device.
+   */
+  statusForLearner: learnerProcedure.query(({ ctx }) =>
+    recordingPermission(ctx.db, ctx.learner.id),
+  ),
+
+  /**
    * Records a decision for every child on the account.
    *
    * The input carries no user id and no learner id. That is the point: the
@@ -836,15 +858,39 @@ const practiceRouter = router({
         }
       }
 
-      const result = await recordAttempt(ctx.db, {
-        learnerId: ctx.learner.id,
-        problemId: input.problemId,
-        sessionId: input.sessionId ?? null,
-        submittedAnswer: input.answer,
-        responseTimeMs: input.responseTimeMs ?? null,
-        wasOffline: input.wasOffline ?? false,
-        clientId: input.clientId ?? null,
-      });
+      let result;
+      try {
+        result = await recordAttempt(ctx.db, {
+          learnerId: ctx.learner.id,
+          problemId: input.problemId,
+          sessionId: input.sessionId ?? null,
+          submittedAnswer: input.answer,
+          responseTimeMs: input.responseTimeMs ?? null,
+          wasOffline: input.wasOffline ?? false,
+          clientId: input.clientId ?? null,
+        });
+      } catch (error) {
+        if (error instanceof ConsentMissing) {
+          /*
+           * The gate lives on `recordAttempt`, not here, so a future writer
+           * cannot be added that forgets it. This turns its refusal into
+           * something a client can act on.
+           *
+           * FORBIDDEN rather than a silent success. A queued attempt that gets
+           * a 200 it should not have is marked delivered and dropped; a refusal
+           * the reconciler can see is one it stops retrying, which is the
+           * correct outcome for an answer nobody is entitled to keep.
+           */
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message:
+              'No parental consent is recorded for this learner, so their practice ' +
+              'cannot be stored. Practice itself is unaffected — it runs on this ' +
+              'device and nothing is kept. Record consent with `consent.record`.',
+          });
+        }
+        throw error;
+      }
 
       const [problem] = await ctx.db
         .select({ explanation: schema.problems.explanation, answer: schema.problems.answer })
