@@ -89,6 +89,14 @@ const NOT_LEARNER_SCOPED = [
   'institutions',
   'schools',
   /*
+   * A district's agreement. It names an organisation and the administrator who
+   * signed for it, and holds no learner id — deliberately. The agreement is the
+   * *authority* under which children are consented for; which children rest on
+   * it is recorded in `consent_events`, one row each, so that withdrawing an
+   * agreement is one act and the record of who it covered survives it.
+   */
+  'institution_agreements',
+  /*
    * Cryptographic material belonging to the platform, not to anybody. It holds
    * no learner id and must never hold one — a key row is what this deployment
    * signs messages with, and nothing about a child belongs in it.

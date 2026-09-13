@@ -55,6 +55,10 @@ function describe(status: ConsentState['status']): { label: string; tone: 'ok' |
       return { label: 'Consent withdrawn', tone: 'warn' };
     case 'superseded':
       return { label: 'Terms have changed since you agreed', tone: 'warn' };
+    case 'lapsed':
+      // A district's agreement ended. Says whose decision it was, because this
+      // is not something the family did or can undo from here.
+      return { label: 'The school’s agreement has ended', tone: 'warn' };
     default:
       return { label: 'Not yet covered', tone: 'warn' };
   }

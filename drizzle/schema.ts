@@ -504,6 +504,71 @@ export const learnerAccessTokens = mysqlTable(
  * layer down. Its two jobs are columns now. A future method needing a document
  * reference gets its own column then.
  */
+/**
+ * A district's agreement, and the evidence it rests on.
+ *
+ * `institutional_agreement` has been a value in the consent method enum since
+ * B1, and until C3e **writing it cost nothing**: no document had to exist and
+ * nobody had to sign anything. A consent row could claim a district had agreed
+ * while pointing at no agreement at all.
+ *
+ * Family consent snapshots a policy version, a server-computed hash, an attested
+ * name, a verified email and a timestamp. Without this table the institutional
+ * path was a bare string — so the gate would have been **weakest for exactly the
+ * children with the least agency**, and weakest in the direction convenient for
+ * us.
+ *
+ * The three date columns are three different facts and are not interchangeable.
+ * `signedAt` is when somebody agreed. `expiresAt` is a term the parties set in
+ * advance, null when there is none. `withdrawnAt` is somebody ending it early.
+ * A district needs to be able to tell "the term ran out" from "they pulled out",
+ * and collapsing them would make the record unable to say which happened.
+ */
+export const institutionAgreements = mysqlTable(
+  'institution_agreements',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    institutionId: int('institution_id')
+      .notNull()
+      .references(() => institutions.id, { onDelete: 'restrict' }),
+    /**
+     * The administrator who agreed, kept as a reference **and** snapshotted
+     * below. The reference is for the district's own records; the snapshot is
+     * what makes the row still say something after the account is renamed or
+     * deleted.
+     */
+    signedByUserId: int('signed_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    /** The name they typed. An attestation, not a signature — same as a family's. */
+    signatoryName: varchar('signatory_name', { length: 200 }).notNull(),
+    /** "Head of School", "Data Protection Officer". Says who they claimed to be. */
+    signatoryTitle: varchar('signatory_title', { length: 200 }).notNull(),
+    /** Snapshotted rather than joined: `users.email` can change, this must not. */
+    signatoryEmail: varchar('signatory_email', { length: 320 }).notNull(),
+
+    /**
+     * Which text was agreed to, and proof it has not been edited since.
+     *
+     * Computed server-side from the server's own copy, never sent by a client —
+     * which could otherwise claim agreement to terms that were never shown.
+     */
+    agreementVersion: varchar('agreement_version', { length: 32 }).notNull(),
+    agreementSha256: varchar('agreement_sha256', { length: 64 }).notNull(),
+
+    signedAt: timestamp('signed_at').defaultNow().notNull(),
+    /** A term the parties set. Null means it runs until somebody ends it. */
+    expiresAt: timestamp('expires_at'),
+    /** Ended early. Distinct from expiry, deliberately. */
+    withdrawnAt: timestamp('withdrawn_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    index('institution_agreement_institution_idx').on(table.institutionId),
+    index('institution_agreement_active_idx').on(table.institutionId, table.withdrawnAt),
+  ],
+);
+
 export const consentEvents = mysqlTable(
   'consent_events',
   {
@@ -582,8 +647,40 @@ export const consentEvents = mysqlTable(
     secondStepSent: boolean('second_step_sent').notNull().default(false),
 
     recordedAt: timestamp('recorded_at').defaultNow().notNull(),
+
+    /**
+     * The district agreement this row rests on, for institutional consent only.
+     *
+     * Null for every family row, and that is most of them. It is what stops
+     * `institutional_agreement` being a claim anybody can type: the constraint
+     * below makes the method and this column agree, so a row cannot say a
+     * district consented while naming no agreement, and cannot point at an
+     * agreement while claiming a parent signed it.
+     *
+     * `restrict` on delete. An agreement with consent rows resting on it cannot
+     * be removed, because doing so would leave children whose permission to
+     * practise refers to nothing.
+     */
+    agreementId: int('agreement_id').references(() => institutionAgreements.id, {
+      onDelete: 'restrict',
+    }),
   },
-  table => [index('consent_learner_idx').on(table.learnerId, table.recordedAt)],
+  table => [
+    index('consent_learner_idx').on(table.learnerId, table.recordedAt),
+    /**
+     * The method and the evidence must agree.
+     *
+     * Without this, `institutional_agreement` stays a string a caller can write
+     * with nothing behind it — which is precisely the state C3e exists to end.
+     * The reverse direction matters too: a row naming an agreement while
+     * claiming a parent attested to it would misdescribe who consented, and the
+     * ledger's whole purpose is to say what actually happened.
+     */
+    check(
+      'consent_method_matches_evidence',
+      sql`(\`method\` = 'institutional_agreement') = (\`agreement_id\` is not null)`,
+    ),
+  ],
 );
 
 /**
