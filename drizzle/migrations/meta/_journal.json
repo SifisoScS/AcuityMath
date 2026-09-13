@@ -120,6 +120,13 @@
       "when": 1789309014951,
       "tag": "0016_majestic_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1789313455014,
+      "tag": "0017_majestic_living_tribunal",
+      "breakpoints": true
     }
   ]
 }

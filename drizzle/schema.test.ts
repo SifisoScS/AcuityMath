@@ -108,6 +108,13 @@ const NOT_LEARNER_SCOPED = [
    * deleted every few minutes.
    */
   'lti_launch_states',
+  /*
+   * The link between a platform's `sub` and one of our accounts. It points at
+   * `users`, which is the adult side of this product, and never at `learners` —
+   * a child arriving from an LMS is C3d and will need a consent record, not a
+   * row quietly added here by a launch.
+   */
+  'lti_identities',
   'users',
   'magic_link_tokens',
   'learners',

@@ -170,6 +170,52 @@ export function sessionCookie(token: string): string {
   return parts.join('; ');
 }
 
+/**
+ * Whether this deployment is reachable over https.
+ *
+ * `APP_BASE_URL` rather than `NODE_ENV`, because the thing that decides whether
+ * a browser will keep a `Secure` cookie is the scheme it was served over, and
+ * the ordinary way to develop an LTI tool is a tunnel giving an https URL to a
+ * server that still thinks it is in development.
+ */
+function servedOverHttps(): boolean {
+  const base = process.env.APP_BASE_URL;
+  if (base) return base.startsWith('https://');
+  return process.env.NODE_ENV === 'production';
+}
+
+/**
+ * The Set-Cookie value for a session begun by an LTI launch.
+ *
+ * Separate from `sessionCookie` for one reason, and it is the single most
+ * common way an LTI integration fails. **A tool launched from an LMS runs
+ * cross-site**, usually inside an iframe on the LMS's own page. `SameSite=Lax`
+ * is not sent on cross-site subresource requests at all, so the cookie would be
+ * set by the launch and then withheld from every request after it: the teacher
+ * lands on a page that says they are signed out, immediately after signing in.
+ *
+ * `SameSite=None` is what makes it travel, and browsers only keep such a cookie
+ * when it is also `Secure` — which is why **LTI does not work over plain
+ * http**, locally or anywhere. Emitting `None` without `Secure` would have the
+ * browser discard the cookie outright, so below https we fall back to `Lax`,
+ * which at least works for a launch opened in a new tab rather than an iframe.
+ *
+ * The family app keeps `Lax`. Widening it there would hand away a CSRF defence
+ * that costs nothing to keep, to solve a problem it does not have.
+ */
+export function ltiSessionCookie(token: string): string {
+  const secure = servedOverHttps();
+  const parts = [
+    `${SESSION_COOKIE}=${token}`,
+    'Path=/',
+    'HttpOnly',
+    secure ? 'SameSite=None' : 'SameSite=Lax',
+    `Max-Age=${SESSION_LIFETIME_SECONDS}`,
+  ];
+  if (secure) parts.push('Secure');
+  return parts.join('; ');
+}
+
 /** The Set-Cookie value that ends a session. */
 export function clearedSessionCookie(): string {
   const parts = [`${SESSION_COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'];

@@ -54,8 +54,9 @@ missing is the institutional layer and the content to fill the tiers.
 
 | Architecture claims | Reality |
 | --- | --- |
-| §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Nothing exists.** No LTI, OIDC or JWT-platform code in the repository |
-| §7 Endpoint URLs (`/api/lti/launch`, `/login_init`, `/jwks.json`) | Do not exist, and `acuitymath.org` is not registered to this project |
+| §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Core is served** (C1–C3c): keys, registry, initiation, token validation, staff launch. **NRPS, AGS and Deep Linking do not exist** |
+| §7 A pupil launching from an LMS | **Refused, by design and by name.** Consent for a child with no guardian here is C3d and C3e |
+| §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
 | §7 OneRoster 1.2 (`/api/oneroster/v1p2`) | Nothing exists |
 | §7 Self-serve wizard with handshake testing | `LtiOnboardingWizardModal.tsx` renders a form and **makes no network calls** |
 | §8 District console, CSV, CCSS audit, PDF brief | `DistrictAdminDashboard.tsx` exists but is unrouted, and seeds **invented campuses** into its own state |
@@ -192,17 +193,38 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | --- | --- | --- |
 | **C1 Keys** | RSA-256 keypair, JWKS endpoint, rotation without downtime | A platform can fetch `/api/lti/jwks.json` and verify a token we signed |
 | **C2 Platform registry** | Store issuer, client id, deployment id, keyset URL per platform | Two platforms can be registered and neither can impersonate the other |
-| **C3 Core launch** | OIDC third-party initiation, launch validation, nonce and state replay protection, user provisioning into B1's entities | A launch from the reference platform lands a real learner in a real classroom |
+| ~~**C3a Initiation**~~ | OIDC third-party initiation, single-use state and nonce | **Done, PR #48.** Both verbs; an ambiguous issuer is refused rather than guessed |
+| ~~**C3b Token validation**~~ | Signature, audience, nonce, deployment and target checks | **Done, PR #49.** Eleven mutations bite; the platform in the tests serves a real JWKS |
+| ~~**C3c Staff launch**~~ | The `/launch` endpoint, staff provisioning, cross-site session | **Done.** A teacher launches from an LMS and lands signed in |
+| **C3d Learner ownership** | `learners.guardian_id` nullable, `learners.institution_id`, exactly one set | A district pupil can exist, and is refused by the consent gate |
+| **C3e Institutional consent** | `institution_agreements`, and `institutional_agreement` consent that points at one | The same pupil passes the gate, and a lapsed agreement fails it |
 | **C4 NRPS** | Names and Roles — pull the roster from the platform | A class roster matches the platform's without manual entry |
 | **C5 AGS v2.0** | Line items and score passback | A completed session appears in the platform gradebook |
 | **C6 Deep Linking 2.0** | Teacher selects a concept or quest; platform receives a signed content item | A teacher can embed a specific quest |
 | **C7 Conformance** | Run 1EdTech's suite per service | Certification, and only then the badge |
 
-**Reuse rather than rebuild:** C3's provisioning should write through the same
-`recordConsent` path — with method `institutional_agreement` — so a school-consented
-pupil satisfies the existing consent gate rather than bypassing it. The gate
-refuses writes for learners without consent, and an LTI-provisioned pupil must go
-through it, not around it.
+**Reuse rather than rebuild, with one correction found while building C3c.**
+A school-consented pupil must satisfy the existing consent gate rather than
+bypass it — that still holds, and is why C3e exists. But it cannot reuse
+`recordConsent` as written: that function consents for **every learner of the
+guardian it is given**, which is right for a family and catastrophic for a
+district. Whoever stood in as guardian for a school's pupils would have one call
+consent for all of them, and `consentForFamily` would return thousands of
+children to a single screen.
+
+So C3d makes the footgun unrepresentable instead of documenting it. With
+district pupils hanging off `institution_id` rather than `guardian_id`, the
+family sweep structurally cannot reach them.
+
+**And institutional consent must be as evidenced as family consent.**
+`institutional_agreement` is already a value in the enum and costs nothing to
+write — nothing has to exist for a row to claim it. Family consent snapshots a
+policy version, a server-computed hash, an attested name, a verified email and a
+timestamp. If the institutional path is only a string, the gate is weakest for
+exactly the children with least agency, and weakest in the direction that
+happens to be convenient for us. C3e therefore records who signed, when, and the
+hash of what they signed, and a district whose agreement has lapsed fails the
+gate the way a family that withdrew does.
 
 ---
 

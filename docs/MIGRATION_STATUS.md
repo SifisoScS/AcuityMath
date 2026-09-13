@@ -1188,6 +1188,42 @@ The general shape, and the fifth time this audit has hit it: **a guard sitting
 downstream of something else that already refuses is untested, however green it
 reads.** Only mutation tells you which layer is doing the work.
 
+**Probing an endpoint with the wrong content type proves it answers, not that it
+works.** C3a added `POST /api/lti/login` and probed it with JSON, which
+`express.json()` parsed, so the route replied sensibly and the work looked done.
+LTI posts `application/x-www-form-urlencoded`, because the specification fixes
+`response_mode=form_post`. Nothing on that router parsed it, so `req.body` was
+undefined and **every genuine platform initiation would have been told that the
+three parameters it had just sent were missing.** The parser is now mounted on
+the LTI router — not the application, so the surface Graft E is retiring keeps
+parsing exactly what it did before — and the route suite posts forms, as a
+platform does.
+
+**An LTI session cookie cannot be `SameSite=Lax`.** A tool launched from an LMS
+runs cross-site, usually inside an iframe on the LMS's own page, and a `Lax`
+cookie is not sent on those requests at all — the teacher lands on a page saying
+they are signed out, immediately after signing in. `ltiSessionCookie` emits
+`SameSite=None; Secure`; the family app keeps `Lax`, because widening it there
+would give away a CSRF defence to solve a problem it does not have. `Secure` is
+not optional for `None`, so **LTI does not work over plain http**, locally or
+anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
+`NODE_ENV`, because what decides whether a browser keeps the cookie is the
+scheme it was served over, and the ordinary way to develop an LTI tool is a
+tunnel giving https to a server that still thinks it is in development.
+
+**A launch must not be allowed to change what an account is.** The platform
+chooses the email address in a launch, so any branch that *modified* an existing
+account would let somebody else's software decide what one of ours becomes.
+`addMember` promotes an unaffiliated account into a district and rewrites its
+role — right when an administrator types an address, wrong when an LMS asserts
+one — so `provisionStaff` does not call it on that path. The case that would
+actually hurt somebody: a self-serve account with no district is usually a
+parent with children hanging off it, and adopting it would pull that family's
+records into a district's reach with no adult agreeing to anything. The test
+asserts `institutionReaches` still returns false afterwards, not merely that
+provisioning was refused. The same rule keeps an `institution_admin` who
+launches from Canvas from coming back a `teacher`.
+
 ---
 
 ## Still-open questions

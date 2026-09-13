@@ -13,13 +13,33 @@
  * is not meant for the open internet.
  */
 
-import { Router, type Request, type Response } from 'express';
+import express, { Router, type Request, type Response } from 'express';
 
 import { getDatabase } from '../db/client';
+import { issueSession, ltiSessionCookie } from '../auth/session';
+import { LaunchRejected, verifyLaunch } from './idToken';
 import { publicJwks, signingKey } from './keys';
 import { AmbiguousPlatform, beginLaunch, UnknownPlatform } from './launchState';
+import { CannotProvision, provisionStaff } from './provision';
 
 export const ltiRouter = Router();
+
+/**
+ * Form-encoded bodies, on this router only.
+ *
+ * LTI posts with `application/x-www-form-urlencoded`, because the specification
+ * fixes `response_mode=form_post` and that is what a browser sends when a
+ * platform auto-submits a form. The application mounts only `express.json()`,
+ * which parses nothing here and leaves `req.body` undefined.
+ *
+ * **This was already a defect before this change.** C3a added `POST /login` and
+ * probed it with JSON, so it passed; a real platform posting a form would have
+ * been answered with "an LTI initiation needs iss, login_hint and
+ * target_link_uri" while dutifully sending all three. Mounted on the router
+ * rather than the app so the surface Graft E is retiring keeps parsing exactly
+ * what it did before.
+ */
+ltiRouter.use(express.urlencoded({ extended: false }));
 
 /**
  * The public keyset, at the URL a platform is configured with.
@@ -129,3 +149,116 @@ async function initiate(req: Request, res: Response): Promise<void> {
 
 ltiRouter.get('/login', initiate);
 ltiRouter.post('/login', initiate);
+
+/**
+ * A refusal a person can act on, rendered as a page rather than JSON.
+ *
+ * Whoever sees this is standing in a classroom looking at an LMS, not reading a
+ * response body, so it has to be readable. The status is 403 rather than 400
+ * because every case that reaches it is "you are not allowed in", which is what
+ * a proxy or an LMS log should record.
+ *
+ * `escape` currently guards nothing, and that is said plainly rather than
+ * implied otherwise: every message below is a fixed string, so no platform
+ * input reaches this HTML today. It is here because a refusal that quotes what
+ * the platform sent is an obvious next thing to write, and this page is
+ * guaranteed to be framed by somebody else's site — the worst place to
+ * discover the escaping was never there. It is tested directly, because an
+ * unreachable guard with no test is a claim rather than a defence.
+ */
+export function escapeForRefusal(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function refuse(res: Response, status: number, heading: string, detail: string): void {
+  res.status(status).type('html').send(
+    `<!doctype html><html lang="en"><head><meta charset="utf-8">` +
+      `<meta name="viewport" content="width=device-width,initial-scale=1">` +
+      `<title>${escapeForRefusal(heading)}</title></head>` +
+      `<body style="font:16px/1.5 system-ui,sans-serif;margin:0;padding:2.5rem;color:#1f2937">` +
+      `<h1 style="font-size:1.25rem;margin:0 0 .75rem">${escapeForRefusal(heading)}</h1>` +
+      `<p style="margin:0;max-width:40rem">${escapeForRefusal(detail)}</p>` +
+      `</body></html>`,
+  );
+}
+
+/**
+ * The second leg: the platform posts a signed token back, and somebody arrives.
+ *
+ * Only staff get in. A pupil launch is refused in `provisionStaff` with a
+ * sentence saying so, because signing a child in needs a consent record and an
+ * LMS pupil has no guardian here yet — that is C3d. Guessing would put a child
+ * in front of the product with nothing on file, which is the one outcome the
+ * consent work exists to prevent.
+ */
+ltiRouter.post('/launch', async (req: Request, res: Response) => {
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const state = String(body.state ?? '');
+  const idToken = String(body.id_token ?? '');
+
+  if (!state || !idToken) {
+    refuse(
+      res,
+      400,
+      'This link did not arrive from a launch',
+      'A launch must carry both a state and an id_token. Opening this address ' +
+        'directly will not work; start from the link in your LMS.',
+    );
+    return;
+  }
+
+  const db = getDatabase();
+
+  let context;
+  try {
+    context = await verifyLaunch(db, { idToken, state });
+  } catch (error) {
+    if (error instanceof LaunchRejected) {
+      /*
+       * One sentence for every value of `reason`, and the reason itself goes to
+       * the log instead. "Your nonce did not match" and "no such state" are
+       * different answers only to somebody working out which one they can fix,
+       * and the honest teacher's next step is the same either way: launch again.
+       */
+      console.warn(`[lti] launch refused (${error.reason}): ${error.message}`);
+      refuse(
+        res,
+        403,
+        'This launch could not be verified',
+        'The link may have been opened twice, or left sitting too long. Go back ' +
+          'to your LMS and click through again.',
+      );
+      return;
+    }
+    throw error;
+  }
+
+  let staff;
+  try {
+    staff = await provisionStaff(db, context);
+  } catch (error) {
+    if (error instanceof CannotProvision) {
+      // These messages *are* for the reader — each one names something an
+      // administrator can go and do.
+      console.warn(`[lti] provisioning refused (${error.reason}) for ${context.subject}`);
+      refuse(res, 403, 'Not signed in', error.message);
+      return;
+    }
+    throw error;
+  }
+
+  const session = await issueSession(staff.userId);
+  res.setHeader('Set-Cookie', ltiSessionCookie(session));
+
+  /*
+   * A redirect rather than rendering the app here, so the address bar and the
+   * SPA's own router agree about where the user is. `targetLinkUri` is the one
+   * the *launch started with*, already checked against the token's claim in
+   * `verifyLaunch` — not a value taken from this request.
+   */
+  res.redirect(302, context.targetLinkUri);
+});
