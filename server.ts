@@ -6,6 +6,7 @@ import { createServer as createViteServer } from 'vite';
 
 import { apiRouter } from './server/api';
 import { authRouter } from './server/auth/routes';
+import { ltiRouter } from './server/lti/routes';
 import { createContext } from './server/trpc';
 import { appRouter } from './server/trpc/routers';
 
@@ -47,6 +48,10 @@ async function startServer() {
 
   // Sign-in, before the legacy REST surface so `/api/auth/*` reaches it.
   app.use('/api/auth', authRouter);
+
+  // LTI 1.3, on its own router for the same reason. New work does not go into
+  // the pre-migration surface below, which Graft E spent its time emptying.
+  app.use('/api/lti', ltiRouter);
 
   // API Routes FIRST before SPA / Vite middleware
   app.use('/api', apiRouter);

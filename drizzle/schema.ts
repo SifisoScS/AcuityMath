@@ -105,6 +105,48 @@ export const schools = mysqlTable(
 );
 
 // ---------------------------------------------------------------------------
+// LTI 1.3
+// ---------------------------------------------------------------------------
+
+/**
+ * The signing keys this platform publishes to learning management systems.
+ *
+ * An LMS verifies our messages against a JWKS document it fetches from us and
+ * **caches**, often for hours. That cache is the whole reason this is a table
+ * rather than a pair of environment variables: a key has to be *published*
+ * before it is *used*, or every message signed with it is rejected until the
+ * platform happens to re-fetch.
+ *
+ * So rotation is two steps, not one. A new key is created and appears in the
+ * JWKS immediately, signing nothing. Once platforms have had time to see it, it
+ * is promoted and the old one keeps being published until its signatures have
+ * aged out. `retiredAt` is when a key leaves the document, which is later than
+ * when it stops signing.
+ *
+ * **The private key sits in this table**, and its protection is the database's
+ * and the host's. There is no at-rest encryption in this repository — recorded
+ * in `docs/privacy/DATA_MAP.md` §8 and a Track A item — and this is the row that
+ * makes it matter most: anyone holding it can sign messages as this platform.
+ */
+export const ltiKeys = mysqlTable(
+  'lti_keys',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    /** The `kid` in every JWT header, so a platform knows which key to verify with. */
+    kid: varchar('kid', { length: 64 }).notNull(),
+    publicJwk: json('public_jwk').notNull(),
+    privatePem: text('private_pem').notNull(),
+    /** Exactly one key signs at a time; the rest are published or retired. */
+    isActive: boolean('is_active').notNull().default(false),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    activatedAt: timestamp('activated_at'),
+    /** When it left the JWKS. Null while still published. */
+    retiredAt: timestamp('retired_at'),
+  },
+  table => [uniqueIndex('lti_key_kid_idx').on(table.kid)],
+);
+
+// ---------------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------------
 

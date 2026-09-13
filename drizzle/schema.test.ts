@@ -88,6 +88,12 @@ const NOT_LEARNER_SCOPED = [
    */
   'institutions',
   'schools',
+  /*
+   * Cryptographic material belonging to the platform, not to anybody. It holds
+   * no learner id and must never hold one — a key row is what this deployment
+   * signs messages with, and nothing about a child belongs in it.
+   */
+  'lti_keys',
   'users',
   'magic_link_tokens',
   'learners',
