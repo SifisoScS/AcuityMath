@@ -22,20 +22,41 @@
  * `granted`, which is a state the product needs to be able to see.
  */
 
-export const CONSENT_POLICY_VERSION = '2026-09-v1';
+export const CONSENT_POLICY_VERSION = '2026-09-v2';
+
+/*
+ * v1 → v2, and why.
+ *
+ * v1 told a guardian their child's information "is not sold or shared with
+ * anyone else", without qualification, while a child's typed message to the
+ * maths coach was being sent to Google. Google is a processor rather than a
+ * recipient and no identifier travels with the request — and that distinction
+ * does not survive a parent reading the sentence.
+ *
+ * Every v1 consent becomes `superseded`, which is not consent: under-13s whose
+ * guardians granted it fall back to local-only practice, and are told so, until
+ * a guardian agrees to this text. That is the versioned-consent design working
+ * as intended rather than a migration problem — and it was done while the only
+ * rows in existence were the demonstration family, because the cost of a bump
+ * is every family who has ever consented.
+ */
 
 /**
  * The disclosure, as displayed.
  *
  * Written as the parent reads it, in the order they need it: what is collected,
- * what it is used for, what is not done with it, and what they can do later.
- * Each clause is something the application actually does — there is no mention
- * of third-party sharing controls or advertising preferences, because there is
- * no third-party sharing and no advertising.
+ * what it is used for, where it goes, what is not done with it, and what they
+ * can do later. Each clause is something the application actually does.
+ *
+ * There is no mention of advertising preferences, because there is no
+ * advertising. There *is* a clause about the coach, because a child's words
+ * reach Google when they use it — v1 omitted that and said nothing was shared
+ * with anyone, which is the omission this version exists to correct.
  */
 export const CONSENT_POLICY_CLAUSES: string[] = [
   'AcuityMath records the answers your child gives to maths questions, how long each answer took, and which concepts they have practised.',
-  'That information is used to choose the next question and to show you how your child is getting on. It is not used for advertising, and it is not sold or shared with anyone else.',
+  'That information is used to choose the next question and to show you how your child is getting on. It is not used for advertising, and it is never sold.',
+  'Your child can ask a built-in coach for a hint. When they do, the question they are working on and anything they type into it is sent to Google, which provides the artificial intelligence that writes the reply. Their name, your email address and their account are not sent with it.',
   'We do not ask your child for their real name, address, photograph, or any way of contacting them. A learner profile holds a display name you choose, a birth year, and an avatar.',
   'You can see everything recorded about your child, and you can withdraw this consent at any time.',
 ];
