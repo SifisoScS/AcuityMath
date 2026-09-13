@@ -11,6 +11,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { AdaptiveEngine, type ItemParameters, type StudentAbilityProfile } from './adaptiveEngine';
+import { eloForTheta } from './eloScale';
 
 const item: ItemParameters = { discrimination: 1.2, difficulty: 0, pseudoGuessing: 0.25 };
 
@@ -154,7 +155,15 @@ describe('createInitialProfile', () => {
       const profile = AdaptiveEngine.createInitialProfile(age);
       expect(profile.dynamicLevel).toBeGreaterThanOrEqual(1);
       expect(profile.dynamicLevel).toBeLessThanOrEqual(10);
-      expect(profile.eloRating).toBe(Math.round(1200 + profile.theta * 300));
+      /*
+       * Checked through `eloForTheta` rather than by repeating the formula.
+       * This line carried its own copy — one of the four that drifted apart —
+       * so a test written to catch an inconsistency was one of the places the
+       * inconsistency lived. What belongs here is that a profile agrees with
+       * its own theta; the mapping is pinned against the specification's
+       * anchors in `eloScale.test.ts`.
+       */
+      expect(profile.eloRating).toBe(eloForTheta(profile.theta));
     }
   });
 

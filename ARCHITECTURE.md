@@ -178,16 +178,29 @@ $$I(\theta) = \sum_{i=1}^{N} \frac{\left[P_i'(\theta)\right]^2}{P_i(\theta) \cdo
 bound, and an unfloored standard error eventually claims a precision no
 seven-item instrument has.
 
-### ELO Rating Mapping
+### ELO Rating Mapping ✅
 
-🟡 **The specification and the implementation disagree, and this is tracked.**
+$$\text{ELO}(\theta) = \text{round}(1000 + 250\theta)$$
 
-- This document specifies $\text{ELO}(\theta) = 1000 + 250\theta$.
-- `adaptiveEngine.ts` implements $1200 + 300\theta$, over a displayed range of 600–2400.
+- $\theta = -2.0 \implies \text{ELO } 500$ (emerging foundational)
+- $\theta = 0.0 \implies \text{ELO } 1000$ (grade-level benchmark)
+- $\theta = +2.0 \implies \text{ELO } 1500$ (advanced)
 
-Both are defensible; what is not defensible is two answers to one question. See
-**Track B3** in `docs/ROADMAP.md`. Whichever is chosen, the change is a migration
-rather than an edit, because ratings are already displayed to learners.
+Bounded by the range $\theta$ is reported within, $[-3, +3]$, so a rating lies in
+$[250, 1750]$.
+
+**There were four mappings, and Graft B3 reduced them to this one.** This
+document specified $1000 + 250\theta$; `adaptiveEngine.ts` computed
+$1200 + 300\theta$ in two places; `adaptiveWorker.ts` computed it again
+independently, so the worker and the main-thread fallback it exists to be
+replaced by each carried a copy; and a new profile was seeded at 900, 1200, 1500
+or 1800 by **age tier**, which is not a conversion of anything — it states an
+ability estimate inferred from a birthday, which is what the Placement Quest
+exists to avoid.
+
+The specification won, stored ratings were recomputed from $\theta$, and
+`src/services/eloScale.ts` is now the only place the arithmetic exists — with a
+test that fails if a fifth copy appears.
 
 ### The 7-Item Diagnostic "Placement Quest" ✅
 New learners are invited to a 7-item Placement Quest, converging $\theta$ from the

@@ -4,6 +4,7 @@ import { determineTierForAge } from '../utils/storage';
 import { Lock, UserPlus, Users, X, Check, KeyRound } from 'lucide-react';
 import { playClickSound, playSuccessSound, playErrorSound } from '../utils/audio';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { ELO_UNMEASURED } from '../services/eloScale';
 
 interface ProfileSwitchModalProps {
   profiles: UserProfile[];
@@ -72,7 +73,16 @@ export const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
 
     const tier = determineTierForAge(newAge);
     const initialLevel = tier === 'early' ? 1 : tier === 'elementary' ? 3 : tier === 'middle' ? 5 : 7;
-    const initialElo = tier === 'early' ? 900 : tier === 'elementary' ? 1200 : tier === 'middle' ? 1500 : 1800;
+    /*
+     * The benchmark, not a number derived from their age.
+     *
+     * This seeded 900 for a three-year-old and 1800 for a sixteen-year-old,
+     * which states an ability estimate inferred from a birthday. Age is not
+     * ability, and inferring one from the other is what the seven-item
+     * Placement Quest exists to avoid — it moves this within a few minutes of a
+     * first sitting. Until then "not yet measured" is the honest value.
+     */
+    const initialElo = ELO_UNMEASURED;
 
     const newProfile: UserProfile = {
       id: `user-${Date.now()}`,
