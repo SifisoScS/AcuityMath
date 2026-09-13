@@ -31,6 +31,7 @@ import {
   CONSENT_POLICY_VERSION,
 } from '../../src/data/consentPolicy';
 import type { Database } from '../db/client';
+import { type Agreement, activeAgreement, isInForce } from './institutionAgreements';
 
 /**
  * The hash of the disclosure this server holds.
@@ -50,7 +51,7 @@ export function currentPolicyHash(): string {
  * One value rather than a decision plus an `isCurrent` flag, because those two
  * can be combined wrongly by a caller and only one combination is meaningful.
  */
-export type ConsentStatus = 'granted' | 'withdrawn' | 'superseded' | 'none';
+export type ConsentStatus = 'granted' | 'withdrawn' | 'superseded' | 'lapsed' | 'none';
 
 export interface ConsentState {
   learnerId: number;
@@ -76,10 +77,45 @@ export interface ConsentState {
  *   - `none` covers a child with no rows at all, which includes any child added
  *     to the account after consent was given.
  */
-function statusOf(row: typeof schema.consentEvents.$inferSelect | undefined): ConsentStatus {
+function statusOf(
+  row: typeof schema.consentEvents.$inferSelect | undefined,
+  agreement: Agreement | null = null,
+  now: Date = new Date(),
+): ConsentStatus {
   if (!row) return 'none';
   if (row.decision === 'withdrawn') return 'withdrawn';
+
+  /*
+   * **Institutional consent is re-checked, not trusted once.**
+   *
+   * A district's agreement can expire or be withdrawn, and when it does, every
+   * child resting on it must stop being recorded — that is the sentence in the
+   * agreement itself. If this read the consent row alone, ending an agreement
+   * would change nothing and the clause would be decorative.
+   *
+   * `lapsed` rather than `withdrawn`: nobody withdrew consent for this
+   * particular child, and a district looking at the answer needs to know the
+   * difference between "the school pulled out" and "a parent said no".
+   */
+  if (row.agreementId !== null) {
+    if (!agreement || !isInForce(agreement, now)) return 'lapsed';
+  }
+
   return row.policyVersion === CONSENT_POLICY_VERSION ? 'granted' : 'superseded';
+}
+
+/** Loads the agreement a consent row rests on, when it rests on one. */
+async function agreementFor(
+  db: Database,
+  row: typeof schema.consentEvents.$inferSelect | undefined,
+): Promise<Agreement | null> {
+  if (!row?.agreementId) return null;
+  const [agreement] = await db
+    .select()
+    .from(schema.institutionAgreements)
+    .where(eq(schema.institutionAgreements.id, row.agreementId))
+    .limit(1);
+  return agreement ?? null;
 }
 
 /**
@@ -102,7 +138,7 @@ export async function consentStatusFor(db: Database, learnerId: number): Promise
     .orderBy(desc(schema.consentEvents.recordedAt), desc(schema.consentEvents.id))
     .limit(1);
 
-  return statusOf(latest);
+  return statusOf(latest, await agreementFor(db, latest));
 }
 
 /** Every child on the account, with where their consent stands. */
@@ -126,7 +162,7 @@ export async function consentForFamily(
 
       const state: ConsentState = {
         learnerId: id,
-        status: statusOf(latest),
+        status: statusOf(latest, await agreementFor(db, latest)),
         recordedAt: latest?.recordedAt ?? null,
         policyVersion: latest?.policyVersion ?? null,
         attestedName: latest?.attestedName ?? null,
@@ -259,4 +295,125 @@ export async function recordConsent(
   });
 
   return { learnerIds: children.map(c => c.id), policyVersion: CONSENT_POLICY_VERSION };
+}
+
+/**
+ * Raised when a district tries to consent with no agreement behind it.
+ *
+ * The refusal C3e exists for. Without it, `institutional_agreement` is a string
+ * a caller writes, and the children it covers are covered by nothing.
+ */
+export class NoAgreement extends Error {
+  constructor(institutionId: number) {
+    super(
+      `Institution ${institutionId} has no agreement in force, so consent cannot be ` +
+        'recorded on its behalf.',
+    );
+    this.name = 'NoAgreement';
+  }
+}
+
+export interface InstitutionalConsentInput {
+  institutionId: number;
+  decision: 'granted' | 'withdrawn';
+  policyVersion: string;
+  /**
+   * Which children. Omit for every pupil the district owns.
+   *
+   * Named explicitly by the LTI path, which consents for one pupil as they
+   * arrive rather than for a roll it has not seen.
+   */
+  learnerIds?: number[];
+}
+
+/**
+ * Records consent for a district's own pupils, resting on its agreement.
+ *
+ * This is deliberately **not** `recordConsent` with a different method. That
+ * function sweeps every learner of a guardian, which is right for a family and
+ * was the reason C3d gave district pupils their own owner — reusing it here
+ * would have rebuilt the footgun one level up.
+ *
+ * Only children the district actually owns are touched. A pupil whose guardian
+ * is a parent is somebody else's to consent for, however plainly they sit in
+ * the district's classrooms, and a district naming one is refused rather than
+ * quietly skipped: silently doing less than you were asked is how somebody ends
+ * up believing a child is covered.
+ */
+export async function recordInstitutionalConsent(
+  db: Database,
+  input: InstitutionalConsentInput,
+  now: Date = new Date(),
+): Promise<{ learnerIds: number[]; agreementId: number }> {
+  if (input.policyVersion !== CONSENT_POLICY_VERSION) {
+    throw new StalePolicy(CONSENT_POLICY_VERSION);
+  }
+
+  const agreement = await activeAgreement(db, input.institutionId, now);
+  if (!agreement) throw new NoAgreement(input.institutionId);
+
+  const owned = await db
+    .select({ id: schema.learners.id })
+    .from(schema.learners)
+    .where(eq(schema.learners.institutionId, input.institutionId));
+
+  const ownedIds = new Set(owned.map(row => row.id));
+
+  let learnerIds: number[];
+  if (input.learnerIds) {
+    const strangers = input.learnerIds.filter(id => !ownedIds.has(id));
+    if (strangers.length > 0) {
+      throw new Error(
+        `Institution ${input.institutionId} does not own learners ${strangers.join(', ')}, ` +
+          'so it cannot consent for them.',
+      );
+    }
+    learnerIds = input.learnerIds;
+  } else {
+    learnerIds = [...ownedIds];
+  }
+
+  if (learnerIds.length === 0) {
+    return { learnerIds: [], agreementId: agreement.id };
+  }
+
+  const policySha256 = currentPolicyHash();
+
+  await db.transaction(async tx => {
+    await tx.insert(schema.consentEvents).values(
+      learnerIds.map(learnerId => ({
+        learnerId,
+        /*
+         * The administrator who signed, taken from the agreement rather than
+         * from the caller. A caller-supplied granter could name somebody who
+         * never agreed to anything, which is the misdescription this ledger
+         * exists to prevent.
+         */
+        grantedByUserId: agreement.signedByUserId,
+        decision: input.decision,
+        method: 'institutional_agreement' as const,
+        policyVersion: CONSENT_POLICY_VERSION,
+        policySha256,
+        /*
+         * Snapshotted from the agreement, not re-attested per child. Whoever
+         * signed for the district signed once; writing their name against each
+         * pupil is recording what was agreed, not pretending to a fresh act.
+         */
+        attestedName: agreement.signatoryName,
+        verifiedEmail: agreement.signatoryEmail,
+        /*
+         * Null, and truthfully so. Family consent records when a magic link
+         * proved control of an address; an institutional agreement rests on the
+         * district's authority instead, and inventing a verification here would
+         * make the two look like the same evidence.
+         */
+        emailVerifiedAt: null,
+        secondStepSent: false,
+        agreementId: agreement.id,
+        recordedAt: now,
+      })),
+    );
+  });
+
+  return { learnerIds, agreementId: agreement.id };
 }

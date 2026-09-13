@@ -1211,6 +1211,26 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**MySQL rounds a sub-second value into a `TIMESTAMP`; it does not truncate it.**
+Signing an agreement at 12:00:00.800 stored `12:00:01` — a moment in the future
+— so `isInForce` refused it for the next two hundred milliseconds, and a
+district that signed and immediately tried to consent was told it had no
+agreement. It surfaced as a test failing on a read that came straight after a
+write, which is the shape this always has. `signedAt` and `withdrawnAt` are now
+floored before the write, which errs a moment early rather than a moment late:
+early is the safe direction for both — an agreement is authorised by the act of
+signing, and withdrawal stopping recording a moment sooner is the harmless way
+to be wrong.
+
+**A guard can read as dead against one caller and live against another.**
+`isInForce` checks `withdrawnAt`, and mutating that check away does not fail the
+`activeAgreement` tests — that query already filters withdrawn rows in SQL. It
+is load-bearing on the other path: `statusOf` loads an agreement **by id**,
+because it needs the one a consent row actually names rather than whichever is
+current, and that query has nothing to hide behind. The mutation only bit once
+it was aimed at the consent test. Fourth time in Track C that the question was
+not "is this guard tested" but "which layer is doing the work".
+
 **Two ids of the same type is an argument nobody can pass wrongly only until
 they do.** `institutionReaches` took `(callerId, learnerGuardianId)`. A caller
 holding a learner id had to resolve the guardian first, and both are `number` —

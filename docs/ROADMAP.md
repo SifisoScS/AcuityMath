@@ -55,7 +55,7 @@ missing is the institutional layer and the content to fill the tiers.
 | Architecture claims | Reality |
 | --- | --- |
 | §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Core is served** (C1–C3c): keys, registry, initiation, token validation, staff launch. **NRPS, AGS and Deep Linking do not exist** |
-| §7 A pupil launching from an LMS | **Refused, by design and by name.** Consent for a child with no guardian here is C3d and C3e |
+| §7 A pupil launching from an LMS | **Still refused, by design and by name.** The machinery to consent for them exists (C3d, C3e); wiring it to the launch is C3f |
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
 | §7 OneRoster 1.2 (`/api/oneroster/v1p2`) | Nothing exists |
 | §7 Self-serve wizard with handshake testing | `LtiOnboardingWizardModal.tsx` renders a form and **makes no network calls** |
@@ -197,7 +197,8 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | ~~**C3b Token validation**~~ | Signature, audience, nonce, deployment and target checks | **Done, PR #49.** Eleven mutations bite; the platform in the tests serves a real JWKS |
 | ~~**C3c Staff launch**~~ | The `/launch` endpoint, staff provisioning, cross-site session | **Done.** A teacher launches from an LMS and lands signed in |
 | ~~**C3d Learner ownership**~~ | `learners.guardian_id` nullable, `learners.institution_id`, exactly one set | **Done.** A district pupil exists and is refused by the consent gate — and family consent structurally cannot reach them |
-| **C3e Institutional consent** | `institution_agreements`, and `institutional_agreement` consent that points at one | The same pupil passes the gate, and a lapsed agreement fails it |
+| ~~**C3e Institutional consent**~~ | `institution_agreements`, and `institutional_agreement` consent that points at one | **Done.** The pupil C3d blocked now practises, and ending the agreement stops them again |
+| **C3f Pupil launch** | Provision an LMS pupil as a district learner and consent them through C3e | A child launches from an LMS and can practise, with an agreement on file |
 | **C4 NRPS** | Names and Roles — pull the roster from the platform | A class roster matches the platform's without manual entry |
 | **C5 AGS v2.0** | Line items and score passback | A completed session appears in the platform gradebook |
 | **C6 Deep Linking 2.0** | Teacher selects a concept or quest; platform receives a signed content item | A teacher can embed a specific quest |

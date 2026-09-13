@@ -15,7 +15,14 @@ import { useMemo } from 'react';
 import { trpc } from '../lib/trpc';
 import { isStepUpRequired } from './useStepUp';
 
-export type ConsentStatus = 'granted' | 'withdrawn' | 'superseded' | 'none';
+/**
+ * Kept in step with the server's union in `server/learning/consent.ts`.
+ *
+ * `lapsed` arrived with C3e: a district's agreement expired or was withdrawn, so
+ * consent that once stood no longer does. It is distinct from `withdrawn`
+ * because nobody withdrew consent for this particular child.
+ */
+export type ConsentStatus = 'granted' | 'withdrawn' | 'superseded' | 'lapsed' | 'none';
 
 export interface ConsentState {
   learnerId: number;
