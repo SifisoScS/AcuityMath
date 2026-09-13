@@ -196,7 +196,7 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | ~~**C3a Initiation**~~ | OIDC third-party initiation, single-use state and nonce | **Done, PR #48.** Both verbs; an ambiguous issuer is refused rather than guessed |
 | ~~**C3b Token validation**~~ | Signature, audience, nonce, deployment and target checks | **Done, PR #49.** Eleven mutations bite; the platform in the tests serves a real JWKS |
 | ~~**C3c Staff launch**~~ | The `/launch` endpoint, staff provisioning, cross-site session | **Done.** A teacher launches from an LMS and lands signed in |
-| **C3d Learner ownership** | `learners.guardian_id` nullable, `learners.institution_id`, exactly one set | A district pupil can exist, and is refused by the consent gate |
+| ~~**C3d Learner ownership**~~ | `learners.guardian_id` nullable, `learners.institution_id`, exactly one set | **Done.** A district pupil exists and is refused by the consent gate — and family consent structurally cannot reach them |
 | **C3e Institutional consent** | `institution_agreements`, and `institutional_agreement` consent that points at one | The same pupil passes the gate, and a lapsed agreement fails it |
 | **C4 NRPS** | Names and Roles — pull the roster from the platform | A class roster matches the platform's without manual entry |
 | **C5 AGS v2.0** | Line items and score passback | A completed session appears in the platform gradebook |

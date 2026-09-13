@@ -156,9 +156,15 @@ export const learnerProcedure = protectedProcedure.input(learnerIdInput).use(asy
    */
   const entitled =
     ctx.user.role === 'admin' ||
-    learner.guardianId === ctx.user.id ||
+    /*
+     * `guardianId` is nullable since C3d, so this is written as a comparison
+     * against a non-null id rather than plain equality. Two nulls must never
+     * match: a district's pupil has no guardian, and every account whose id
+     * failed to load would otherwise compare equal to one.
+     */
+    (learner.guardianId !== null && learner.guardianId === ctx.user.id) ||
     (ctx.user.role === 'institution_admin' &&
-      (await institutionReaches(ctx.db, ctx.user.id, learner.guardianId)));
+      (await institutionReaches(ctx.db, ctx.user.id, learner.id)));
 
   if (!entitled) {
     /*

@@ -183,12 +183,18 @@ describeWithDb('district membership', () => {
       await addMember(db, lincoln.id, 'parent@lincoln.test', 'parent');
       const head = await userByEmail('head@lincoln.test');
       const parent = await userByEmail('parent@lincoln.test');
+      // A learner id, not a guardian id: `institutionReaches` asks who may reach
+      // a *child*, and since C3d a district's pupil has no guardian to name.
+      const [child] = await db
+        .insert(schema.learners)
+        .values({ guardianId: parent.id, displayName: 'Their Child', birthYear: 2016 })
+        .$returningId();
 
-      expect(await institutionReaches(db, head.id, parent.id)).toBe(true);
+      expect(await institutionReaches(db, head.id, child.id)).toBe(true);
 
       await removeMember(db, head.id);
 
-      expect(await institutionReaches(db, head.id, parent.id)).toBe(false);
+      expect(await institutionReaches(db, head.id, child.id)).toBe(false);
     });
   });
 

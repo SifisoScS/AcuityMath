@@ -1211,6 +1211,47 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Two ids of the same type is an argument nobody can pass wrongly only until
+they do.** `institutionReaches` took `(callerId, learnerGuardianId)`. A caller
+holding a learner id had to resolve the guardian first, and both are `number` —
+so passing the wrong one compiled, ran, and returned an answer. It happened in
+C3c: a test passed a learner id, got `false`, and passed, because that learner's
+id and an unrelated user's id were both `1`. **A wrong answer that agrees with
+the expected one teaches nothing**, and expecting `false` is where this hides,
+because `false` is what almost everything returns.
+
+C3d changed the argument to a learner id, which a district's pupil needs anyway.
+Rewriting the suite's calls mattered for a second reason: left as guardian ids
+under the new signature, every case expecting `false` would have gone on passing
+while asserting nothing — no learner has that id — and only the two expecting
+`true` would have failed. Six green tests, one real check.
+
+**The type checker finds what would crash, not what would quietly be wrong.**
+Making `learners.guardian_id` nullable produced exactly two compile errors, both
+real. It produced none for `raiseMasteryMilestone`, which writes a notification
+row addressed to `learner.guardianId` — a column that is *also* nullable, so a
+district pupil's milestone would have inserted a row with neither a `user_id`
+nor a `learner_id`. Addressed to nobody, visible to nobody, deleted by nobody,
+and perfectly type-safe. Every read of a column that becomes nullable has to be
+looked at by hand; the compiler only flags the ones whose types stop lining up.
+
+**Guards can be jointly load-bearing and individually dead, and mutating one at
+a time cannot tell the difference.** `institutionReaches` has two null checks —
+one on the caller's institution, one on the guardian's. Removing either alone
+changes no answer, because the other still refuses the null-to-null case, and
+**both single mutations came back green**. Removing both lets two unaffiliated
+families reach each other, and that mutation fails. Redundancy on a boundary
+this wide is worth keeping, but the comment claiming one line was "the line that
+matters" was wrong and now says so.
+
+**A check constraint is only proved by dropping it from the database.** The
+exactly-one-owner rule on `learners` lives in migration `0018`, not in
+`schema.ts` — renaming it in the schema file proves nothing, because the test
+databases are built from migrations. It was verified by `ALTER TABLE learners
+DROP CHECK`, running the suite (both cases fail), and restoring. Restoring
+needed the suite's database dropped and rebuilt: the run had inserted the very
+rows the constraint forbids, so re-adding it was refused.
+
 **A launch must not be allowed to change what an account is.** The platform
 chooses the email address in a launch, so any branch that *modified* an existing
 account would let somebody else's software decide what one of ours becomes.

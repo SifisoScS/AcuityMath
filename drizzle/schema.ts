@@ -20,9 +20,10 @@
  * guards content correctness rather than referential sanity.
  */
 
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   date,
   decimal,
   index,
@@ -395,9 +396,28 @@ export const learners = mysqlTable(
   'learners',
   {
     id: int('id').autoincrement().primaryKey(),
-    guardianId: int('guardian_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    /**
+     * The family a child belongs to, when they belong to one.
+     *
+     * **Nullable since C3d, and the nullability is the point.** A child
+     * provisioned by a district through an LMS has no guardian in this system:
+     * the district holds the agreement and stands in a parent's place. Before
+     * this column could be null, the only way to model such a child was to make
+     * some adult their guardian, and every candidate was worse than the problem
+     * — see the check constraint below.
+     */
+    guardianId: int('guardian_id').references(() => users.id, { onDelete: 'cascade' }),
+    /**
+     * The district a child belongs to, when a district rather than a family
+     * provisioned them.
+     *
+     * `restrict`, like everywhere else a district is referenced. Removing a
+     * district must not delete children through a cascade; whoever removes one
+     * has to deal with its pupils deliberately.
+     */
+    institutionId: int('institution_id').references(() => institutions.id, {
+      onDelete: 'restrict',
+    }),
     displayName: varchar('display_name', { length: 100 }).notNull(),
     /**
      * Year of birth rather than age: an age column is wrong within a year of
@@ -411,7 +431,31 @@ export const learners = mysqlTable(
     /** Soft delete: a COPPA deletion request must not orphan a teacher's roster. */
     archivedAt: timestamp('archived_at'),
   },
-  table => [index('learners_guardian_idx').on(table.guardianId)],
+  table => [
+    index('learners_guardian_idx').on(table.guardianId),
+    index('learners_institution_idx').on(table.institutionId),
+    /**
+     * Exactly one owner. Never both, never neither.
+     *
+     * This is a database constraint rather than a rule in a writer because of
+     * what the two failures cost. A child with **neither** owner is reachable by
+     * nobody — no parent can export their data, no district can answer for them,
+     * and the consent gate has nothing to ask about. A child with **both** is
+     * reachable by two parties who never agreed to share them.
+     *
+     * It also makes a specific footgun unrepresentable rather than documented.
+     * `recordConsent` consents for every learner of the guardian it is given,
+     * which is correct for a family and catastrophic for a district: whoever
+     * stood in as guardian for a school's pupils would have one call consent for
+     * all of them. With district pupils hanging off `institution_id`, that sweep
+     * structurally cannot reach them — and a guard you can delete beats a
+     * comment somebody has to remember.
+     */
+    check(
+      'learner_has_exactly_one_owner',
+      sql`(\`guardian_id\` is null) <> (\`institution_id\` is null)`,
+    ),
+  ],
 );
 
 /**

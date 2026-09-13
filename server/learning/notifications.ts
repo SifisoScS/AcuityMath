@@ -123,15 +123,28 @@ export async function raiseMasteryMilestone(
       message: `You have mastered ${conceptTitle}.`,
       conceptId: input.conceptId,
     },
-    {
+  ];
+
+  /*
+   * The second row exists only when there is somebody to address.
+   *
+   * Since C3d a district's pupil has no guardian, and writing this row anyway
+   * would insert a notification with neither a `user_id` nor a `learner_id` —
+   * addressed to nobody, visible to nobody, and deleted by nobody. A district
+   * pupil's milestones reaching their teacher is a real thing to build and is
+   * not this: it needs a decision about which teacher, which is enrolment, not
+   * ownership.
+   */
+  if (learner.guardianId !== null) {
+    rows.push({
       userId: learner.guardianId,
       aboutLearnerId: input.learnerId,
       type: 'milestone',
       title: 'Concept mastered',
       message: `${learner.displayName} has mastered ${conceptTitle}.`,
       conceptId: input.conceptId,
-    },
-  ];
+    });
+  }
 
   await tx.insert(schema.notifications).values(rows);
   return rows.length;
