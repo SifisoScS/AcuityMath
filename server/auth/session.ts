@@ -29,7 +29,7 @@ export interface AuthenticatedUser {
   id: number;
   email: string;
   name: string | null;
-  role: 'parent' | 'teacher' | 'admin';
+  role: 'parent' | 'teacher' | 'admin' | 'institution_admin';
 }
 
 export const SESSION_COOKIE = 'acuity_session';

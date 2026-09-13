@@ -19,6 +19,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 import * as schema from '../../drizzle/schema';
+import { institutionReaches } from '../auth/tenancy';
 import { transformer } from '../../src/lib/transformer';
 import { hasElevation, resolveUser, type AuthenticatedUser, type RequestHeaders } from '../auth/session';
 import { getDatabase, type Database } from '../db/client';
@@ -92,7 +93,18 @@ export const elevatedProcedure = protectedProcedure.use(async ({ ctx, next }) =>
   return next({ ctx });
 });
 
-/** Administrators only. Used by nothing yet; declared so the shape is settled. */
+/**
+ * **Platform** administrators only.
+ *
+ * Not institutional ones. The check is `!== 'admin'` rather than a list of
+ * privileged roles, so adding `institution_admin` did not widen this by
+ * accident — an institutional administrator creating institutions would be an
+ * institutional administrator creating peers.
+ *
+ * `FORBIDDEN` rather than `NOT_FOUND` here, deliberately: unlike a learner id,
+ * the existence of this surface is not a secret and confirming it discloses
+ * nothing about anybody.
+ */
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== 'admin') {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Administrators only.' });
@@ -127,8 +139,38 @@ export const learnerProcedure = protectedProcedure.input(learnerIdInput).use(asy
     throw new TRPCError({ code: 'NOT_FOUND', message: 'No such learner.' });
   }
 
-  const entitled = ctx.user.role === 'admin' || learner.guardianId === ctx.user.id;
+  /*
+   * Three ways in, and no fourth.
+   *
+   * A guardian reaches their own children. The **platform** administrator
+   * reaches every learner — that is what the role is for, and it is the only
+   * global bypass. An **institutional** administrator reaches learners whose
+   * guardian belongs to their own institution, and stops there.
+   *
+   * A teacher reaching their roster is still deliberately not implemented here:
+   * enrolment is a weaker relationship than guardianship and grants a narrower
+   * set of operations, so conflating the two would silently give a teacher a
+   * parent's powers. Institutional scope follows the *guardian's* institution
+   * for the same reason — a child enrolled at a district campus whose family
+   * signed up privately is taught by the district, not provisioned by it.
+   */
+  const entitled =
+    ctx.user.role === 'admin' ||
+    learner.guardianId === ctx.user.id ||
+    (ctx.user.role === 'institution_admin' &&
+      (await institutionReaches(ctx.db, ctx.user.id, learner.guardianId)));
+
   if (!entitled) {
+    /*
+     * NOT_FOUND, not FORBIDDEN — and now across tenants too.
+     *
+     * FORBIDDEN would confirm the record exists. Between families that lets an
+     * outsider enumerate the children on the platform; between districts it
+     * would let one district's administrator confirm which children are
+     * registered with a competitor, or with a neighbouring authority, one id at
+     * a time. The answer has to be indistinguishable from the answer for a
+     * learner who does not exist.
+     */
     throw new TRPCError({ code: 'NOT_FOUND', message: 'No such learner.' });
   }
 

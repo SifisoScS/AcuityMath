@@ -485,7 +485,16 @@ export default function App() {
    * correctly and still be refused wastes their time and teaches them the
    * prompt is meaningless.
    *
-   * An administrator reaches everything, which is what the role is for.
+   * A **platform** administrator reaches everything, which is what the role is
+   * for.
+   *
+   * An `institution_admin` reaches nothing here, and that is deliberate rather
+   * than an oversight. Their scope is a district; the only surface that would
+   * show one is the District Hub, and that is quarantined — so there is no
+   * screen for them to be let into yet. Granting them the parent or teacher
+   * views to avoid an empty state would hand a district administrator a
+   * guardian's view of individual families, which is exactly the widening B2
+   * was careful not to do on the server.
    */
   const accountMayReach = (required: 'parent' | 'teacher' | 'admin'): boolean => {
     const role = sessionUser?.role;

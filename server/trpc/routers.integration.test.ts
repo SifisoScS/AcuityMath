@@ -13,6 +13,7 @@ import * as schema from '../../drizzle/schema';
 import type { AuthenticatedUser } from '../auth/session';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
 import { grantConsentForAllFamilies } from '../test-support/consent';
+import { createInstitution } from '../learning/institutions';
 import { appRouter } from './routers';
 import type { Context } from './index';
 
@@ -79,6 +80,112 @@ describeWithDb('practice loop API', () => {
     // The learners exist by here, so this covers them.
     await grantConsentForAllFamilies(harness.db);
 }, 30_000);
+
+  // -------------------------------------------------------------------------
+  describe('institutional scope, through the real gate', () => {
+    /*
+     * `tenancy.integration.test.ts` proves the rule. This proves `learnerProcedure`
+     * actually applies it — a correct rule the gate forgets to call is not a gate,
+     * and the two files fail for different reasons on purpose.
+     */
+    let lincolnHead: AuthenticatedUser;
+    let riversideHead: AuthenticatedUser;
+    let lincolnChild: number;
+    let riversideChild: number;
+
+    beforeEach(async () => {
+      const lincoln = await createInstitution(harness.db, 'Lincoln Unified');
+      const riverside = await createInstitution(harness.db, 'Riverside Unified');
+
+      const head = async (email: string, institutionId: number) => {
+        const [row] = await harness.db
+          .insert(schema.users)
+          .values({ email, name: email, role: 'institution_admin', institutionId })
+          .$returningId();
+        return { id: row.id, email, name: email, role: 'institution_admin' as const };
+      };
+
+      const parentIn = async (email: string, institutionId: number) => {
+        const [row] = await harness.db
+          .insert(schema.users)
+          .values({ email, name: email, role: 'parent', institutionId })
+          .$returningId();
+        return row.id;
+      };
+
+      const childOf = async (guardianId: number, displayName: string) => {
+        const [row] = await harness.db
+          .insert(schema.learners)
+          .values({ guardianId, displayName, birthYear: 2016 })
+          .$returningId();
+        return row.id;
+      };
+
+      lincolnHead = await head('head@lincoln.test', lincoln.id);
+      riversideHead = await head('head@riverside.test', riverside.id);
+      lincolnChild = await childOf(await parentIn('p@lincoln.test', lincoln.id), 'Lincoln Child');
+      riversideChild = await childOf(
+        await parentIn('p@riverside.test', riverside.id),
+        'Riverside Child',
+      );
+
+      await grantConsentForAllFamilies(harness.db);
+    }, 60_000);
+
+    it('lets a district administrator reach a learner in their own district', async () => {
+      await expect(
+        callerFor(lincolnHead).learners.snapshot({ learnerId: lincolnChild }),
+      ).resolves.toBeTruthy();
+    });
+
+    it('refuses one in another district', async () => {
+      await expect(
+        callerFor(lincolnHead).learners.snapshot({ learnerId: riversideChild }),
+      ).rejects.toThrow(/No such learner/);
+    });
+
+    it('cannot tell a learner in another district from one that does not exist', async () => {
+      /*
+       * The disclosure this protects against. `FORBIDDEN` would confirm the
+       * record exists, letting one district's administrator enumerate which
+       * children are registered with a neighbouring authority one id at a time.
+       * Both answers must be the same sentence.
+       */
+      const real = await callerFor(lincolnHead)
+        .learners.snapshot({ learnerId: riversideChild })
+        .catch((error: Error) => error.message);
+      const imaginary = await callerFor(lincolnHead)
+        .learners.snapshot({ learnerId: 987_654 })
+        .catch((error: Error) => error.message);
+
+      expect(real).toBe(imaginary);
+    });
+
+    it('refuses a district administrator the platform-admin surfaces', async () => {
+      // An institutional administrator creating institutions would be an
+      // institutional administrator creating peers.
+      await expect(callerFor(lincolnHead).institutions.list()).rejects.toThrow(
+        /Administrators only/,
+      );
+    });
+
+    it('still lets the platform administrator reach both', async () => {
+      // The control: the global bypass is intact and the refusals above are
+      // about scope rather than about a broken fixture.
+      await expect(
+        callerFor(admin).learners.snapshot({ learnerId: lincolnChild }),
+      ).resolves.toBeTruthy();
+      await expect(
+        callerFor(admin).learners.snapshot({ learnerId: riversideChild }),
+      ).resolves.toBeTruthy();
+    });
+
+    it('still refuses a guardian another family’s child, institution or not', async () => {
+      await expect(
+        callerFor(sarah).learners.snapshot({ learnerId: lincolnChild }),
+      ).rejects.toThrow(/No such learner/);
+    });
+  });
 
   // -------------------------------------------------------------------------
   describe('authorization', () => {

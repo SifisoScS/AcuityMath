@@ -119,7 +119,23 @@ export const users = mysqlTable(
     id: int('id').autoincrement().primaryKey(),
     email: varchar('email', { length: 320 }).notNull(),
     name: varchar('name', { length: 200 }),
-    role: mysqlEnum('role', ['parent', 'teacher', 'admin']).notNull().default('parent'),
+    /**
+     * What this account may reach.
+     *
+     * `admin` is the **platform** administrator and reaches every learner —
+     * that is what the role is for, and it is the only global bypass.
+     *
+     * `institution_admin` reaches learners **within their own institution and
+     * no further**, which is why it is a separate value rather than `admin`
+     * with `institutionId` set. Deriving scope from a data column would mean a
+     * privilege change as a side effect of an edit: assigning an institution to
+     * a platform admin would silently demote them, and clearing it would
+     * silently promote an institutional one to global reach. A role that says
+     * what it is cannot be changed by accident.
+     */
+    role: mysqlEnum('role', ['parent', 'teacher', 'admin', 'institution_admin'])
+      .notNull()
+      .default('parent'),
     /**
      * Set when the account is created by an institution rather than self-serve.
      *

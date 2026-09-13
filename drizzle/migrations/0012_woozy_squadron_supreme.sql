@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY COLUMN `role` enum('parent','teacher','admin','institution_admin') NOT NULL DEFAULT 'parent';
