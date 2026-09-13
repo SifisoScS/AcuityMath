@@ -45,6 +45,12 @@ import {
 import { recordAttempt } from '../learning/recordAttempt';
 import { recordScreenTime, screenTimeState } from '../learning/screenTime';
 import { ConsentMissing, recordingPermission } from '../learning/consentGate';
+import {
+  AlreadyExists,
+  createInstitution,
+  createSchool,
+  listInstitutions,
+} from '../learning/institutions';
 import { serveNextProblem } from '../learning/serveProblem';
 import {
   checkStepUpPin,
@@ -56,6 +62,7 @@ import {
 } from '../auth/pin';
 import { clearedElevationCookie, elevationCookie, hasElevation, issueElevation } from '../auth/session';
 import {
+  adminProcedure,
   elevatedLearnerProcedure,
   elevatedProcedure,
   learnerIdInput,
@@ -694,6 +701,55 @@ const notificationsRouter = router({
  * Elevated, because it is a decision only the adult may make and the device is
  * shared with the children it concerns.
  */
+/**
+ * Districts and campuses.
+ *
+ * Every procedure is `adminProcedure`. An institution exists because an
+ * agreement was signed, so there is no self-serve path to creating one — and an
+ * entity anybody can create is an entity that means nothing.
+ *
+ * Track B2 adds an *institutional* administrator, scoped to their own district.
+ * Until then the platform `admin` is the only caller, which is the conservative
+ * order: the entities exist before anyone is scoped to them, rather than a scope
+ * existing before there is anything to scope it to.
+ */
+const institutionsRouter = router({
+  list: adminProcedure.query(({ ctx }) => listInstitutions(ctx.db)),
+
+  create: adminProcedure
+    .input(z.object({ name: z.string().trim().min(1).max(200) }).strict())
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await createInstitution(ctx.db, input.name);
+      } catch (error) {
+        if (error instanceof AlreadyExists) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message });
+        }
+        throw error;
+      }
+    }),
+
+  addSchool: adminProcedure
+    .input(
+      z
+        .object({
+          institutionId: z.number().int().positive(),
+          name: z.string().trim().min(1).max(200),
+        })
+        .strict(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await createSchool(ctx.db, input.institutionId, input.name);
+      } catch (error) {
+        if (error instanceof AlreadyExists) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message });
+        }
+        throw error;
+      }
+    }),
+});
+
 const consentRouter = router({
   /**
    * The disclosure to display, and what the product can evidence about the
@@ -955,6 +1011,7 @@ export const appRouter = router({
   curriculum: curriculumRouter,
   notifications: notificationsRouter,
   consent: consentRouter,
+  institutions: institutionsRouter,
 });
 
 export type AppRouter = typeof appRouter;
