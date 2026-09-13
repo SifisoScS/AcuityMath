@@ -80,6 +80,14 @@ const DUAL_AUDIENCE = ['notifications'] as const;
 
 /** Tables holding data about an authenticating adult, or about content. */
 const NOT_LEARNER_SCOPED = [
+  /*
+   * Organisations, not people. A district or campus row holds a name and a
+   * relationship to other organisations; nothing in it is about a child, and
+   * nothing in it should ever become so — the moment a school row carried a
+   * learner's data it would sit outside the deletion cascade below.
+   */
+  'institutions',
+  'schools',
   'users',
   'magic_link_tokens',
   'learners',

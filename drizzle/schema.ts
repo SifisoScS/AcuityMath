@@ -38,6 +38,73 @@ import {
 } from 'drizzle-orm/mysql-core';
 
 // ---------------------------------------------------------------------------
+// Institutions
+// ---------------------------------------------------------------------------
+
+/**
+ * A district, or whatever body holds the agreement.
+ *
+ * `users.institution_id` has existed since B1 as a nullable int **referencing
+ * nothing** — a hook for a table that was never built. This is that table, and
+ * the column becomes a real foreign key with it.
+ *
+ * **Nullable everywhere it is referenced, on purpose.** A family that signs up
+ * on its own has no institution, and that is the product's foundation rather
+ * than a degraded case. Institutional accounts are a layer on top; nothing below
+ * may require one.
+ *
+ * There is no soft delete here yet. `learners` has `archivedAt` because a COPPA
+ * deletion request must not orphan a teacher's roster; the equivalent question
+ * for a district — what happens to a school's learners when the district leaves
+ * — is a policy decision nobody has taken, so the foreign keys restrict rather
+ * than cascade and the question has to be answered before a row can be removed.
+ */
+export const institutions = mysqlTable(
+  'institutions',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    name: varchar('name', { length: 200 }).notNull(),
+    /** Stable, human-readable, and used in URLs before it is used in anything else. */
+    slug: varchar('slug', { length: 80 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  },
+  table => [uniqueIndex('institution_slug_idx').on(table.slug)],
+);
+
+/**
+ * A campus within a district.
+ *
+ * Separate from `institutions` because the agreement, the administrator and the
+ * data protection terms sit at district level, while rosters, classrooms and
+ * reporting sit at campus level. Collapsing them would make "every school in the
+ * district" a query nobody can write.
+ */
+export const schools = mysqlTable(
+  'schools',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    institutionId: int('institution_id')
+      .notNull()
+      /*
+       * `restrict`, not `cascade`. Removing a district must not silently delete
+       * its campuses and, through them, reach children's records. Whoever
+       * removes one has to empty it first, deliberately.
+       */
+      .references(() => institutions.id, { onDelete: 'restrict' }),
+    name: varchar('name', { length: 200 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index('schools_institution_idx').on(table.institutionId),
+    // A district cannot hold two campuses of the same name; across districts it
+    // is ordinary — "Lincoln Elementary" exists in most of them.
+    uniqueIndex('school_name_idx').on(table.institutionId, table.name),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------------
 
@@ -53,8 +120,17 @@ export const users = mysqlTable(
     email: varchar('email', { length: 320 }).notNull(),
     name: varchar('name', { length: 200 }),
     role: mysqlEnum('role', ['parent', 'teacher', 'admin']).notNull().default('parent'),
-    /** Set when the account is created by an institution rather than self-serve. */
-    institutionId: int('institution_id'),
+    /**
+     * Set when the account is created by an institution rather than self-serve.
+     *
+     * Null for every family that signed itself up, which is most of them and is
+     * not a defect. `restrict` on delete: an institution with accounts still
+     * attached cannot be removed, because doing so would leave adults holding
+     * children's records with no organisation accountable for them.
+     */
+    institutionId: int('institution_id').references(() => institutions.id, {
+      onDelete: 'restrict',
+    }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
     lastSignedInAt: timestamp('last_signed_in_at'),
@@ -291,10 +367,21 @@ export const classrooms = mysqlTable(
     teacherId: int('teacher_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    /**
+     * The campus, when there is one.
+     *
+     * Nullable so a teacher who signed up on their own keeps a classroom that
+     * belongs to nobody but them. A roster synchronised from a school carries
+     * this; one a teacher typed in does not, and both are valid.
+     */
+    schoolId: int('school_id').references(() => schools.id, { onDelete: 'restrict' }),
     name: varchar('name', { length: 200 }).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  table => [index('classrooms_teacher_idx').on(table.teacherId)],
+  table => [
+    index('classrooms_teacher_idx').on(table.teacherId),
+    index('classrooms_school_idx').on(table.schoolId),
+  ],
 );
 
 export const classroomLearners = mysqlTable(
@@ -927,6 +1014,19 @@ export const notifications = mysqlTable(
 // ---------------------------------------------------------------------------
 // Relations
 // ---------------------------------------------------------------------------
+
+export const institutionsRelations = relations(institutions, ({ many }) => ({
+  schools: many(schools),
+  users: many(users),
+}));
+
+export const schoolsRelations = relations(schools, ({ one, many }) => ({
+  institution: one(institutions, {
+    fields: [schools.institutionId],
+    references: [institutions.id],
+  }),
+  classrooms: many(classrooms),
+}));
 
 export const usersRelations = relations(users, ({ many }) => ({
   learners: many(learners),
