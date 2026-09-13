@@ -13,6 +13,7 @@
  * which is the kind of green that means nothing.
  */
 
+import { isNotNull } from 'drizzle-orm';
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 import * as schema from '../../drizzle/schema';
@@ -57,9 +58,17 @@ export async function grantConsentForAllFamilies(
 ): Promise<void> {
   const guardians = await db
     .selectDistinct({ id: schema.learners.guardianId })
-    .from(schema.learners);
+    .from(schema.learners)
+    /*
+     * District pupils are skipped rather than swept up. Since C3d a learner may
+     * have no guardian at all, and this helper grants **family** consent — the
+     * institutional path is its own thing, with its own evidence. A null passed
+     * through here would have recorded consent on behalf of nobody.
+     */
+    .where(isNotNull(schema.learners.guardianId));
 
   for (const guardian of guardians) {
+    if (guardian.id === null) continue;
     await grantConsentForFamily(db, guardian.id);
   }
 }

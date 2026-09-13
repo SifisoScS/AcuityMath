@@ -227,6 +227,15 @@ describeWithDb('signing somebody in from a launch', () => {
       const [after] = await db.select().from(schema.users).where(eq(schema.users.id, parent.id));
       expect(after.institutionId).toBeNull();
       expect(after.role).toBe('parent');
+      /*
+       * A learner id, which this line did not always pass.
+       *
+       * Before C3d `institutionReaches` took the *guardian's* id, and this call
+       * handed it a learner id. It returned `false` and the test passed —
+       * because that learner's id and an unrelated user's id were both 1. A
+       * wrong answer agreeing with the expected one teaches nothing, and the
+       * argument change in C3d is what made it impossible to write.
+       */
       expect(await institutionReaches(db, admin.userId, child.id)).toBe(false);
     });
 

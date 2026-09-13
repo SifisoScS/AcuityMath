@@ -54,6 +54,17 @@ describeWithDb('institutional scope', () => {
     return row.id;
   }
 
+  /*
+   * Every call below passes a **learner** id, which it did not always.
+   *
+   * `institutionReaches` used to take the guardian's id, and both are plain
+   * numbers — so a caller passing the wrong one compiled, ran, and got an
+   * answer. C3d changed the argument because a district's pupil has no guardian
+   * to pass, and rewriting these calls turned out to matter for a second reason:
+   * with a guardian id in the new signature, every case expecting `false` would
+   * have gone on passing while asserting nothing, because no learner has that
+   * id. Only the two cases expecting `true` would have failed.
+   */
   async function makeLearner(guardianId: number, displayName: string): Promise<number> {
     await db.insert(schema.learners).values({ guardianId, displayName, birthYear: 2016 });
     const [row] = await db
@@ -79,8 +90,9 @@ describeWithDb('institutional scope', () => {
        */
       const sarah = await makeUser('sarah@example.test', 'parent');
       const other = await makeUser('other@example.test', 'parent');
+      const theirChild = await makeLearner(other, 'Someone Else');
 
-      expect(await institutionReaches(db, sarah, other)).toBe(false);
+      expect(await institutionReaches(db, sarah, theirChild)).toBe(false);
     });
 
     it('does not let an institutional admin with no institution reach anybody', async () => {
@@ -88,16 +100,18 @@ describeWithDb('institutional scope', () => {
       // and the safe reading of a misconfiguration is "reaches nothing".
       const stray = await makeUser('stray@example.test', 'institution_admin');
       const guardian = await makeUser('guardian@example.test', 'parent');
+      const child = await makeLearner(guardian, 'Any Child');
 
-      expect(await institutionReaches(db, stray, guardian)).toBe(false);
+      expect(await institutionReaches(db, stray, child)).toBe(false);
     });
 
     it('does not let an institutional admin reach an unaffiliated family', async () => {
       const lincoln = await createInstitution(db, 'Lincoln Unified');
       const head = await makeUser('head@lincoln.test', 'institution_admin', lincoln.id);
       const privateFamily = await makeUser('private@example.test', 'parent');
+      const child = await makeLearner(privateFamily, 'At Home');
 
-      expect(await institutionReaches(db, head, privateFamily)).toBe(false);
+      expect(await institutionReaches(db, head, child)).toBe(false);
     });
   });
 
@@ -108,8 +122,9 @@ describeWithDb('institutional scope', () => {
 
       const lincolnHead = await makeUser('head@lincoln.test', 'institution_admin', lincoln.id);
       const riversideParent = await makeUser('p@riverside.test', 'parent', riverside.id);
+      const riversideChild = await makeLearner(riversideParent, 'Riverside Child');
 
-      expect(await institutionReaches(db, lincolnHead, riversideParent)).toBe(false);
+      expect(await institutionReaches(db, lincolnHead, riversideChild)).toBe(false);
     });
 
     it('permits an administrator within their own district', async () => {
@@ -120,8 +135,9 @@ describeWithDb('institutional scope', () => {
       const lincoln = await createInstitution(db, 'Lincoln Unified');
       const head = await makeUser('head@lincoln.test', 'institution_admin', lincoln.id);
       const parent = await makeUser('p@lincoln.test', 'parent', lincoln.id);
+      const child = await makeLearner(parent, 'Lincoln Child');
 
-      expect(await institutionReaches(db, head, parent)).toBe(true);
+      expect(await institutionReaches(db, head, child)).toBe(true);
     });
 
     it('stops reaching once the administrator is removed from the district', async () => {
@@ -134,14 +150,15 @@ describeWithDb('institutional scope', () => {
       const lincoln = await createInstitution(db, 'Lincoln Unified');
       const head = await makeUser('head@lincoln.test', 'institution_admin', lincoln.id);
       const parent = await makeUser('p@lincoln.test', 'parent', lincoln.id);
-      expect(await institutionReaches(db, head, parent)).toBe(true);
+      const child = await makeLearner(parent, 'Lincoln Child');
+      expect(await institutionReaches(db, head, child)).toBe(true);
 
       await db
         .update(schema.users)
         .set({ institutionId: null })
         .where(eq(schema.users.id, head));
 
-      expect(await institutionReaches(db, head, parent)).toBe(false);
+      expect(await institutionReaches(db, head, child)).toBe(false);
     });
   });
 
@@ -176,7 +193,7 @@ describeWithDb('institutional scope', () => {
         .values({ classroomId: classroom.id, learnerId: child });
 
       // Enrolled at a Lincoln campus, and still outside Lincoln's scope.
-      expect(await institutionReaches(db, head, privateParent)).toBe(false);
+      expect(await institutionReaches(db, head, child)).toBe(false);
     });
   });
 

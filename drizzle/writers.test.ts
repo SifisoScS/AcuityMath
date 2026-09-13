@@ -104,6 +104,19 @@ const SCOPE_GRANTING_COLUMNS = [
     property: 'institutionId',
     decides: 'which district’s learners an institution_admin may reach',
   },
+  {
+    column: 'learners.institutionId',
+    table: 'learners',
+    property: 'institutionId',
+    /*
+     * Added with C3d. It decides more than `users.institutionId` does: that one
+     * says which children an administrator may reach *through their parents*,
+     * while this one says a district owns the child outright — no guardian, no
+     * family dashboard, and the consent gate answered by an institutional
+     * agreement rather than by a parent.
+     */
+    decides: 'which district owns a child outright, with no guardian standing behind them',
+  },
 ];
 
 describe('columns that grant scope have a writer', () => {

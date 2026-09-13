@@ -127,6 +127,13 @@
       "when": 1789313455014,
       "tag": "0017_majestic_living_tribunal",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1789315970381,
+      "tag": "0018_curvy_swarm",
+      "breakpoints": true
     }
   ]
 }
