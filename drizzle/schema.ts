@@ -755,7 +755,13 @@ export const learnerAbility = mysqlTable(
     theta: decimal('theta', { precision: 6, scale: 3 }).notNull().default('0'),
     standardError: decimal('standard_error', { precision: 5, scale: 3 }).notNull().default('0.85'),
     dynamicLevel: decimal('dynamic_level', { precision: 4, scale: 2 }).notNull().default('5.5'),
-    eloRating: int('elo_rating').notNull().default(1200),
+    /**
+     * The rating shown to a learner, derived from `theta`.
+     *
+     * The default is the benchmark — θ = 0, not yet measured. It was 1200, from
+     * a mapping the specification never had; see `src/services/eloScale.ts`.
+     */
+    eloRating: int('elo_rating').notNull().default(1000),
     historyCount: int('history_count').notNull().default(0),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
   },

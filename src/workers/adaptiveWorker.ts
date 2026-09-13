@@ -4,6 +4,8 @@
  * cohort simulations from the main UI thread to protect 60fps frame rates on low-end Chromebooks.
  */
 
+import { eloForTheta } from '../services/eloScale';
+
 export interface WorkerItemParams {
   discrimination: number; // a
   difficulty: number;     // b
@@ -76,7 +78,13 @@ function updateAbility(
 
   const newDynamicLevel =
     Math.round(Math.max(1.0, Math.min(10.0, 5.5 + newTheta * 1.5)) * 10) / 10;
-  const newElo = Math.round(1200 + newTheta * 300);
+  /*
+   * Imported rather than repeated. This file carried its own copy of the
+   * mapping, so the worker and the main-thread fallback it exists to be
+   * replaced by could have disagreed about a child's rating depending on which
+   * one happened to answer.
+   */
+  const newElo = eloForTheta(newTheta);
 
   const newMisconceptions = { ...current.misconceptionsMap };
   if (!response.isCorrect && response.misconceptionCode) {

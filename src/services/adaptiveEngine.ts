@@ -4,6 +4,7 @@
  */
 
 import { baseThetaForAge } from './tiers';
+import { eloForTheta } from './eloScale';
 
 export interface ItemParameters {
   discrimination: number; // a parameter (typical range: 0.6 - 2.2)
@@ -27,7 +28,7 @@ export interface StudentAbilityProfile {
   theta: number;              // Latent ability (-3.0 to +3.0)
   standardError: number;      // SEM
   dynamicLevel: number;       // Scaled 1.0 to 10.0
-  eloRating: number;          // Scaled 600 to 2400
+  eloRating: number;          // See `eloScale.ts`; bounded by ELO_MIN..ELO_MAX
   historyCount: number;
   misconceptionsMap: Record<MisconceptionCode, number>;
   confidenceInterval: [number, number];
@@ -92,8 +93,9 @@ export class AdaptiveEngine {
     // Theta -3.0 -> 1.0, Theta 0.0 -> 5.5, Theta +3.0 -> 10.0
     const newDynamicLevel = Math.round(Math.max(1.0, Math.min(10.0, 5.5 + (newTheta * 1.5))) * 10) / 10;
 
-    // Map theta to ELO: 0 -> 1200, +3 -> 2100, -3 -> 700
-    const newElo = Math.round(1200 + (newTheta * 300));
+    // One source for the mapping, in `eloScale.ts`. The comment that stood here
+    // said "-3 -> 700" beside a formula that produced 300.
+    const newElo = eloForTheta(newTheta);
 
     // Track misconception if error occurred
     const newMisconceptions = { ...current.misconceptionsMap };
@@ -131,7 +133,7 @@ export class AdaptiveEngine {
       theta: baseTheta,
       standardError: 0.85,
       dynamicLevel: Math.round((5.5 + baseTheta * 1.5) * 10) / 10,
-      eloRating: Math.round(1200 + baseTheta * 300),
+      eloRating: eloForTheta(baseTheta),
       historyCount: 0,
       misconceptionsMap: {
         SIGN_ERROR: 0,

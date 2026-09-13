@@ -166,12 +166,20 @@ children cannot be enumerated — must hold across tenants.
 **Done when:** a mutation test proves an administrator of district A cannot
 reach a learner in district B, and cannot tell whether that learner exists.
 
-### B3 — Reconcile the ELO mapping
+### ~~B3 — Reconcile the ELO mapping~~ **Done**
 
-`ARCHITECTURE.md` §4 specifies `1000 + 250θ`; `adaptiveEngine.ts` uses
-`1200 + 300θ`. Pick one and make both say it. The document is the specification,
-so absent a reason, the code moves — but the code's range is live in dashboards,
-so this is a migration, not an edit.
+The document won, and there turned out to be **four** mappings rather than two:
+the specification's `1000 + 250θ`, `adaptiveEngine`'s `1200 + 300θ` in two
+places, an independent copy in `adaptiveWorker` — so the worker and its own
+main-thread fallback could disagree about a child's rating depending which
+answered — and a fourth that seeded a new learner's rating from their **age
+tier**.
+
+`src/services/eloScale.ts` is the only place the arithmetic exists now, stored
+ratings were recomputed from `theta` by migration `0013`, and a test fails if a
+fifth copy appears. Done while the only learners were a demonstration family,
+for the same reason the consent bump was: every rating anyone has seen moves
+with it.
 
 ---
 
