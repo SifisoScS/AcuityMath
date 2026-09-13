@@ -94,6 +94,13 @@ const NOT_LEARNER_SCOPED = [
    * signs messages with, and nothing about a child belongs in it.
    */
   'lti_keys',
+  /*
+   * A platform registration and the installation that binds it to a district.
+   * Both describe organisations and software, not people — a launch resolves a
+   * learner *through* them, and neither should ever hold one.
+   */
+  'lti_platforms',
+  'lti_deployments',
   'users',
   'magic_link_tokens',
   'learners',
@@ -218,8 +225,12 @@ describe('referential integrity is the database"s job', () => {
 
       for (const column of config.columns) {
         const isReference = /_id$/.test(column.name) && column.name !== 'id';
-        // `institution_id` has no table yet; it is filled by the LMS work that
-        // Graft D defers, and is unconstrained until then.
+        //
+        // `institution_id` **used to be exempt here**, on the grounds that it had
+        // no table yet. Graft B1 built `institutions` and gave it a foreign key,
+        // so the exemption stopped describing anything — and an exemption that no
+        // longer applies is worse than none, because it goes on excusing a column
+        // long after the reason expired. It is gone; the constraint covers it.
         //
         // `external_id` is not a reference at all — it is the id a problem had
         // in the corpus it was imported from, which is what makes a re-import
@@ -229,10 +240,16 @@ describe('referential integrity is the database"s job', () => {
         // offline queue can retry without the answer being counted twice. It
         // names nothing in this database; its uniqueness is what matters, and
         // that is a separate index.
+        //
+        // `deployment_id` is the platform's own identifier for one installation
+        // of this product, arriving as a claim in a launch. There is no
+        // `deployments` table for it to point at — the row that *holds* it is
+        // `lti_deployments`, and its uniqueness is per platform, which is a
+        // separate index.
         const exempt =
-          column.name === 'institution_id' ||
           column.name === 'external_id' ||
           column.name === 'client_id' ||
+          column.name === 'deployment_id' ||
           // `avatar_id` names an entry in the catalogue in `src/data/avatars.ts`,
           // which the server reads so that the price charged is not the price a
           // browser claimed. There is no table for it to reference.

@@ -146,6 +146,79 @@ export const ltiKeys = mysqlTable(
   table => [uniqueIndex('lti_key_kid_idx').on(table.kid)],
 );
 
+/**
+ * A learning management system we have been registered with.
+ *
+ * LTI identifies a registration by **issuer and client id together**, and both
+ * halves are load-bearing. One Canvas instance issues many client ids — a
+ * district may install this product twice — and one client id string says
+ * nothing on its own, because two unrelated platforms may both hand out `10001`.
+ * The unique index is on the pair for that reason, and the lookup matches on the
+ * pair plus a deployment.
+ *
+ * `keysetUrl` is *their* JWKS, the mirror of the one C1 publishes: they verify
+ * our messages with ours, we verify theirs with this.
+ */
+export const ltiPlatforms = mysqlTable(
+  'lti_platforms',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    /** The platform's `iss`, exactly as it appears in their tokens. */
+    issuer: varchar('issuer', { length: 255 }).notNull(),
+    /** The client id **they** assigned to us. */
+    clientId: varchar('client_id', { length: 255 }).notNull(),
+    /** For humans reading an admin list; never used for matching. */
+    name: varchar('name', { length: 200 }).notNull(),
+    /** Where a launch is redirected to begin OIDC. */
+    authLoginUrl: varchar('auth_login_url', { length: 500 }).notNull(),
+    /** Where service calls exchange a client assertion for an access token. */
+    authTokenUrl: varchar('auth_token_url', { length: 500 }).notNull(),
+    /** Their public keyset, for verifying the tokens they send us. */
+    keysetUrl: varchar('keyset_url', { length: 500 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  },
+  table => [uniqueIndex('lti_platform_idx').on(table.issuer, table.clientId)],
+);
+
+/**
+ * One installation of this product inside a platform, bound to one district.
+ *
+ * This is where LTI meets Graft B. A launch arrives carrying an issuer, a client
+ * id and a deployment id, and this row is what turns those three strings into
+ * "which of our institutions is this". Without it a launch knows a learner
+ * exists and has nowhere to put them.
+ *
+ * `institutionId` is **not null**, deliberately. A deployment with no district
+ * is a row that cannot be used for anything, and B2 spent its time on what
+ * happens when a scope column is null — the safe answer there was "reaches
+ * nothing", and the safe answer here is "cannot be registered at all".
+ */
+export const ltiDeployments = mysqlTable(
+  'lti_deployments',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    platformId: int('platform_id')
+      .notNull()
+      .references(() => ltiPlatforms.id, { onDelete: 'cascade' }),
+    /** The `deployment_id` claim, unique only within its platform. */
+    deploymentId: varchar('deployment_id', { length: 255 }).notNull(),
+    institutionId: int('institution_id')
+      .notNull()
+      /*
+       * `restrict`. A district cannot be removed while a platform is still
+       * launching learners into it — the launches would keep arriving and have
+       * nowhere to go.
+       */
+      .references(() => institutions.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('lti_deployment_idx').on(table.platformId, table.deploymentId),
+    index('lti_deployment_institution_idx').on(table.institutionId),
+  ],
+);
+
 // ---------------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------------

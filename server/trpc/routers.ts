@@ -52,6 +52,12 @@ import {
   listInstitutions,
 } from '../learning/institutions';
 import {
+  addDeployment,
+  AlreadyRegistered,
+  listPlatforms,
+  registerPlatform,
+} from '../lti/platforms';
+import {
   addMember,
   BelongsElsewhere,
   listMembers,
@@ -802,6 +808,56 @@ const institutionsRouter = router({
     }),
 });
 
+/**
+ * Learning management systems allowed to launch into this product.
+ *
+ * `adminProcedure` throughout, and not because it is convenient. Registering a
+ * platform declares that launches signed by it may place children into one of
+ * our districts — an institutional administrator able to do that for their own
+ * district could bind it to a platform nobody vetted.
+ */
+const ltiRouter = router({
+  list: adminProcedure.query(({ ctx }) => listPlatforms(ctx.db)),
+
+  register: adminProcedure
+    .input(
+      z
+        .object({
+          issuer: z.string().trim().min(1).max(255),
+          clientId: z.string().trim().min(1).max(255),
+          name: z.string().trim().min(1).max(200),
+          authLoginUrl: z.string().trim().url().max(500),
+          authTokenUrl: z.string().trim().url().max(500),
+          keysetUrl: z.string().trim().url().max(500),
+        })
+        .strict(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await registerPlatform(ctx.db, input);
+      } catch (error) {
+        if (error instanceof AlreadyRegistered) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message });
+        }
+        throw error;
+      }
+    }),
+
+  addDeployment: adminProcedure
+    .input(
+      z
+        .object({
+          platformId: z.number().int().positive(),
+          deploymentId: z.string().trim().min(1).max(255),
+          institutionId: z.number().int().positive(),
+        })
+        .strict(),
+    )
+    .mutation(({ ctx, input }) =>
+      addDeployment(ctx.db, input.platformId, input.deploymentId, input.institutionId),
+    ),
+});
+
 const consentRouter = router({
   /**
    * The disclosure to display, and what the product can evidence about the
@@ -1064,6 +1120,7 @@ export const appRouter = router({
   notifications: notificationsRouter,
   consent: consentRouter,
   institutions: institutionsRouter,
+  lti: ltiRouter,
 });
 
 export type AppRouter = typeof appRouter;
