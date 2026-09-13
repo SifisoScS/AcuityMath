@@ -17,6 +17,7 @@ import { Router, type Request, type Response } from 'express';
 
 import { getDatabase } from '../db/client';
 import { publicJwks, signingKey } from './keys';
+import { AmbiguousPlatform, beginLaunch, UnknownPlatform } from './launchState';
 
 export const ltiRouter = Router();
 
@@ -46,3 +47,85 @@ ltiRouter.get('/jwks.json', async (_req: Request, res: Response) => {
   res.set('Cache-Control', 'public, max-age=300');
   res.json(jwks);
 });
+
+/**
+ * Where this instance is reachable, for the `redirect_uri` a platform must
+ * return to.
+ *
+ * The same rule the sign-in links use, and for a sharper reason here: the
+ * redirect URI is registered with the platform in advance and compared byte for
+ * byte. A guessed origin does not produce a broken link in somebody's mailbox —
+ * it produces a launch the platform refuses, with an error on their page rather
+ * than ours.
+ */
+function appBaseUrl(req: Request): string {
+  const configured = process.env.APP_BASE_URL;
+  if (configured) return configured.replace(/\/$/, '');
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'APP_BASE_URL must be set in production. The LTI redirect URI is registered with ' +
+        'each platform and compared exactly; one built from a guessed origin fails on ' +
+        "the platform's page rather than in a log.",
+    );
+  }
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+/**
+ * Third-party initiation, the first leg of a launch.
+ *
+ * Accepts both verbs because platforms disagree: the specification permits
+ * either, Canvas uses POST and several others use GET, and a product that
+ * implements one is a product that works with half of them.
+ *
+ * The response is a redirect and nothing else. Nothing here renders, because
+ * the user's browser is passing through on its way back to the platform —
+ * anything drawn would flash and be replaced.
+ */
+async function initiate(req: Request, res: Response): Promise<void> {
+  const source = req.method === 'POST' ? req.body ?? {} : req.query ?? {};
+  const issuer = String(source.iss ?? '').trim();
+  const loginHint = String(source.login_hint ?? '').trim();
+  const targetLinkUri = String(source.target_link_uri ?? '').trim();
+
+  if (!issuer || !loginHint || !targetLinkUri) {
+    res.status(400).json({
+      error: 'An LTI initiation needs iss, login_hint and target_link_uri.',
+    });
+    return;
+  }
+
+  try {
+    const { redirectUrl } = await beginLaunch(
+      getDatabase(),
+      {
+        issuer,
+        loginHint,
+        targetLinkUri,
+        clientId: source.client_id ? String(source.client_id) : undefined,
+        messageHint: source.lti_message_hint ? String(source.lti_message_hint) : undefined,
+        deploymentId: source.lti_deployment_id
+          ? String(source.lti_deployment_id)
+          : undefined,
+      },
+      `${appBaseUrl(req)}/api/lti/launch`,
+    );
+
+    res.redirect(302, redirectUrl);
+  } catch (error) {
+    /*
+     * Both of these are configuration, not attack, and the administrator
+     * reading them is the person who can fix them — so they say what is wrong.
+     * Nothing here reveals which other platforms are registered.
+     */
+    if (error instanceof UnknownPlatform || error instanceof AmbiguousPlatform) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+    throw error;
+  }
+}
+
+ltiRouter.get('/login', initiate);
+ltiRouter.post('/login', initiate);

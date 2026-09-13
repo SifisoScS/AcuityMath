@@ -101,6 +101,13 @@ const NOT_LEARNER_SCOPED = [
    */
   'lti_platforms',
   'lti_deployments',
+  /*
+   * One launch in progress: a state, a nonce and an expiry. It names a platform
+   * and never a learner — the launch resolves a child *after* this row is spent,
+   * and putting one here would keep a child's identity in a table designed to be
+   * deleted every few minutes.
+   */
+  'lti_launch_states',
   'users',
   'magic_link_tokens',
   'learners',
