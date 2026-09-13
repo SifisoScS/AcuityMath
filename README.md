@@ -17,6 +17,12 @@
   <img src="https://img.shields.io/badge/MySQL%208.4-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL" />
 </p>
 
+<p align="center">
+  <a href="./ARCHITECTURE.md"><strong>📐 Architecture &amp; Engineering Handbook</strong></a> ·
+  <a href="./docs/ROADMAP.md">Roadmap</a> ·
+  <a href="./docs/MIGRATION_STATUS.md">Status &amp; traps</a>
+</p>
+
 ---
 
 ## 🎯 One-Sentence Overview
