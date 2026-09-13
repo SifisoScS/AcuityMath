@@ -130,10 +130,33 @@ is one the next reader cannot act on or argue with.
 
 ### What the decision is
 
-Whether AcuityMath pursues the institutional (LMS/district) direction as the
-product's shape, or a narrower one. **This is not a technical choice** — the
-codebase is compatible with both. It is the question of which product the system
+Whether AcuityMath takes on the institutional (LMS/district) direction, and in
+what relation to the rest of the product. **This is not a technical choice** —
+the codebase forecloses nothing. It is the question of which product the system
 is for.
+
+**The shape of the decision is itself undecided**, and that is not a hedge. An
+earlier draft of this entry asked whether the product pursues the institutional
+direction "or a narrower one" — a fork, asserted by sentence structure rather
+than by argument. Nothing establishes that the two exclude each other. At least
+three shapes are available, and they imply different next work:
+
+| Shape | What it means | What it implies |
+| --- | --- | --- |
+| **A fork** | Pick one; the other is foreclosed | The Hub is either revived or deleted, and soon |
+| **A sequence** | The narrower product now, institutional later | The Hub waits, and nothing is built against it meanwhile |
+| **A layer** | The narrower product *is* the product; institutional is an optional extension on top | The Hub becomes a separable concern with its own entitlement story |
+
+The narrower thing — practice loop, manipulatives, AI coach, consent, screen
+time — is plausibly the foundation the institutional direction would be built
+*on*, in which case the question is not "which" but "whether to add the district
+layer, and when". **Choosing the shape comes before choosing the direction.**
+
+**No enumerated option set exists anywhere.** Not in this file, not in
+`docs/AUDIT_REPORT.md`, not in the phase plans, not in the code. Whoever closes
+this decision is **writing the options, not choosing from a list** — and should
+not go looking for a menu in another document, because there isn't one. This
+sentence exists because an hour was spent discovering exactly that.
 
 ### What the scaffold left, and where it is now
 
