@@ -1169,6 +1169,25 @@ correctly computes 97.4 and is shown 97 again — the answer reads as not counti
 `correctAnswersToReach` steps the curve rather than inverting it, because the
 closed form is out by an answer once the rounding accumulates.
 
+**A test can prove a library's guard and be filed under yours.** The LTI token
+suite had a case for algorithm confusion: a token signed HS256 using the
+platform's public key as the shared secret. It passed. It also passed with
+`algorithms: ['RS256']` deleted — jose refuses to hand an RSA key object to an
+HMAC verifier, so the token never reached the pin, and the comment on that line
+claiming it was what stopped the attack was simply false.
+
+The pin is still worth having, for a different case: an RSA signature under
+RS512 or PS256 from a platform whose published JWK omits `alg`, which many real
+ones do. When `alg` is present jose narrows the choice by itself, which is why
+the original test could not tell the two apart. `idToken.integration.test.ts`
+now publishes a deliberately unlabelled key so the pin has something to bite on,
+and the HS256 case is kept — it is what a reader asks about, and a dependency
+upgrade that relaxed it should fail here rather than in a district.
+
+The general shape, and the fifth time this audit has hit it: **a guard sitting
+downstream of something else that already refuses is untested, however green it
+reads.** Only mutation tells you which layer is doing the work.
+
 ---
 
 ## Still-open questions
