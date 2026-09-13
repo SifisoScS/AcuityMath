@@ -51,6 +51,14 @@ import {
   createSchool,
   listInstitutions,
 } from '../learning/institutions';
+import {
+  addMember,
+  BelongsElsewhere,
+  listMembers,
+  NotGrantable,
+  removeMember,
+  WouldDemotePlatformAdmin,
+} from '../learning/membership';
 import { serveNextProblem } from '../learning/serveProblem';
 import {
   checkStepUpPin,
@@ -727,6 +735,50 @@ const institutionsRouter = router({
         }
         throw error;
       }
+    }),
+
+  /**
+   * Everyone in one district.
+   *
+   * `adminProcedure` like the rest of this router. Letting an institutional
+   * administrator manage their own district's membership is a reasonable thing
+   * to want and a different change: it would mean a role that can grant itself
+   * to others, which needs its own thought about who may promote whom. Until
+   * then, adding people is a platform act.
+   */
+  members: adminProcedure
+    .input(z.object({ institutionId: z.number().int().positive() }).strict())
+    .query(({ ctx, input }) => listMembers(ctx.db, input.institutionId)),
+
+  addMember: adminProcedure
+    .input(
+      z
+        .object({
+          institutionId: z.number().int().positive(),
+          email: z.string().trim().email().max(255),
+          role: z.enum(['institution_admin', 'teacher', 'parent']),
+        })
+        .strict(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await addMember(ctx.db, input.institutionId, input.email, input.role);
+      } catch (error) {
+        if (error instanceof BelongsElsewhere || error instanceof WouldDemotePlatformAdmin) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message });
+        }
+        if (error instanceof NotGrantable) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: error.message });
+        }
+        throw error;
+      }
+    }),
+
+  removeMember: adminProcedure
+    .input(z.object({ userId: z.number().int().positive() }).strict())
+    .mutation(async ({ ctx, input }) => {
+      await removeMember(ctx.db, input.userId);
+      return { removed: true };
     }),
 
   addSchool: adminProcedure

@@ -76,6 +76,69 @@ function hasWriter(table: string): boolean {
  */
 const DELIBERATELY_UNWRITTEN: Array<{ table: string; why: string }> = [];
 
+/**
+ * Columns that decide what an account may reach.
+ *
+ * A table with no writer is caught above. A **column** with no writer is not,
+ * and Graft B2 walked straight into that: `users.institution_id` decided which
+ * district's children an administrator could reach, `users` had plenty of
+ * writers, and nothing anywhere set the column. The scope was correct and
+ * unreachable — a district could be created and nobody could be put in it.
+ *
+ * The same shape as a writerless table, one level down, and it passed the guard
+ * written for exactly this class of defect two days earlier. So the guard grows
+ * a second half.
+ *
+ * The match is scoped to writes **against the owning table**, and that detail is
+ * the whole guard. The first version of this looked for the property name
+ * anywhere in a file that also contained `.values(` or `.set(` — and passed with
+ * the writer deleted, because `schools.institution_id` is a different column
+ * with the same property name. An assertion about a *name* standing in for one
+ * about a *write*: the adjacent-assertion trap, inside the guard written to
+ * catch its sibling.
+ */
+const SCOPE_GRANTING_COLUMNS = [
+  {
+    column: 'users.institutionId',
+    table: 'users',
+    property: 'institutionId',
+    decides: 'which district’s learners an institution_admin may reach',
+  },
+];
+
+describe('columns that grant scope have a writer', () => {
+  it.each(SCOPE_GRANTING_COLUMNS)(
+    '$column is set by something',
+    ({ column, table, property, decides }) => {
+      /*
+       * Searched outside the schema, because a declaration is not a writer —
+       * that confusion is how the gap survived in the first place.
+       */
+      const writers = [...sourceFiles('server'), ...sourceFiles('scripts')].filter(file => {
+        if (/schema\.ts$/.test(file)) return false;
+        const body = readFileSync(join(ROOT, file), 'utf-8');
+
+        // Every `insert(schema.users)` / `update(schema.users)` in the file, and
+        // whether the column is named in the statement that follows it.
+        const statements = [
+          ...body.matchAll(new RegExp(`(insert|update)\\(\\s*schema\\.${table}\\b`, 'g')),
+        ];
+        return statements.some(match => {
+          const window = body.slice(match.index ?? 0, (match.index ?? 0) + 600);
+          return new RegExp(`\\b${property}\\b`).test(window);
+        });
+      });
+
+      expect(
+        writers.length,
+        `Nothing sets ${column}, which decides ${decides}. A boundary nobody can ` +
+          `cross is the writerless-table defect one level down: correct, enforced, ` +
+          `and unreachable. Give it a writer or remove the column.`,
+      ).toBeGreaterThan(0);
+    },
+  );
+});
+
 describe('every table has a writer', () => {
   /*
    * Guarding the guard, without an exact count.
