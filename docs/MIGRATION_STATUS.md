@@ -834,6 +834,53 @@ Do not relitigate these without a reason that is new.
 
 Each of these looked like something else first.
 
+**Prose has no test suite, so a name in it can stand in for a thing that was
+never defined.** Every other trap here was caught by an assertion that named the
+wrong thing — and an assertion naming the wrong thing is still an assertion, so
+mutating the code eventually exposed it. A term used in conversation and in
+documents is checked by nobody.
+
+For most of a working session both the author of this file and the person
+reviewing it referred to "the A/B/C product decision" as the last open question.
+It was in summaries, in hand-offs, in the sentence "the only structural decision
+remaining". **Neither of them could say what A, B and C were.** There was no
+such enumeration — not here, not in `docs/AUDIT_REPORT.md`, not in the phase
+plans, not in the code. The label had no referent and acquired its authority
+purely by repetition.
+
+It got further than any defect in the code, and the reason is worth keeping:
+`grep` cannot fail. The `410` that pointed at a `Graft E` section the document
+did not contain, the route check that counted a word in a comment, the floor set
+seven below the real number — each was eventually contradicted by something
+mechanical. A confident noun is contradicted by nothing.
+
+**What to do about it is small.** When a name for a decision, a phase or an
+option set appears in a summary, ask once where it is defined, and put the answer
+in the document or stop using the name. The tell is that nobody has had to write
+it down: a term that has only ever been *spoken* between people who both assume
+the other introduced it is a term with no source. It was caught here because
+somebody finally asked what the letters stood for — which is the only instrument
+this class of error has.
+
+**The writing side of the same trap: a frame can be wrong in a way no claim
+inside it is.** The entry two sections above — the product decision — arrived as
+a draft whose every atomic claim was checked hard. `server/lms.ts` was traced to
+the commit that deleted it. A wrong PR number was caught. The age table was
+re-measured twice, and the second measurement was thrown out on discovering it
+counted generator-created rows. Each fact came out right.
+
+Its *structure* was never checked. It asked whether the product pursues the
+institutional direction "or a narrower one" — a fork, asserted by sentence shape
+rather than by argument — and nothing had established the two were exclusive.
+**Verifying the components does not verify what they compose into**, which is the
+adjacent-assertion entry below, one level up: there the assertion named something
+next to the property, here the framing names a relation nobody demonstrated.
+
+So the writer's tell sits beside the reader's. Reading: *where is this term
+defined?* Writing: *what does this framing assume, and did anyone argue it?* A
+paragraph that is right in every particular can still put a reader in the wrong
+room.
+
 **A rule belongs at the narrowest thing that can break it, and the tell is the
 number of callers.** Put it on a caller and it is held by whoever calls — which
 means held by whoever calls *next*, including the one written a year later by
