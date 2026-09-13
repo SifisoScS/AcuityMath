@@ -25,7 +25,7 @@ import { approximateAge, tierForAge } from '../src/services/tiers';
 import { setStepUpPin } from '../server/auth/pin';
 import { ensureGeneratorConcepts, serveNextProblem } from '../server/learning/serveProblem';
 import { recordAttempt } from '../server/learning/recordAttempt';
-import { recordConsent } from '../server/learning/consent';
+import { consentStatusFor, recordConsent } from '../server/learning/consent';
 import { CONSENT_POLICY_VERSION } from '../src/data/consentPolicy';
 import { closeDatabase, getDatabase, type Database } from '../server/db/client';
 
@@ -169,13 +169,21 @@ export async function seedDemoFamily(db: Database) {
    * guardian, which is why it runs after every learner exists rather than
    * inside the loop that creates them.
    */
-  const [alreadyConsented] = await db
-    .select()
-    .from(schema.consentEvents)
-    .where(eq(schema.consentEvents.grantedByUserId, guardian.id))
-    .limit(1);
+  /*
+   * Checked by *status*, not by the presence of a row.
+   *
+   * An earlier version asked whether any consent row existed, which was correct
+   * until the policy version moved. A demonstration family consented under v1
+   * now reads `superseded` — not consent — so a seed that saw the old row and
+   * skipped would leave the demo children unable to record anything, with no
+   * indication why. The same is true of a withdrawn row.
+   *
+   * `consentStatusFor` is the same precedence the gate uses, so the seed cannot
+   * disagree with the product about whether a family has consented.
+   */
+  const currentStatus = await consentStatusFor(db, learnerIds[0].id);
 
-  if (!alreadyConsented) {
+  if (currentStatus !== 'granted') {
     await recordConsent(db, {
       guardianId: guardian.id,
       decision: 'granted',
