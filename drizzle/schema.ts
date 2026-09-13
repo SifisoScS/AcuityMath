@@ -219,6 +219,54 @@ export const ltiDeployments = mysqlTable(
   ],
 );
 
+/**
+ * One launch in progress.
+ *
+ * An LTI launch is a round trip: we send the platform a `state` and a `nonce`,
+ * the platform sends both back inside a signed token, and we check that what
+ * came back is what we sent. This row is the "what we sent" half — without it
+ * there is nothing to compare against, and any token with a valid signature
+ * would be accepted, including one replayed from a capture an hour ago.
+ *
+ * **Both values are single-use, and `consumedAt` is what makes them so.** The
+ * signature proves the platform wrote the token; it says nothing about whether
+ * this is the first time we have seen it. Replay is the attack the nonce exists
+ * for, and a nonce that can be presented twice is decoration.
+ *
+ * Rows are short-lived by design. A launch completes in seconds, so anything
+ * older than a few minutes is a redirect that was abandoned or a token being
+ * held for later use.
+ */
+export const ltiLaunchStates = mysqlTable(
+  'lti_launch_states',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    /** Returned by the platform as a query parameter; proves the round trip is ours. */
+    state: varchar('state', { length: 64 }).notNull(),
+    /** Returned *inside the signed token*; proves the token was minted for this trip. */
+    nonce: varchar('nonce', { length: 64 }).notNull(),
+    platformId: int('platform_id')
+      .notNull()
+      .references(() => ltiPlatforms.id, { onDelete: 'cascade' }),
+    /**
+     * Where the platform wants the learner to end up.
+     *
+     * Kept from the initiation request and compared against the token's own
+     * claim later: a token whose target disagrees with the one that started the
+     * trip is a token from a different trip.
+     */
+    targetLinkUri: varchar('target_link_uri', { length: 500 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    /** Set the first time it is presented. A second presentation finds it set. */
+    consumedAt: timestamp('consumed_at'),
+  },
+  table => [
+    uniqueIndex('lti_state_idx').on(table.state),
+    index('lti_state_expiry_idx').on(table.expiresAt),
+  ],
+);
+
 // ---------------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------------
