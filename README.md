@@ -15,13 +15,24 @@
   <img src="https://img.shields.io/badge/Tailwind_CSS%204-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/tRPC%2011-2596BE?style=flat-square&logo=trpc&logoColor=white" alt="tRPC" />
   <img src="https://img.shields.io/badge/MySQL%208.4-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL" />
+  <a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/Developer_Guide-ARCHITECTURE.md-darkviolet?style=flat-square&logo=markdown" alt="Architecture Guide" /></a>
 </p>
 
-<p align="center">
-  <a href="./ARCHITECTURE.md"><strong>📐 Architecture &amp; Engineering Handbook</strong></a> ·
-  <a href="./docs/ROADMAP.md">Roadmap</a> ·
-  <a href="./docs/MIGRATION_STATUS.md">Status &amp; traps</a>
-</p>
+---
+
+## 📖 Complete Developer & AI Agent Blueprint
+
+For the platform mission, pedagogical theory (CRA, ZPD, and the 3PL IRT
+formulation), the Chromebook Web Worker offloading rationale, the multi-role
+security model, and the container runtime facts, see the
+**[AcuityMath System Blueprint & Engineering Handbook](./ARCHITECTURE.md)**.
+
+**It is the specification, not a report on what runs today** — every section is
+marked ✅ Built, 🟡 Partial or 🎯 Target, so intent and implementation can be told
+apart without opening the code. Two companions:
+
+- **[docs/ROADMAP.md](./docs/ROADMAP.md)** — the distance from here to that document, and the order of travel.
+- **[docs/MIGRATION_STATUS.md](./docs/MIGRATION_STATUS.md)** — what has landed, the decisions that are settled, and the traps that cost time so they do not cost it twice.
 
 ---
 
