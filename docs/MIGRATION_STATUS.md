@@ -53,14 +53,14 @@ Donor repository, read-only reference:
 | **E3/E5** | Every JSON-store route deleted, and the store with it | **Merged** (PR #28) |
 | **E4** | District, LMS and pilot feedback quarantined | **Merged** (PR #29) |
 
-One pull request is open: **E1, this branch.** The table has twice drifted —
-saying "open in PR #N" for work that had been in `main` for days, and naming a PR
-number that was never allocated. Read it as a record of what landed and check
-`gh pr list` before trusting the right-hand column.
+**Nothing is open.** Graft E is complete, through PR #32. The table has twice
+drifted — saying "open in PR #N" for work that had been in `main` for days, and
+naming a PR number that was never allocated — so read it as a record of what
+landed and check `gh pr list` before trusting the right-hand column.
 
 PR #19 was split rather than merged: its credential commit went to #20, its
-feature commits to #22, and its consent commits to this branch. It carries a
-comment mapping all ten commits to their destinations.
+feature commits to #22, and its consent commits to #23. It carries a comment
+mapping all ten commits to their destinations.
 
 The content-import half of Graft D was delivered early, in B3b: the database
 holds 63 concepts, 1,138 authored problems and 572 hints. What remains of D is
@@ -119,6 +119,93 @@ the offline queue alone.
 
 Local checkout: `C:\Users\sifis\Math-Analysis\AcuityMath`
 Working branch: `graft-d-offline-queue`
+
+---
+
+## Open decision — the product direction
+
+**Status:** Pending. Not recorded anywhere in this repo before this entry, which
+is itself the reason for writing it: a decision that exists only in conversation
+is one the next reader cannot act on or argue with.
+
+### What the decision is
+
+Whether AcuityMath pursues the institutional (LMS/district) direction as the
+product's shape, or a narrower one. **This is not a technical choice** — the
+codebase is compatible with both. It is the question of which product the system
+is for.
+
+### What the scaffold left, and where it is now
+
+| Artefact | State |
+| --- | --- |
+| `server/lms.ts`, the district/LMS store | **Deleted** in #29. Recoverable from history at `da890b8^`, not sitting on disk |
+| `DistrictAdminDashboard.tsx` | 1,356 lines, **on disk, unimported, unrouted** |
+| District / LMS / feedback routes | Deleted in #29; `/api` is three routes, none of them these |
+| The three fabricated teacher testimonials | Deleted in #29 |
+| `'district' → 'admin'` role mapping | **Kept**, so a rebuilt Hub cannot appear ungated by default |
+
+Four false claims on the *teacher* surface — "LMS Two-Way Sync Active",
+"Connected to Google Classroom & Canvas", "100% Rosters Synced", and the "88%
+report optimal ZPD (24 responses)" aggregate over invented respondents — were
+removed in **PR #17**. They mattered because they were the institutional
+direction's *representation* rather than its implementation: the product claimed
+an integration it did not have.
+
+**The equivalents inside `DistrictAdminDashboard` were never removed** — it still
+seeds `'Google Classroom District Tenant'` and renders "Google Classroom &
+Canvas Live". They are unreachable, which is why #29 was a quarantine and not a
+cleanup. **If the institutional direction is chosen, that component is a draft
+containing claims that are not true, not a head start.**
+
+### Why the component stays on disk
+
+What belongs in the Hub is a product decision, and deleting it would foreclose
+one. Quarantine is the correct intermediate state: no client can display
+invented data, and the code remains if the direction is chosen.
+
+### What is *not* in the repo
+
+- The decision itself.
+- The framing of the trade-off.
+- Whether `docs/PHASE_1..4_PLAN.md` are a live roadmap or historical artefacts.
+  Each has **exactly one commit** — the scaffold, `28b7de5`, 8 Sep 2026 — and has
+  never been edited since. They assume the institutional direction; under a
+  narrower one they read as stale, and under either one they should say which
+  they are.
+
+### What is common to both directions
+
+The **ages 6–10 curriculum gap** is the largest real product gap and does not
+resolve under either choice. Concepts with at least one *authored* problem, by
+age:
+
+```
+ 3:5   4:9   5:9   6:6   7:0   8:3   9:8  10:7
+11:6  12:14 13:25 14:20 15:13 16:8  17:3 18:1
+```
+
+**Age 7 has nothing.** The generator covers it at runtime, so a child of seven
+gets questions; the authored corpus does not reach them, so nobody has checked
+those questions the way the 1,138 authored ones were checked. Closing the gap is
+authoring work, not code, and it is required regardless of direction.
+
+> Measure this from `problems.source = 'authored'`, not from concept age bands.
+> A dev database that has served practice also holds generator-created concepts
+> and problems, and counting those reports coverage at age 7 that the corpus does
+> not have — it answers "what has this database seen" when the question is "what
+> has someone written".
+
+### How to close this decision
+
+Replace this entry with a record of the choice and its consequences — which
+scaffold artefacts become live, which become historical, and what the next work
+items are.
+
+**Until then, no work that depends on the direction should be started.** The
+block is symmetric: anything institutional and anything deliberately
+anti-institutional both wait on the same call. The curriculum gap above is the
+only substantial work that does not.
 
 ---
 
