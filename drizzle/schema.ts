@@ -220,6 +220,52 @@ export const ltiDeployments = mysqlTable(
 );
 
 /**
+ * The link between a person at a platform and an account here.
+ *
+ * A launch identifies its user by `sub`, which is opaque, stable, and means
+ * nothing outside the platform that issued it. This table is what turns it into
+ * one of our accounts, and it exists rather than matching on email every time
+ * for two reasons that both bite in practice.
+ *
+ * An address changes. A teacher who marries, or a district that migrates from
+ * `@lincoln.k12` to `@lincolnschools`, would otherwise arrive as a stranger and
+ * be handed a new empty account, with their classes attached to the old one.
+ *
+ * And an address may never arrive at all. A district can configure its LMS to
+ * send no personal data, which is a privacy setting working as intended. Once
+ * this row exists the second launch needs no email, because `sub` is enough.
+ *
+ * `sub` is unique **per platform**, never globally: two platforms can both call
+ * somebody `12345` and mean different people, so matching on the subject alone
+ * would hand one district's teacher another district's account.
+ */
+export const ltiIdentities = mysqlTable(
+  'lti_identities',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    platformId: int('platform_id')
+      .notNull()
+      .references(() => ltiPlatforms.id, { onDelete: 'cascade' }),
+    /** The `sub` claim. Opaque by specification — not an email, not a name. */
+    subject: varchar('subject', { length: 255 }).notNull(),
+    userId: int('user_id')
+      .notNull()
+      /*
+       * `cascade`. If the account is gone the link means nothing; leaving it
+       * would let the next launch resolve to a user id that no longer exists.
+       */
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    /** Last successful launch. The only thing that says an integration is live. */
+    lastLaunchedAt: timestamp('last_launched_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('lti_identity_idx').on(table.platformId, table.subject),
+    index('lti_identity_user_idx').on(table.userId),
+  ],
+);
+
+/**
  * One launch in progress.
  *
  * An LTI launch is a round trip: we send the platform a `state` and a `nonce`,

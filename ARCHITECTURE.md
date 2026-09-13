@@ -285,11 +285,22 @@ sequenceDiagram
 
 ## 7. Institutional LMS & SIS Interoperability (LTI 1.3 & OneRoster) 🎯
 
-> **Status: Target. None of this is built.** There is no LTI, OIDC, JWT-platform
-> or OneRoster code in the repository. `LtiOnboardingWizardModal.tsx` renders a
-> configuration form and makes no network calls. The endpoint paths below are
-> **specified, not served**, and `acuitymath.org` is not yet registered to this
-> project.
+> **Status: partly built.** LTI Core is served: a platform can fetch
+> `/api/lti/jwks.json`, be registered with its deployments, start a launch at
+> `/api/lti/login` and complete one at `/api/lti/launch`. **A teacher launching
+> from an LMS lands signed in.**
+>
+> **A pupil launching does not**, and is refused with a sentence saying so. That
+> is deliberate: signing a child in needs a consent record, and a child arriving
+> from an LMS has no guardian in this system — the district stands in their
+> place, which is C3d and C3e in `docs/ROADMAP.md`.
+>
+> Not built: NRPS, AGS, Deep Linking, OneRoster.
+> `LtiOnboardingWizardModal.tsx` still renders a configuration form and makes no
+> network calls. `acuitymath.org` is not yet registered to this project, so the
+> host name in the endpoints below is still aspirational — and because an LTI
+> session cookie must be `SameSite=None; Secure`, **a launch cannot work over
+> plain http at all.**
 >
 > The work is sequenced as **Track C** and **Track D** in `docs/ROADMAP.md`.
 > Certification is **Track A** and is not engineering: LTI Advantage conformance
