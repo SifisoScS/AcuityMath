@@ -73,16 +73,34 @@ the real COPPA pathway when a school consents on behalf of pupils, and
 
 ## 4. Track A — the long-lead work, which is not engineering
 
-**Start these first.** They take months of calendar time and no amount of code
-shortens them. Every one is a prerequisite for a claim the architecture makes.
+**Corrected sequencing.** An earlier version of this section said "start these
+first", on the general principle that long-lead items should begin early. That
+advice is too blunt for where this project actually is, and the objection to it
+was right:
 
-| Item | What it actually requires | Blocks |
+> **Certification assesses a product as it stands.** A Safe Harbor review of
+> something still changing shape buys an assessment of a version that will not
+> exist in three months. 1EdTech membership before any LTI code exists pays for
+> a conformance suite that cannot be run — and conformance is the *last* step of
+> Track C, not the first. Hosting matters when there is something to deploy.
+
+**And the urgency that would justify starting early does not apply: there are no
+users.** Zero deployments, zero environments, no public instance. The only
+consent rows that exist are the demo family from `pnpm db:seed:demo`. Nobody is
+relying on any claim this product makes.
+
+So the block below **waits**, with two exceptions called out at the end — and
+the exceptions are exceptions because of a *cost curve*, not because they are
+urgent.
+
+| Item | What it actually requires | Start when |
 | --- | --- | --- |
-| **1EdTech membership** (formerly IMS Global) | Paid membership. Certification is only available to members | Any honest use of "LTI 1.3 Advantage" or the certified mark |
-| **LTI Advantage conformance** | Passing 1EdTech's conformance suite per service (Core, NRPS, AGS, Deep Linking) | The §7 claims |
-| **COPPA Safe Harbor** | Application to an **FTC-approved** program — PRIVO, kidSAFE or ESRB — including a privacy assessment and annual review | The §8 badge |
-| **FERPA posture** | FERPA binds *schools*, not vendors. What a vendor provides is a **Data Protection Addendum**, a data map, a subprocessor list, and breach terms | The §8 claim, which should be reworded from "compliant" to what is actually offered |
-| **Domain and hosting** | `acuitymath.org`, and a host that runs a **persistent Node process plus MySQL** | Every LTI endpoint, which platforms must reach at a stable HTTPS URL |
+| **1EdTech membership** (formerly IMS Global) | Paid membership. Certification is only available to members | **Track C is underway** and conformance is in sight. Buying it earlier buys a suite with nothing to test |
+| **LTI Advantage conformance** | Passing 1EdTech's conformance suite per service (Core, NRPS, AGS, Deep Linking) | **After C1–C6.** It is the last step of that track |
+| **COPPA Safe Harbor** | Application to an **FTC-approved** program — PRIVO, kidSAFE or ESRB — including a privacy assessment and annual review | **When the product is stable enough to be worth assessing.** `docs/privacy/DATA_MAP.md` is the input and is already written |
+| **FERPA posture** | FERPA binds *schools*, not vendors. What a vendor provides is a **Data Protection Addendum**, a data map, a subprocessor list, and breach terms | **Before the first real school signs.** The data map is done; the DPA needs a lawyer |
+| **Hosting** | A host that runs a **persistent Node process plus MySQL**, contracted for encryption in transit and at rest | **When there is something to deploy** |
+| **`acuitymath.org`** | Registration | 🔸 **Now.** See below — it is cheap and it decays |
 
 > **A note on hosting, because it is a live trap.** This project builds *two*
 > artefacts: a static client and `dist/server.cjs`. A static-only deploy — which
@@ -91,10 +109,33 @@ shortens them. Every one is a prerequisite for a claim the architecture makes.
 > run: auth, the consent gate, screen time, entitlement. A static deployment of
 > AcuityMath is not a limited version of it; it is the appearance of it.
 
-**Until Track A completes, the architecture's compliance and certification
-language stays out of the README and out of any public surface.** That is not a
-retreat from the vision — it is the difference between holding a certification
-and claiming one.
+### The two things that should not wait
+
+Both are here because **waiting makes them more expensive**, not because they are
+urgent.
+
+**1. The consent disclosure. This is not Track A at all — it is a product bug.**
+`CONSENT_POLICY_VERSION = '2026-09-v1'` tells parents their child's information
+"is not sold or shared with anyone else", unqualified, while a child's free-text
+message to the Socratic coach is sent to Google. Google is a processor rather
+than a third party and no identifier accompanies the request — and that
+distinction does not survive a parent reading the sentence.
+
+The cost curve is the argument. Bumping the version supersedes every existing
+consent, and superseded consent does not count — so every affected family
+re-consents, and their children drop to local-only practice until they do.
+**Today that is four seeded demo rows and one commit.** After the first real
+school it is every family in it. The number only goes up.
+
+**2. `acuitymath.org`.** Trivial to register, and someone else can take it. Every
+LTI endpoint in `ARCHITECTURE.md` §7 is specified against that host name.
+
+Everything else in the table waits.
+
+**Whenever it is picked up: until Track A completes, the architecture's
+compliance and certification language stays out of the README and out of any
+public surface.** That is not a retreat from the vision — it is the difference
+between holding a certification and claiming one.
 
 ---
 
@@ -249,14 +290,18 @@ Directives 1–7 are sound and should be kept as written.
 ## 11. Order of work
 
 ```
-Track A  ──────────────────────────────────────────▶  (start now, runs for months)
-           membership · Safe Harbor · DPA · domain · hosting
+now      consent disclosure fix  ·  register acuitymath.org
+           (cheap today, expensive later — not the Track A block)
 
 Track B  ──▶  institutions, tenancy, ELO
                 │
-                ├──▶  Track C   LTI: keys → registry → launch → NRPS → AGS → DL → conformance
-                ├──▶  Track D   OneRoster: client → sync → reconciliation
-                └──▶  Track E   district surfaces, rebuilt on real data
+                ├──▶  Track C   LTI: keys → registry → launch → NRPS → AGS → DL ──┐
+                ├──▶  Track D   OneRoster: client → sync → reconciliation         │
+                └──▶  Track E   district surfaces, rebuilt on real data           │
+                                                                                  ▼
+Track A  ································································▶  membership,
+           (waits for a product worth assessing)                     conformance, Safe
+                                                                  Harbor, DPA, hosting
 
 Track F  ──────────────────────────────────────────▶  (independent, start any time)
            ages 6–10 authoring, age 7 first
@@ -266,9 +311,12 @@ Track F  ───────────────────────�
 stops being a bug about one family and becomes a bug about a district. Nothing
 in C, D or E should land before it has been mutation-tested.
 
-**Track A is the long pole.** Certification calendars, not sprints, decide when
-the architecture's compliance language can appear on a public surface. Starting
-it late is the only way to make the engineering wait.
+**Track A is still the long pole — but a pole raised at the end.** Certification
+calendars decide when the architecture's compliance language can appear on a
+public surface, so leave roughly a quarter for them and start the membership when
+Track C's conformance step comes into view. The mistake to avoid is not starting
+late; it is **certifying a product that is still changing**, and then paying to
+certify it again.
 
 ---
 
