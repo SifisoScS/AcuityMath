@@ -45,10 +45,35 @@ export const SESSION_COOKIE = 'acuity_session';
  * mean expiring the session.
  */
 export const ELEVATION_COOKIE = 'acuity_elevated';
+
+/**
+ * The cookie a child holds, separate from the adult one.
+ *
+ * A separate name rather than a different payload in `acuity_session`, so that
+ * `resolveUser` keeps reading one cookie and cannot accidentally be handed a
+ * child. The two can also coexist: a parent signed in on the family tablet
+ * whose child launches from school should not sign the parent out.
+ */
+export const LEARNER_COOKIE = 'acuity_learner';
 export const DEV_AUTH_ENV = 'DEV_AUTH_EMAIL';
 
 /** Thirty days. A parent should not be signed out between homework sessions. */
 export const SESSION_LIFETIME_SECONDS = 30 * 24 * 60 * 60;
+
+/**
+ * Eight hours, against the adult session's thirty days.
+ *
+ * A child's session lives on whatever machine the school put in front of them,
+ * and that machine belongs to the classroom rather than to them. Thirty days
+ * would leave a shared computer signed in as a particular nine-year-old until
+ * somebody noticed.
+ *
+ * Eight rather than one: a session that expires mid-lesson is a child locked
+ * out of their work with no adult password to recover it, and the launch that
+ * would fix it is back in the LMS. Long enough for a school day, short enough
+ * that a device left in an empty classroom is anonymous by the evening.
+ */
+export const LEARNER_SESSION_LIFETIME_SECONDS = 8 * 60 * 60;
 
 const ISSUER = 'acuitymath';
 const AUDIENCE = 'acuitymath-app';
@@ -58,6 +83,17 @@ const AUDIENCE = 'acuitymath-app';
  * be holding the step-up it exists to require.
  */
 const ELEVATION_AUDIENCE = 'acuitymath-elevated';
+
+/**
+ * A third audience, so a child's token and an adult's can never be confused.
+ *
+ * Not decoration. All three are signed with the same key, so the audience is
+ * the **only** thing distinguishing them — without it, a learner token pasted
+ * into the adult cookie would verify, and `resolveUser` would look up a `users`
+ * row by a learner id. That is not a hypothetical: the ids are small integers
+ * from separate sequences, so learner 7 and user 7 both exist.
+ */
+const LEARNER_AUDIENCE = 'acuitymath-learner';
 
 /** Fifteen minutes. Long enough to read a dashboard, short enough to hand over. */
 export const ELEVATION_LIFETIME_SECONDS = 15 * 60;
@@ -96,6 +132,57 @@ export async function issueSession(userId: number): Promise<string> {
     .setAudience(AUDIENCE)
     .setExpirationTime(`${SESSION_LIFETIME_SECONDS}s`)
     .sign(signingKey());
+}
+
+/**
+ * Mints a session for a **child**, which nothing else in this product does.
+ *
+ * Until C3g a learner could not hold a session at all: `learner_access_tokens`
+ * resolves a child *within* an adult's session and explicitly cannot start one,
+ * and `selectLearner` hands the client an id that the adult's session then
+ * authorises. An LTI pupil arrives with no adult anywhere, so the child has to
+ * be the principal.
+ *
+ * What that principal may reach is deliberately narrow, and is enforced in
+ * `learnerProcedure` rather than here — a token says who somebody is, never
+ * what they may do.
+ */
+export async function issueLearnerSession(learnerId: number): Promise<string> {
+  return new SignJWT({ sub: String(learnerId) })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setIssuer(ISSUER)
+    .setAudience(LEARNER_AUDIENCE)
+    .setExpirationTime(`${LEARNER_SESSION_LIFETIME_SECONDS}s`)
+    .sign(signingKey());
+}
+
+/**
+ * The child this request is, or null.
+ *
+ * Returns an id and does **not** load the row. The caller loads it, because
+ * every caller needs the learner for other reasons anyway and a second query
+ * here would be one per request for nothing. An id that names a deleted or
+ * archived child is refused where that is checked — `learnerProcedure` filters
+ * on `archivedAt`, which is what makes a deletion request effective without a
+ * session table.
+ */
+export async function resolveLearnerSession(headers: RequestHeaders): Promise<number | null> {
+  const token = readCookie(headers.cookie, LEARNER_COOKIE);
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, signingKey(), {
+      issuer: ISSUER,
+      // The audience is what stops an adult's session token being presented
+      // here, and a child's being presented as an adult's.
+      audience: LEARNER_AUDIENCE,
+    });
+    const learnerId = Number(payload.sub);
+    return Number.isInteger(learnerId) && learnerId > 0 ? learnerId : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Mints an elevation token for a user id. */
@@ -211,6 +298,26 @@ export function ltiSessionCookie(token: string): string {
     'HttpOnly',
     secure ? 'SameSite=None' : 'SameSite=Lax',
     `Max-Age=${SESSION_LIFETIME_SECONDS}`,
+  ];
+  if (secure) parts.push('Secure');
+  return parts.join('; ');
+}
+
+/**
+ * The Set-Cookie value for a child's session, begun by an LTI launch.
+ *
+ * `SameSite=None; Secure` for the same reason `ltiSessionCookie` is: the child
+ * is looking at this product inside a frame on their LMS, and a `Lax` cookie is
+ * not sent on those requests at all.
+ */
+export function ltiLearnerCookie(token: string): string {
+  const secure = servedOverHttps();
+  const parts = [
+    `${LEARNER_COOKIE}=${token}`,
+    'Path=/',
+    'HttpOnly',
+    secure ? 'SameSite=None' : 'SameSite=Lax',
+    `Max-Age=${LEARNER_SESSION_LIFETIME_SECONDS}`,
   ];
   if (secure) parts.push('Secure');
   return parts.join('; ');

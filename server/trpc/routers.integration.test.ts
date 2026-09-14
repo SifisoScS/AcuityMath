@@ -34,7 +34,12 @@ describeWithDb('practice loop API', () => {
    * be minted deliberately.
    */
   const callerFor = (user: AuthenticatedUser | null) =>
-    appRouter.createCaller({ db: harness.db, user, headers: {} } satisfies Context);
+    appRouter.createCaller({
+      db: harness.db,
+      user,
+      learnerSessionId: null,
+      headers: {},
+    } satisfies Context);
 
   let sarah: AuthenticatedUser;
   let otherParent: AuthenticatedUser;

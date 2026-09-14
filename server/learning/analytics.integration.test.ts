@@ -209,6 +209,7 @@ describeWithDb('parent analytics', () => {
       appRouter.createCaller({
         db,
         user,
+        learnerSessionId: null,
         headers: elevation ? { cookie: `${ELEVATION_COOKIE}=${elevation}` } : {},
         setCookie: () => {},
       } satisfies Context);
