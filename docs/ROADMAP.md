@@ -201,7 +201,7 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | ~~**C3f Pupil provisioning**~~ | An LMS pupil becomes a district learner, consented through C3e in the same act | **Done.** Created and consented together, or not created at all |
 | ~~**C3g Learner session**~~ | The first session a child can start, and what it may reach | **Done.** A child launches from an LMS and practises; they can reach nothing that names another child |
 | ~~**C4a Outbound auth**~~ | Client-credentials grant with a signed JWT assertion, and a token cache | **Done.** A platform that verifies our assertion against our JWKS issues us a token |
-| **C4b Roster read** | The NRPS claim, the memberships call, pagination | A course's membership list can be read from the platform |
+| ~~**C4b Roster read**~~ | The NRPS claim, the memberships call, pagination | **Done.** A course's membership list is read from the platform, over https, one token across all its pages |
 | **C4c Reconciliation** | Turning a membership list into classrooms and learners | A roster matches the platform's without manual entry, and nobody is deleted by a sync |
 | **C5 AGS v2.0** | Line items and score passback | A completed session appears in the platform gradebook |
 | **C6 Deep Linking 2.0** | Teacher selects a concept or quest; platform receives a signed content item | A teacher can embed a specific quest |

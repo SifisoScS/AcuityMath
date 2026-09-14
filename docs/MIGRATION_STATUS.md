@@ -1211,6 +1211,45 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A roster is a list of children's names, so the channel is part of the
+guard.** The memberships URL is refused unless it is https — at the launch that
+offers it, at every `Link: rel="next"` that continues it, and at the fetch
+itself. A roster that starts on https and continues on http would have the rest
+of a class read over a channel somebody can rewrite, and the guard on the first
+URL would have bought nothing.
+
+The one exception is bounded twice: plain http is allowed only to a loopback
+host and only when `NODE_ENV` is exactly `test`. It exists so the fetch, the
+pagination and the 401 retry are exercised against a **real HTTP server**
+instead of a stub — the only way to find out whether this code speaks the
+protocol. A test asserts that an http URL to any other host is still refused
+under the runner, so the exception cannot quietly widen.
+
+**A `next` link comes from the platform, so following it needs a bound.** A
+platform that returns a link to the page you are already on turns a sync into an
+open connection that never closes. Fifty pages is far beyond any real course;
+hitting it means something is wrong, and it should surface as a refusal rather
+than as a process that never returns.
+
+**Two copies of one rule eventually disagree, and disagree silently.** Whether a
+set of role URIs means "staff" is now `rolesAreStaff`, imported by both the
+launch path and the roster reader. Reimplemented in the second place, somebody
+would be a teacher when they launched and a pupil when the roster synchronised —
+which is a child in a roster of staff, or a teacher provisioned as a child.
+
+**An absent claim is not an instruction to forget.** A launch that does not
+carry the Names and Roles claim leaves a stored memberships URL alone. The claim
+is missing for two very different reasons — the scope was never granted, or this
+particular message did not include it — and clearing on the second would break a
+sync that had been running for months.
+
+**A filter that matches nothing reads as a guard that does nothing.** Two C4b
+mutations came back green because the `-t` filter was taken from the error
+message rather than the test name, so vitest ran zero tests and still printed a
+summary. The mutation harness now treats a run with nothing executed as
+`NO TESTS MATCHED` rather than silence — but the lesson is older than the
+tooling: **check that the test you think is guarding actually ran.**
+
 **Calling a platform is a different risk from being called by one.** Everything
 through C3 was inbound: somebody knocks, we check the knock. The services are
 the reverse, and an outbound mistake means presenting a credential **we signed
