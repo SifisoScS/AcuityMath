@@ -249,13 +249,22 @@ export const ltiIdentities = mysqlTable(
       .references(() => ltiPlatforms.id, { onDelete: 'cascade' }),
     /** The `sub` claim. Opaque by specification — not an email, not a name. */
     subject: varchar('subject', { length: 255 }).notNull(),
+    /**
+     * The adult this subject is, when the launch was a member of staff.
+     *
+     * **Nullable since C3f**, for the same reason `learners.guardian_id` became
+     * nullable in C3d: a launch resolves to one of two different kinds of
+     * person, and forcing both through a column meaning "account" would have
+     * required inventing an account for every child.
+     */
     userId: int('user_id')
-      .notNull()
       /*
        * `cascade`. If the account is gone the link means nothing; leaving it
        * would let the next launch resolve to a user id that no longer exists.
        */
       .references(() => users.id, { onDelete: 'cascade' }),
+    /** The child this subject is, when the launch was a pupil. */
+    learnerId: int('learner_id').references(() => learners.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     /** Last successful launch. The only thing that says an integration is live. */
     lastLaunchedAt: timestamp('last_launched_at').defaultNow().notNull(),
@@ -263,6 +272,20 @@ export const ltiIdentities = mysqlTable(
   table => [
     uniqueIndex('lti_identity_idx').on(table.platformId, table.subject),
     index('lti_identity_user_idx').on(table.userId),
+    index('lti_identity_learner_idx').on(table.learnerId),
+    /**
+     * Exactly one person. Never both, never neither.
+     *
+     * The same shape as `learner_has_exactly_one_owner`, and for the same
+     * reason. A link to neither resolves a launch to nobody, which would read as
+     * "not seen before" and quietly provision a second record on every launch. A
+     * link to both would let one `sub` be an adult for one question and a child
+     * for the next — and the two are entitled to very different things.
+     */
+    check(
+      'lti_identity_is_one_person',
+      sql`(\`user_id\` is null) <> (\`learner_id\` is null)`,
+    ),
   ],
 );
 

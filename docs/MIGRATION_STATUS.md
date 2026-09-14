@@ -1211,6 +1211,37 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**No LTI message carries a birth date, and inventing one is the wrong way out.**
+A pupil launch has to put something in `learners.birth_year`, which is
+`notNull`. Once a district's agreement covers the child the consent gate permits
+them **at any age**, so a wrong year cannot let an unconsented child practise —
+it only picks a starting content band that the ability estimate corrects within
+a session. The reason C3f refuses instead of guessing is narrower and harder:
+a made-up year is a **false fact, stored**, indistinguishable later from one
+somebody actually knew. The district writes `grade_level` or `birth_year` into
+the placement's custom parameters, and a launch without either is refused with a
+message naming them.
+
+**A classification comment that was true when written is a guard that stops
+guarding.** `lti_identities` sat in `NOT_LEARNER_SCOPED` under a comment saying
+it pointed at `users` and never at `learners`. That was exactly right in C3c and
+false the moment C3f let a child arrive from an LMS — and the cost was not the
+stale sentence but the exemption behind it: the deletion-cascade assertion loops
+`LEARNER_SCOPED` and `DUAL_AUDIENCE` only, so **a deleted child's LTI link would
+have survived them**, still naming the platform subject that was theirs. Moving
+it needed `DUAL_AUDIENCE` split, because that list's `about_learner_id`
+assertion is notification-shaped and relaxing it would have traded a real guard
+for a shorter list.
+
+**Range checks hide type checks.** `resolvePupilAge` tests `/^\d{4}$/` before
+`Number()`, and mutating that regex away came back green: `Number('2O16')` is
+`NaN`, and `NaN` fails every comparison in the plausibility range that follows.
+The digit check earns its place on a case the range cannot see — `'2016.4'`
+parses to 2016.4, sits inside the range, and lands in a `smallint`, so a child's
+record would silently hold a rounded year nobody typed. The suite now covers
+that and a hex literal. Fifth time in Track C: the question is never "is this
+guard tested" but "which layer is doing the work".
+
 **MySQL rounds a sub-second value into a `TIMESTAMP`; it does not truncate it.**
 Signing an agreement at 12:00:00.800 stored `12:00:01` — a moment in the future
 — so `isInForce` refused it for the next two hundred milliseconds, and a

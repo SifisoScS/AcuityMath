@@ -64,8 +64,8 @@ const LEARNER_SCOPED = [
 /**
  * Tables addressed to *either* an adult or a child.
  *
- * `notifications` is the only one, and it is here rather than on either list
- * above because forcing it onto one would have cost something real. It holds a
+ * `notifications` was the first, and it is here rather than on either list above
+ * because forcing it onto one would have cost something real. It holds a
  * `user_id`, so `LEARNER_SCOPED` would have failed — and rightly, since that
  * rule is what stops a child's learning data being keyed to an adult account.
  * But it also holds rows about children, so calling it not-learner-scoped would
@@ -73,10 +73,31 @@ const LEARNER_SCOPED = [
  * invariant that matters most.
  *
  * The distinction it draws is recipient versus subject: `user_id` and
- * `learner_id` are who reads a row, `about_learner_id` is who it concerns. The
- * assertions below are written against that.
+ * `learner_id` are who reads a row, `about_learner_id` is who it concerns.
+ *
+ * `lti_identities` joined in **C3f**, when a launch stopped resolving only to
+ * staff. It sat in `NOT_LEARNER_SCOPED` under a comment saying it pointed at
+ * `users` and never at `learners` — true when written, false the moment a child
+ * could arrive from an LMS, and the cost of leaving it there would have been
+ * exactly the exemption described above: a deleted child's LTI link surviving
+ * them, still naming the platform subject that was theirs.
  */
-const DUAL_AUDIENCE = ['notifications'] as const;
+const DUAL_AUDIENCE = ['notifications', 'lti_identities'] as const;
+
+/**
+ * The subset whose rows are *about* a child as well as addressed to somebody.
+ *
+ * `notifications` is the only one. `lti_identities` joined `DUAL_AUDIENCE` in
+ * C3f because a launch now resolves to either an adult or a child, but it is not
+ * about anybody — it is a link, and an `about_learner_id` on it would name the
+ * same child its `learner_id` already does.
+ *
+ * Split out rather than widened, because the assertion it carries is the one
+ * that stops a guardian's copy of a notification losing its machine-readable
+ * link to the child it concerns. Relaxing that to accommodate a table with a
+ * different shape would have cost a real guard to save a list.
+ */
+const ABOUT_A_CHILD = ['notifications'] as const;
 
 /** Tables holding data about an authenticating adult, or about content. */
 const NOT_LEARNER_SCOPED = [
@@ -116,13 +137,6 @@ const NOT_LEARNER_SCOPED = [
    * deleted every few minutes.
    */
   'lti_launch_states',
-  /*
-   * The link between a platform's `sub` and one of our accounts. It points at
-   * `users`, which is the adult side of this product, and never at `learners` —
-   * a child arriving from an LMS is C3d and will need a consent record, not a
-   * row quietly added here by a launch.
-   */
-  'lti_identities',
   'users',
   'magic_link_tokens',
   'learners',
@@ -215,7 +229,7 @@ describe('a notification is addressed to one reader and is about one child', () 
     expect(columns).toContain('learner_id');
   });
 
-  it.each(DUAL_AUDIENCE)('%s records the child it concerns separately', tableName => {
+  it.each(ABOUT_A_CHILD)('%s records the child it concerns separately', tableName => {
     // Without this the guardian's copy has no machine-readable link to the child
     // it is about, and "has this already been raised" cannot be asked once for
     // both copies.

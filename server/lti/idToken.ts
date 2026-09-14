@@ -47,6 +47,14 @@ export const LTI_CLAIM = {
   roles: 'https://purl.imsglobal.org/spec/lti/claim/roles',
   resourceLink: 'https://purl.imsglobal.org/spec/lti/claim/resource_link',
   context: 'https://purl.imsglobal.org/spec/lti/claim/context',
+  /**
+   * Whatever the district typed into the placement's custom parameters.
+   *
+   * The only channel LTI offers for facts the specification does not model,
+   * and the only way a pupil's year group can reach us: **no LTI message
+   * carries a birth date**, by design.
+   */
+  custom: 'https://purl.imsglobal.org/spec/lti/claim/custom',
 } as const;
 
 export const LTI_VERSION = '1.3.0';
@@ -106,6 +114,16 @@ export interface LaunchContext {
   contextTitle: string | null;
   resourceLinkId: string | null;
   targetLinkUri: string;
+  /**
+   * The placement's custom parameters, as strings.
+   *
+   * Values are whatever an administrator typed into a form, so everything is a
+   * string and nothing here is trustworthy without checking. Platforms also
+   * disagree about case: Canvas lowercases parameter names, others do not, so
+   * the keys are normalised to lower case on the way in rather than at each
+   * read — a lookup that silently misses is a parameter that reads as absent.
+   */
+  custom: Record<string, string>;
   claims: JWTPayload;
 }
 
@@ -319,6 +337,15 @@ export async function verifyLaunch(
       )
     : [];
 
+  const rawCustom = payload[LTI_CLAIM.custom];
+  const custom: Record<string, string> = {};
+  if (rawCustom && typeof rawCustom === 'object' && !Array.isArray(rawCustom)) {
+    for (const [key, value] of Object.entries(rawCustom as Record<string, unknown>)) {
+      if (value === null || value === undefined) continue;
+      custom[key.trim().toLowerCase()] = String(value).trim();
+    }
+  }
+
   const context = (payload[LTI_CLAIM.context] ?? null) as { id?: string; title?: string } | null;
   const resourceLink = (payload[LTI_CLAIM.resourceLink] ?? null) as { id?: string } | null;
 
@@ -341,6 +368,7 @@ export async function verifyLaunch(
     contextId: asString(context?.id),
     contextTitle: asString(context?.title),
     resourceLinkId: asString(resourceLink?.id),
+    custom,
     targetLinkUri: claimed.targetLinkUri,
     claims: payload,
   };

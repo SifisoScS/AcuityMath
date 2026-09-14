@@ -80,6 +80,7 @@ describeWithDb('signing somebody in from a launch', () => {
       contextTitle: 'Year 4 Maths',
       resourceLinkId: 'link-1',
       targetLinkUri: 'https://acuitymath.test/practice',
+      custom: {},
       claims: {},
       ...overrides,
     };
