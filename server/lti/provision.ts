@@ -18,6 +18,11 @@ import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 import * as schema from '../../drizzle/schema';
 import { addMember } from '../learning/membership';
+import { createDistrictLearner } from '../learning/districtLearners';
+import { recordInstitutionalConsent } from '../learning/consent';
+import { activeAgreement } from '../learning/institutionAgreements';
+import { CONSENT_POLICY_VERSION } from '../../src/data/consentPolicy';
+import { AgeUnknown, resolvePupilAge } from './pupilAge';
 import type { LaunchContext } from './idToken';
 
 type Db = MySql2Database<typeof schema>;
@@ -79,6 +84,24 @@ export async function provisionStaff(
     .limit(1);
 
   if (linked) {
+    /*
+     * A subject that resolves to a **child** is refused rather than treated as
+     * unlinked.
+     *
+     * Since C3f an identity is either an adult or a child, and falling through
+     * to the create path would mint an adult account for a pupil whose roles
+     * happened to change — a pupil made a teaching assistant, or a platform
+     * sending different roles from a different course. One `sub` is one person,
+     * and changing which kind of person they are is an administrator's job.
+     */
+    if (linked.userId === null) {
+      throw new CannotProvision(
+        'is_a_pupil',
+        'This LMS account is already registered here as a pupil, so it cannot ' +
+          'be signed in as staff. An administrator needs to sort out which it is.',
+      );
+    }
+
     const [user] = await db
       .select()
       .from(schema.users)
@@ -203,4 +226,165 @@ export async function provisionStaff(
   });
 
   return { userId, email, isNew };
+}
+
+export interface ProvisionedPupil {
+  learnerId: number;
+  institutionId: number;
+  /** True the first time this child launched. */
+  isNew: boolean;
+}
+
+/**
+ * Finds or creates the learner record for a pupil launch.
+ *
+ * **Nothing here signs anybody in.** A pupil has never been able to hold a
+ * session in this product — `learner_access_tokens` resolves a child *within* an
+ * adult's session and explicitly cannot start one — so giving a child their own
+ * is a new kind of principal, with its own rules about what it may reach. That
+ * is C3g, and it is deliberately not bundled here.
+ *
+ * The order below is the whole design. A child is created **and consented in the
+ * same call**, because a district pupil with a record and no consent is a child
+ * the product is holding data about while refusing to let them use it — the
+ * worst of both. If the consent cannot be recorded, nothing is created.
+ */
+export async function provisionPupil(
+  db: Db,
+  context: LaunchContext,
+  now: Date = new Date(),
+): Promise<ProvisionedPupil> {
+  if (context.isStaff) {
+    throw new CannotProvision(
+      'is_staff',
+      'This launch is for a member of staff, not a pupil.',
+    );
+  }
+
+  const [linked] = await db
+    .select({ learnerId: schema.ltiIdentities.learnerId, id: schema.ltiIdentities.id })
+    .from(schema.ltiIdentities)
+    .where(
+      and(
+        eq(schema.ltiIdentities.platformId, context.platformId),
+        eq(schema.ltiIdentities.subject, context.subject),
+      ),
+    )
+    .limit(1);
+
+  if (linked) {
+    /*
+     * The mirror of the staff path's refusal. A subject already known as an
+     * adult must not become a child on the strength of a role claim.
+     */
+    if (linked.learnerId === null) {
+      throw new CannotProvision(
+        'is_staff_account',
+        'This LMS account is already registered here as a member of staff, so it ' +
+          'cannot be signed in as a pupil.',
+      );
+    }
+
+    const [learner] = await db
+      .select()
+      .from(schema.learners)
+      .where(eq(schema.learners.id, linked.learnerId))
+      .limit(1);
+
+    /*
+     * The district is rechecked on every launch, exactly as it is for staff. A
+     * pupil record does not follow a platform that was re-registered against a
+     * different district, and a link that outlived its learner is not a reason
+     * to quietly make a second child.
+     */
+    if (!learner || learner.institutionId !== context.institutionId) {
+      throw new CannotProvision(
+        'moved',
+        'This pupil’s record belongs to a different institution than this launch. ' +
+          'An administrator needs to look at it.',
+      );
+    }
+
+    if (learner.archivedAt) {
+      /*
+       * Archived means somebody asked for this child's records to be removed.
+       * Launching again must not undo that silently — restoring a deleted child
+       * because they clicked a link would make the deletion a suggestion.
+       */
+      throw new CannotProvision(
+        'archived',
+        'This pupil’s records were removed at the institution’s request. An ' +
+          'administrator has to restore them before this link will work.',
+      );
+    }
+
+    await db
+      .update(schema.ltiIdentities)
+      .set({ lastLaunchedAt: now })
+      .where(eq(schema.ltiIdentities.id, linked.id));
+
+    return { learnerId: learner.id, institutionId: context.institutionId, isNew: false };
+  }
+
+  /*
+   * The agreement is checked **before** anything is written, not left to fail
+   * inside `recordInstitutionalConsent`. Both orders refuse the launch; only
+   * this one avoids creating a child record in a district that has not agreed
+   * to hold one.
+   */
+  const agreement = await activeAgreement(db, context.institutionId, now);
+  if (!agreement) {
+    throw new CannotProvision(
+      'no_agreement',
+      'This institution has no agreement on file, so pupils cannot be signed in ' +
+        'from its LMS yet. An administrator needs to accept the terms first.',
+    );
+  }
+
+  let birthYear: number;
+  try {
+    birthYear = resolvePupilAge(context.custom, now).birthYear;
+  } catch (error) {
+    if (error instanceof AgeUnknown) {
+      throw new CannotProvision('no_age', error.message);
+    }
+    throw error;
+  }
+
+  /*
+   * A name, or the absence of one, handled the same way it is everywhere else in
+   * this product: a district may configure its LMS to send no personal data, and
+   * that is a privacy setting working. `Pupil` is a placeholder a teacher can
+   * change, not a claim about who this child is.
+   */
+  const displayName = context.name?.trim() || 'Pupil';
+
+  const learner = await createDistrictLearner(db, {
+    institutionId: context.institutionId,
+    displayName,
+    birthYear,
+  });
+
+  await recordInstitutionalConsent(
+    db,
+    {
+      institutionId: context.institutionId,
+      decision: 'granted',
+      policyVersion: CONSENT_POLICY_VERSION,
+      // This child only. A launch is one pupil arriving, not a roll nobody has
+      // seen — consenting for the rest would be recording a decision about
+      // children this launch says nothing about.
+      learnerIds: [learner.id],
+    },
+    now,
+  );
+
+  await db.insert(schema.ltiIdentities).values({
+    platformId: context.platformId,
+    subject: context.subject,
+    learnerId: learner.id,
+    lastLaunchedAt: now,
+  });
+
+  return { learnerId: learner.id, institutionId: context.institutionId, isNew: true };
 }
