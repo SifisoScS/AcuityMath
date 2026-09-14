@@ -221,6 +221,52 @@ export const ltiDeployments = mysqlTable(
 );
 
 /**
+ * A course at a platform, and where its roster can be read.
+ *
+ * A launch is the **only** moment a platform tells us the memberships URL — it
+ * arrives as a claim in the token and appears nowhere else. A roster sync runs
+ * later, on a schedule or when a teacher asks, with no launch in hand, so the
+ * URL has to be kept when it is offered or the sync has nothing to call.
+ *
+ * Keyed on the deployment rather than the platform. A context id is unique
+ * within an installation, and one platform can host two installations for two
+ * districts — so keying on the platform alone would let one district's course
+ * collide with another's, which is a roster of the wrong children.
+ *
+ * `membershipsUrl` is nullable because the claim is optional: a district that
+ * has not granted the Names and Roles scope launches perfectly well and simply
+ * cannot be synchronised. That is a configuration, not a fault, and nothing may
+ * treat its absence as one.
+ */
+export const ltiContexts = mysqlTable(
+  'lti_contexts',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    deploymentId: int('deployment_id')
+      .notNull()
+      .references(() => ltiDeployments.id, { onDelete: 'cascade' }),
+    /** The platform's own id for the course. Opaque, and unique per deployment. */
+    contextId: varchar('context_id', { length: 255 }).notNull(),
+    /** For an administrator reading a list. Never used for matching. */
+    title: varchar('title', { length: 255 }),
+    membershipsUrl: varchar('memberships_url', { length: 1000 }),
+    /**
+     * When a sync last completed. Null means never.
+     *
+     * Recorded rather than inferred from the rows a sync wrote, because a sync
+     * that legitimately changed nothing is indistinguishable from one that never
+     * ran if the only evidence is its effects.
+     */
+    lastSyncedAt: timestamp('last_synced_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex('lti_context_idx').on(table.deploymentId, table.contextId),
+  ],
+);
+
+/**
  * An access token a platform issued **to us**, cached until it expires.
  *
  * Every LTI service — roster, gradebook — is a call outward, and each one needs

@@ -537,6 +537,52 @@ describeWithDb('accepting a launch back from a platform', () => {
     });
   });
 
+  describe('the roster endpoint a platform offers', () => {
+    it('is carried through when it is https', async () => {
+      const { state, idToken } = await goodLaunch({
+        claims: {
+          'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice': {
+            context_memberships_url: 'https://platform.test/courses/1/names_and_roles',
+            service_versions: ['2.0'],
+          },
+        },
+      });
+
+      const context = await verifyLaunch(db, { idToken, state });
+      expect(context.membershipsUrl).toBe('https://platform.test/courses/1/names_and_roles');
+    });
+
+    it('is dropped rather than trusted when it is not https', async () => {
+      /*
+       * A roster is a list of children's names. Fetching one over a channel
+       * somebody can rewrite lets them choose what we are told the class
+       * contains — and read it on the way past.
+       *
+       * Dropped rather than refusing the whole launch, because the claim is
+       * optional: a district that has simply not granted the Names and Roles
+       * scope looks identical here, and their pupils must still be able to work.
+       */
+      const { state, idToken } = await goodLaunch({
+        claims: {
+          'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice': {
+            context_memberships_url: 'http://platform.test/courses/1/names_and_roles',
+          },
+        },
+      });
+
+      const context = await verifyLaunch(db, { idToken, state });
+      expect(context.membershipsUrl).toBeNull();
+    });
+
+    it('is absent when the platform offers none, and the launch still works', async () => {
+      const { state, idToken } = await goodLaunch();
+      const context = await verifyLaunch(db, { idToken, state });
+
+      expect(context.membershipsUrl).toBeNull();
+      expect(context.subject).toBe('platform-user-77');
+    });
+  });
+
   describe('what a platform is allowed to withhold', () => {
     it('accepts a launch with no name and no email', async () => {
       /*

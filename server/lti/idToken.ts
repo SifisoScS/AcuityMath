@@ -55,6 +55,14 @@ export const LTI_CLAIM = {
    * carries a birth date**, by design.
    */
   custom: 'https://purl.imsglobal.org/spec/lti/claim/custom',
+  /**
+   * Where this course's roster can be read, when the platform offers one.
+   *
+   * Absent whenever a district has not granted the tool the Names and Roles
+   * scope, which is an ordinary configuration and not a fault. Nothing may
+   * require it to be present.
+   */
+  namesRoleService: 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice',
 } as const;
 
 export const LTI_VERSION = '1.3.0';
@@ -78,6 +86,19 @@ const STAFF_ROLES = new Set([
   'Faculty',
   'Staff',
 ]);
+
+/**
+ * Whether a set of role URIs means "this person marks work".
+ *
+ * Exported since C4b so a roster read decides it the same way a launch does.
+ * Two copies of this rule would eventually disagree, and the disagreement is
+ * silent: a person would be a teacher when they launched and a pupil when the
+ * roster was synchronised, or the reverse — which is a child in a roster of
+ * staff, or a teacher provisioned as a child.
+ */
+export function rolesAreStaff(roles: readonly string[]): boolean {
+  return roles.some(role => STAFF_ROLES.has(role.split('#').pop() ?? role));
+}
 
 export class LaunchRejected extends Error {
   readonly reason: string;
@@ -124,6 +145,15 @@ export interface LaunchContext {
    * read — a lookup that silently misses is a parameter that reads as absent.
    */
   custom: Record<string, string>;
+  /**
+   * The roster endpoint for this course, if the platform sent one.
+   *
+   * Null when the district has not granted the Names and Roles scope. This is
+   * the **only** place the URL ever appears — a launch is the one moment a
+   * platform tells us where a course's membership lives — so a sync that runs
+   * later reads it from `lti_contexts` rather than from anywhere else.
+   */
+  membershipsUrl: string | null;
   claims: JWTPayload;
 }
 
@@ -346,6 +376,11 @@ export async function verifyLaunch(
     }
   }
 
+  const nrps = (payload[LTI_CLAIM.namesRoleService] ?? null) as {
+    context_memberships_url?: string;
+    service_versions?: unknown;
+  } | null;
+
   const context = (payload[LTI_CLAIM.context] ?? null) as { id?: string; title?: string } | null;
   const resourceLink = (payload[LTI_CLAIM.resourceLink] ?? null) as { id?: string } | null;
 
@@ -364,11 +399,23 @@ export async function verifyLaunch(
      */
     email: asString(payload.email),
     roles,
-    isStaff: roles.some(role => STAFF_ROLES.has(role.split('#').pop() ?? role)),
+    isStaff: rolesAreStaff(roles),
     contextId: asString(context?.id),
     contextTitle: asString(context?.title),
     resourceLinkId: asString(resourceLink?.id),
     custom,
+    /*
+     * Required to be https, and dropped rather than trusted otherwise. A roster
+     * is a list of children's names, and fetching one over a channel somebody
+     * can rewrite would let them choose what we are told the class contains —
+     * and see it. Refusing the whole launch would be worse: the URL is optional,
+     * so a district that has simply not granted the scope looks identical here.
+     */
+    membershipsUrl:
+      typeof nrps?.context_memberships_url === 'string' &&
+      nrps.context_memberships_url.startsWith('https://')
+        ? nrps.context_memberships_url
+        : null,
     targetLinkUri: claimed.targetLinkUri,
     claims: payload,
   };

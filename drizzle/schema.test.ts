@@ -139,6 +139,13 @@ const NOT_LEARNER_SCOPED = [
    */
   'lti_access_tokens',
   /*
+   * A course at a platform, and where its roster can be read. It names an
+   * organisation's course rather than any person — the membership itself lives
+   * at the platform until C4c brings it across, and a learner id here would put
+   * a child in a row that exists to hold a URL.
+   */
+  'lti_contexts',
+  /*
    * One launch in progress: a state, a nonce and an expiry. It names a platform
    * and never a learner — the launch resolves a child *after* this row is spent,
    * and putting one here would keep a child's identity in a table designed to be
@@ -290,10 +297,17 @@ describe('referential integrity is the database"s job', () => {
         // `deployments` table for it to point at — the row that *holds* it is
         // `lti_deployments`, and its uniqueness is per platform, which is a
         // separate index.
+        //
+        // `context_id` is the same shape one level down: the platform's own id
+        // for a course, arriving as a claim. The row that holds it *is* the
+        // course record, so there is nothing else for it to reference, and its
+        // uniqueness is per deployment — which is a separate index, and the one
+        // that stops two districts' courses colliding.
         const exempt =
           column.name === 'external_id' ||
           column.name === 'client_id' ||
           column.name === 'deployment_id' ||
+          column.name === 'context_id' ||
           // `avatar_id` names an entry in the catalogue in `src/data/avatars.ts`,
           // which the server reads so that the price charged is not the price a
           // browser claimed. There is no table for it to reference.

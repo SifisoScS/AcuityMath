@@ -81,6 +81,7 @@ describeWithDb('signing somebody in from a launch', () => {
       resourceLinkId: 'link-1',
       targetLinkUri: 'https://acuitymath.test/practice',
       custom: {},
+      membershipsUrl: null,
       claims: {},
       ...overrides,
     };

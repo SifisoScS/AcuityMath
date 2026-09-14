@@ -26,6 +26,8 @@ import { LaunchRejected, verifyLaunch } from './idToken';
 import { publicJwks, signingKey } from './keys';
 import { AmbiguousPlatform, beginLaunch, UnknownPlatform } from './launchState';
 import { CannotProvision, provisionPupil, provisionStaff } from './provision';
+import { rememberContext } from './nrps';
+import { resolveLaunch } from './platforms';
 
 export const ltiRouter = Router();
 
@@ -276,6 +278,37 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
       return;
     }
     throw error;
+  }
+
+  /*
+   * A launch is the **only** moment a platform says where this course's roster
+   * lives, so it is remembered here or not at all — a sync runs later with no
+   * launch in hand.
+   *
+   * After provisioning, and deliberately. Everything above can refuse, and a
+   * course row written before a refusal would record a class this product was
+   * never allowed to see. It also fails soft: a launch that succeeded must not
+   * be turned into an error page because a bookkeeping write did not land.
+   */
+  if (context.contextId) {
+    try {
+      const resolved = await resolveLaunch(
+        db,
+        context.issuer,
+        context.clientId,
+        context.deploymentId,
+      );
+      if (resolved) {
+        await rememberContext(db, {
+          deploymentRowId: resolved.deployment.id,
+          contextId: context.contextId,
+          title: context.contextTitle,
+          membershipsUrl: context.membershipsUrl,
+        });
+      }
+    } catch (error) {
+      console.warn(`[lti] could not record the course for ${context.deploymentId}:`, error);
+    }
   }
 
   res.setHeader('Set-Cookie', cookie);
