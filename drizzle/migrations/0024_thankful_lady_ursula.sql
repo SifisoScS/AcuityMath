@@ -1,0 +1,2 @@
+ALTER TABLE `lti_contexts` ADD `classroom_id` int;--> statement-breakpoint
+ALTER TABLE `lti_contexts` ADD CONSTRAINT `lti_contexts_classroom_id_classrooms_id_fk` FOREIGN KEY (`classroom_id`) REFERENCES `classrooms`(`id`) ON DELETE set null ON UPDATE no action;

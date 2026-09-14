@@ -27,6 +27,7 @@ import { publicJwks, signingKey } from './keys';
 import { AmbiguousPlatform, beginLaunch, UnknownPlatform } from './launchState';
 import { CannotProvision, provisionPupil, provisionStaff } from './provision';
 import { rememberContext } from './nrps';
+import { AgeUnknown, resolvePupilAge } from './pupilAge';
 import { resolveLaunch } from './platforms';
 
 export const ltiRouter = Router();
@@ -299,11 +300,25 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
         context.deploymentId,
       );
       if (resolved) {
+        /*
+         * The placement's year group, worked out here because a roster sync has
+         * no launch to read it from. Absent is ordinary — a staff launch carries
+         * no age, and plenty of placements are not configured — so it is stored
+         * when known and left alone when not.
+         */
+        let defaultBirthYear: number | null = null;
+        try {
+          defaultBirthYear = resolvePupilAge(context.custom).birthYear;
+        } catch (error) {
+          if (!(error instanceof AgeUnknown)) throw error;
+        }
+
         await rememberContext(db, {
           deploymentRowId: resolved.deployment.id,
           contextId: context.contextId,
           title: context.contextTitle,
           membershipsUrl: context.membershipsUrl,
+          defaultBirthYear,
         });
       }
     } catch (error) {

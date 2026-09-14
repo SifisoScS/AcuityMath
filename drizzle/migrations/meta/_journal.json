@@ -162,6 +162,20 @@
       "when": 1789406929231,
       "tag": "0022_broken_loki",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1789409262852,
+      "tag": "0023_tidy_songbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1789409427432,
+      "tag": "0024_thankful_lady_ursula",
+      "breakpoints": true
     }
   ]
 }
