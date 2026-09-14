@@ -1211,6 +1211,37 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Calling a platform is a different risk from being called by one.** Everything
+through C3 was inbound: somebody knocks, we check the knock. The services are
+the reverse, and an outbound mistake means presenting a credential **we signed
+with the key that proves we are this product** to a machine we have not checked.
+`aud` on the client assertion is the token endpoint rather than the issuer —
+the field platforms disagree about, where being wrong yields `invalid_client`
+and nothing else, and where the issuer reading would make one assertion
+presentable at any endpoint that issuer operates. `jti` is fresh per assertion,
+because it is the platform's replay defence and reusing one hands out the same
+single-use credential twice.
+
+**A test that accepts any string proves nothing about a credential.** The fake
+token endpoint in `accessToken.integration.test.ts` fetches this product's own
+JWKS and verifies the assertion, refusing what does not check out — so signing
+nothing at all would fail. The same shape as C3b's real-JWKS platform, and for
+a sharper reason: here we are the one being authenticated.
+
+**An expiry is a deadline, never a countdown.** `expires_in` is seconds from the
+moment of the response; storing the duration means every later comparison has to
+remember when it was measured, and the one that forgets treats an hour-old token
+as fresh for another hour. Cached tokens are also given up a minute early — a
+roster sync is several requests, and one that begins with eight seconds left
+finishes without a credential.
+
+**A narrower grant is refused where the cause is legible.** A platform may grant
+less scope than was asked for. Caching that under the requested scope records a
+permission we do not hold, and the failure then surfaces as a puzzling 403 from
+the roster endpoint rather than at the exchange, naming the scope an
+administrator has to enable. Absence of `scope` in the response is accepted,
+because most platforms omit it when the grant matched.
+
 **A child is the first principal that is not an adult, and one line separates
 them from their classmates.** Every procedure a learner session can reach takes
 `learnerId` as *input*. `learnerProcedure` compares it against the session's own

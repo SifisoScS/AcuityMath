@@ -221,6 +221,53 @@ export const ltiDeployments = mysqlTable(
 );
 
 /**
+ * An access token a platform issued **to us**, cached until it expires.
+ *
+ * Every LTI service — roster, gradebook — is a call outward, and each one needs
+ * a bearer token obtained by presenting a JWT signed with our own private key.
+ * That exchange costs a round trip to somebody else's server, and the tokens
+ * last an hour, so minting one per call would mean a request to the district's
+ * LMS for every page of every roster sync.
+ *
+ * **A row rather than a process-local cache**, for two reasons. A restart
+ * otherwise throws away a token that is still valid for fifty minutes, and two
+ * instances behind a load balancer would each hold their own — doubling the
+ * exchanges against a platform that is entitled to rate-limit us.
+ *
+ * The token is stored in plain text, and that is worth stating rather than
+ * implying. It is a bearer credential for somebody else's API scoped to what
+ * they granted us, it expires within the hour, and it sits in the same database
+ * as `lti_keys.private_pem`, which is strictly worse to lose. There is no
+ * at-rest encryption in this repository — recorded in `docs/privacy/DATA_MAP.md`
+ * §8 and a Track A item — and this row does not change that calculus.
+ */
+export const ltiAccessTokens = mysqlTable(
+  'lti_access_tokens',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    platformId: int('platform_id')
+      .notNull()
+      .references(() => ltiPlatforms.id, { onDelete: 'cascade' }),
+    /**
+     * The scope the platform **granted**, which is not always the one asked
+     * for. Part of the key, so a token granted for reading a roster is never
+     * handed to something that needs to write a grade.
+     */
+    scope: varchar('scope', { length: 500 }).notNull(),
+    accessToken: text('access_token').notNull(),
+    /** As told by the platform. Treated as a deadline, never as a countdown. */
+    expiresAt: timestamp('expires_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    // One cached token per platform and scope. The upsert that refreshes a token
+    // depends on this being unique; without it a busy sync grows a row per call.
+    uniqueIndex('lti_access_token_idx').on(table.platformId, table.scope),
+  ],
+);
+
+/**
  * The link between a person at a platform and an account here.
  *
  * A launch identifies its user by `sub`, which is opaque, stable, and means
