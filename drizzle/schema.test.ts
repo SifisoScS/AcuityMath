@@ -131,6 +131,14 @@ const NOT_LEARNER_SCOPED = [
   'lti_platforms',
   'lti_deployments',
   /*
+   * A bearer token a platform issued to us, cached until it expires. It is a
+   * credential for calling somebody else's API and names no person on either
+   * side — the scope says what we may ask for, never whom we may ask about. A
+   * learner id here would put a child's identity in a row whose whole purpose is
+   * to be thrown away and replaced every hour.
+   */
+  'lti_access_tokens',
+  /*
    * One launch in progress: a state, a nonce and an expiry. It names a platform
    * and never a learner — the launch resolves a child *after* this row is spent,
    * and putting one here would keep a child's identity in a table designed to be
