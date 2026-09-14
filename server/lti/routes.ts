@@ -16,11 +16,16 @@
 import express, { Router, type Request, type Response } from 'express';
 
 import { getDatabase } from '../db/client';
-import { issueSession, ltiSessionCookie } from '../auth/session';
+import {
+  issueLearnerSession,
+  issueSession,
+  ltiLearnerCookie,
+  ltiSessionCookie,
+} from '../auth/session';
 import { LaunchRejected, verifyLaunch } from './idToken';
 import { publicJwks, signingKey } from './keys';
 import { AmbiguousPlatform, beginLaunch, UnknownPlatform } from './launchState';
-import { CannotProvision, provisionStaff } from './provision';
+import { CannotProvision, provisionPupil, provisionStaff } from './provision';
 
 export const ltiRouter = Router();
 
@@ -237,9 +242,31 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
     throw error;
   }
 
-  let staff;
+  /*
+   * The branch that decides which kind of person just arrived.
+   *
+   * `isStaff` comes from the roles the platform asserted, and the two paths are
+   * genuinely different acts: one links an existing adult account, the other
+   * creates a child and consents for them. Neither function accepts the other's
+   * launch — both check `isStaff` again for themselves — so this branch being
+   * wrong is a refusal rather than a pupil holding a teacher's session.
+   */
+  let cookie: string;
   try {
-    staff = await provisionStaff(db, context);
+    if (context.isStaff) {
+      const staff = await provisionStaff(db, context);
+      cookie = ltiSessionCookie(await issueSession(staff.userId));
+    } else {
+      const pupil = await provisionPupil(db, context);
+      /*
+       * A **learner** session, which is a different principal from an adult's
+       * and not merely a narrower one. It reaches the child's own practice and
+       * nothing a parent surface is built on — `protectedProcedure` refuses it,
+       * so analytics, screen-time rules, export and consent stay closed without
+       * any of them restating the rule.
+       */
+      cookie = ltiLearnerCookie(await issueLearnerSession(pupil.learnerId));
+    }
   } catch (error) {
     if (error instanceof CannotProvision) {
       // These messages *are* for the reader — each one names something an
@@ -251,8 +278,7 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
     throw error;
   }
 
-  const session = await issueSession(staff.userId);
-  res.setHeader('Set-Cookie', ltiSessionCookie(session));
+  res.setHeader('Set-Cookie', cookie);
 
   /*
    * A redirect rather than rendering the app here, so the address bar and the

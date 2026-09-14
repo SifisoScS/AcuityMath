@@ -55,7 +55,7 @@ missing is the institutional layer and the content to fill the tiers.
 | Architecture claims | Reality |
 | --- | --- |
 | §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Core is served** (C1–C3c): keys, registry, initiation, token validation, staff launch. **NRPS, AGS and Deep Linking do not exist** |
-| §7 A pupil launching from an LMS | **Still refused at the route.** Provisioning and consent are built (C3d–C3f); a child cannot yet hold a session, which is C3g |
+| §7 A pupil launching from an LMS | **Works.** The child is provisioned, consented under their district's agreement, and holds a learner session — refused clearly if the district has not agreed or the placement names no year group |
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
 | §7 OneRoster 1.2 (`/api/oneroster/v1p2`) | Nothing exists |
 | §7 Self-serve wizard with handshake testing | `LtiOnboardingWizardModal.tsx` renders a form and **makes no network calls** |
@@ -199,7 +199,7 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | ~~**C3d Learner ownership**~~ | `learners.guardian_id` nullable, `learners.institution_id`, exactly one set | **Done.** A district pupil exists and is refused by the consent gate — and family consent structurally cannot reach them |
 | ~~**C3e Institutional consent**~~ | `institution_agreements`, and `institutional_agreement` consent that points at one | **Done.** The pupil C3d blocked now practises, and ending the agreement stops them again |
 | ~~**C3f Pupil provisioning**~~ | An LMS pupil becomes a district learner, consented through C3e in the same act | **Done.** Created and consented together, or not created at all |
-| **C3g Learner session** | The first session a child can start, and what it may reach | A child launches from an LMS and can practise |
+| ~~**C3g Learner session**~~ | The first session a child can start, and what it may reach | **Done.** A child launches from an LMS and practises; they can reach nothing that names another child |
 | **C4 NRPS** | Names and Roles — pull the roster from the platform | A class roster matches the platform's without manual entry |
 | **C5 AGS v2.0** | Line items and score passback | A completed session appears in the platform gradebook |
 | **C6 Deep Linking 2.0** | Teacher selects a concept or quest; platform receives a signed content item | A teacher can embed a specific quest |

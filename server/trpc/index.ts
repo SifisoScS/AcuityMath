@@ -21,12 +21,25 @@ import { z } from 'zod';
 import * as schema from '../../drizzle/schema';
 import { institutionReaches } from '../auth/tenancy';
 import { transformer } from '../../src/lib/transformer';
-import { hasElevation, resolveUser, type AuthenticatedUser, type RequestHeaders } from '../auth/session';
+import { hasElevation, resolveLearnerSession, resolveUser, type AuthenticatedUser, type RequestHeaders } from '../auth/session';
 import { getDatabase, type Database } from '../db/client';
 
 export interface Context {
   db: Database;
   user: AuthenticatedUser | null;
+  /**
+   * The child this request is, when a child is making it directly.
+   *
+   * Required rather than optional, so every place that builds a context has to
+   * say whether this is a child. An optional field would default to "no" in the
+   * one place somebody forgot, and the failure of forgetting here is a request
+   * that silently loses its principal rather than one that fails to compile.
+   *
+   * **Never both.** A request carries an adult session or a child session; an
+   * adult who happens to have a stale learner cookie is still an adult, and
+   * `learnerProcedure` is the only thing that reads this.
+   */
+  learnerSessionId: number | null;
   /**
    * Kept so elevation can be checked per procedure rather than once per
    * request. Most procedures do not need it, and verifying a signature on every
@@ -45,7 +58,13 @@ export async function createContext(
   setCookie?: (value: string) => void,
 ): Promise<Context> {
   const db = getDatabase();
-  return { db, user: await resolveUser(db, headers), headers, setCookie };
+  return {
+    db,
+    user: await resolveUser(db, headers),
+    learnerSessionId: await resolveLearnerSession(headers),
+    headers,
+    setCookie,
+  };
 }
 
 /**
@@ -128,7 +147,22 @@ export const learnerIdInput = z.object({ learnerId: z.number().int().positive() 
  * would confirm the record exists, which lets an outsider enumerate the
  * children on the platform by watching which ids answer differently.
  */
-export const learnerProcedure = protectedProcedure.input(learnerIdInput).use(async ({ ctx, input, next }) => {
+export const learnerProcedure = t.procedure.input(learnerIdInput).use(async ({ ctx, input, next }) => {
+  /*
+   * **Not built on `protectedProcedure` since C3g**, and that is the whole
+   * change. `protectedProcedure` means "an adult is signed in", which was the
+   * only way to be anybody until a child could arrive from an LMS with no adult
+   * anywhere. Composing on it would have made a learner session unable to reach
+   * even the child's own practice.
+   *
+   * The two are still kept apart everywhere else: `protectedProcedure` refuses a
+   * child, so every parent surface — analytics, screen-time rules, export,
+   * consent, the family list — is closed to one without anybody restating it.
+   */
+  if (!ctx.user && ctx.learnerSessionId === null) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in to continue.' });
+  }
+
   const [learner] = await ctx.db
     .select()
     .from(schema.learners)
@@ -155,15 +189,28 @@ export const learnerProcedure = protectedProcedure.input(learnerIdInput).use(asy
    * signed up privately is taught by the district, not provisioned by it.
    */
   const entitled =
-    ctx.user.role === 'admin' ||
+    /*
+     * **A child is themselves and nobody else.**
+     *
+     * The comparison is against the learner this request names, not merely
+     * against a session existing — without it a child could pass a classmate's
+     * id and be handed their practice, their assignments and their
+     * notifications. Every procedure below takes `learnerId` as input, so this
+     * one line is what stands between a nine-year-old and the rest of their
+     * class.
+     */
+    ctx.learnerSessionId === learner.id ||
+    ctx.user?.role === 'admin' ||
     /*
      * `guardianId` is nullable since C3d, so this is written as a comparison
      * against a non-null id rather than plain equality. Two nulls must never
      * match: a district's pupil has no guardian, and every account whose id
      * failed to load would otherwise compare equal to one.
      */
-    (learner.guardianId !== null && learner.guardianId === ctx.user.id) ||
-    (ctx.user.role === 'institution_admin' &&
+    (ctx.user !== null &&
+      learner.guardianId !== null &&
+      learner.guardianId === ctx.user.id) ||
+    (ctx.user?.role === 'institution_admin' &&
       (await institutionReaches(ctx.db, ctx.user.id, learner.id)));
 
   if (!entitled) {
@@ -192,6 +239,23 @@ export const learnerProcedure = protectedProcedure.input(learnerIdInput).use(asy
  * could set their sibling's.
  */
 export const elevatedLearnerProcedure = learnerProcedure.use(async ({ ctx, next }) => {
+  /*
+   * A child can never be elevated, and is refused here rather than failing on a
+   * null.
+   *
+   * Step-up exists to prove *the adult* is at the keyboard. There is no PIN a
+   * child could enter that would mean that, so this is not "a step they have not
+   * taken" — it is a step that cannot apply to them. Without this line
+   * `ctx.user.id` below is a null dereference on the surface that guards a
+   * nine-year-old's error patterns.
+   */
+  if (!ctx.user) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'This needs a parent or teacher, not a pupil.',
+    });
+  }
+
   if (!(await hasElevation(ctx.headers, ctx.user.id))) {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'STEP_UP_REQUIRED' });
   }

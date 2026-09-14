@@ -26,6 +26,10 @@ import { createInstitution } from '../learning/institutions';
 import { addDeployment } from './platforms';
 import { beginLaunch } from './launchState';
 import { forgetKeySets, LTI_CLAIM } from './idToken';
+import { addMember } from '../learning/membership';
+import { signAgreement } from '../learning/institutionAgreements';
+import { recordingPermission } from '../learning/consentGate';
+import { INSTITUTIONAL_AGREEMENT_VERSION } from '../../src/data/institutionalAgreement';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (process.env.CI && !DATABASE_URL) {
@@ -127,6 +131,18 @@ describeWithDb('the launch endpoint', () => {
     await addDeployment(harness.db, platform.id, DEPLOYMENT, lincoln.id);
   });
 
+  /** A district that has accepted the terms, so its pupils can be provisioned. */
+  async function agree() {
+    const head = await addMember(harness.db, lincoln.id, 'head@lincoln.test', 'institution_admin');
+    return signAgreement(harness.db, {
+      institutionId: lincoln.id,
+      signedByUserId: head.userId,
+      signatoryName: 'Grace Hopper',
+      signatoryTitle: 'Head of School',
+      agreementVersion: INSTITUTIONAL_AGREEMENT_VERSION,
+    });
+  }
+
   async function startTrip() {
     return beginLaunch(
       harness.db,
@@ -225,19 +241,70 @@ describeWithDb('the launch endpoint', () => {
   });
 
   describe('a pupil launching', () => {
-    it('is told why, rather than shown a broken page', async () => {
+    const pupilToken = (nonce: string, custom: Record<string, string> = { grade_level: '3' }) =>
+      mint(nonce, {
+        sub: 'sub-pupil-1',
+        name: 'Ada Lovelace',
+        email: null,
+        [LTI_CLAIM.roles]: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Learner'],
+        'https://purl.imsglobal.org/spec/lti/claim/custom': custom,
+      });
+
+    it('lands practising, holding a learner session', async () => {
+      /*
+       * **The done-when for the whole of C3.** A child clicks a link in their
+       * LMS and arrives able to work, with a district's agreement behind them
+       * and a session of their own — the first a child can hold in this product.
+       */
+      await agree();
+      const { state, nonce } = await startTrip();
+
+      const response = await post('/api/lti/launch', {
+        state,
+        id_token: await pupilToken(nonce),
+      });
+
+      expect(response.status).toBe(302);
+      expect(response.headers.get('location')).toBe(TARGET);
+
+      const cookie = response.headers.get('set-cookie') ?? '';
+      expect(cookie).toContain('acuity_learner=');
+      // Not an adult session. The two are different principals, and the cookie
+      // name is the first place that has to say so.
+      expect(cookie).not.toContain('acuity_session=');
+      expect(cookie).toContain('SameSite=None');
+      expect(cookie).toContain('Secure');
+
+      const [learner] = await harness.db.select().from(schema.learners);
+      expect(learner.institutionId).toBe(lincoln.id);
+      expect(learner.guardianId).toBeNull();
+      expect((await recordingPermission(harness.db, learner.id)).mayRecord).toBe(true);
+    });
+
+    it('is refused, with nothing created, when the district has not agreed', async () => {
       const { state, nonce } = await startTrip();
       const response = await post('/api/lti/launch', {
         state,
-        id_token: await mint(nonce, {
-          sub: 'sub-pupil-1',
-          [LTI_CLAIM.roles]: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Learner'],
-        }),
+        id_token: await pupilToken(nonce),
       });
 
       expect(response.status).toBe(403);
       expect(response.headers.get('set-cookie')).toBeNull();
-      expect(await response.text()).toContain('cannot yet sign in pupils');
+      expect(await response.text()).toContain('no agreement on file');
+      expect(await harness.db.select().from(schema.learners)).toHaveLength(0);
+    });
+
+    it('is refused, with nothing created, when the placement says no year group', async () => {
+      await agree();
+      const { state, nonce } = await startTrip();
+      const response = await post('/api/lti/launch', {
+        state,
+        id_token: await pupilToken(nonce, {}),
+      });
+
+      expect(response.status).toBe(403);
+      expect(await response.text()).toContain('grade_level');
+      expect(await harness.db.select().from(schema.learners)).toHaveLength(0);
     });
   });
 

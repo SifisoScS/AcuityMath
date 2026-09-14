@@ -1211,6 +1211,39 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A child is the first principal that is not an adult, and one line separates
+them from their classmates.** Every procedure a learner session can reach takes
+`learnerId` as *input*. `learnerProcedure` compares it against the session's own
+child — `ctx.learnerSessionId === learner.id` — and without that comparison a
+nine-year-old reads their sibling's practice by editing a number in a request.
+The mutation that replaces it with `ctx.learnerSessionId !== null` is the single
+most important one in Track C.
+
+The rest of the wall is structural rather than restated. `protectedProcedure`
+still means "an adult is signed in", so every parent surface — analytics,
+screen-time rules, export, consent, the family list — is closed to a child
+without any of them mentioning one. Only `learnerProcedure` was widened.
+`elevatedLearnerProcedure` refuses a child **by name** rather than failing on a
+null: step-up proves the adult is at the keyboard, and there is no PIN a child
+could type that would mean that.
+
+**Three token audiences, one signing key.** `acuitymath-app`,
+`acuitymath-elevated` and `acuitymath-learner` are all HS256 under the same
+secret, so the audience is the *only* thing keeping them apart. Without a
+distinct one, a learner token dropped into the adult cookie verifies — and the
+ids collide, because learner 7 and user 7 are both ordinary rows from separate
+sequences. A learner session lasts eight hours against an adult's thirty days:
+a classroom machine must not stay signed in as a particular child overnight,
+and an hour would lock a child out mid-lesson with no adult password to recover
+with.
+
+**Making a context field required is how you find every caller.** Adding
+`learnerSessionId` to `Context` as a required field produced a compile error at
+each of the seven places that build one, every one of which then had to say
+whether the request was a child. Optional would have defaulted to "no" in
+whichever place somebody forgot, and the failure of forgetting is a request that
+silently loses its principal rather than one that will not compile.
+
 **No LTI message carries a birth date, and inventing one is the wrong way out.**
 A pupil launch has to put something in `learners.birth_year`, which is
 `notNull`. Once a district's agreement covers the child the consent gate permits

@@ -290,10 +290,17 @@ sequenceDiagram
 > `/api/lti/login` and complete one at `/api/lti/launch`. **A teacher launching
 > from an LMS lands signed in.**
 >
-> **A pupil launching does not**, and is refused with a sentence saying so. That
-> is deliberate: signing a child in needs a consent record, and a child arriving
-> from an LMS has no guardian in this system — the district stands in their
-> place, which is C3d and C3e in `docs/ROADMAP.md`.
+> **A pupil launching does too**, as of C3g. They are provisioned as a district
+> learner with no guardian, consented under their district's signed agreement,
+> and given a **learner session** — the first session a child can hold here. A
+> launch is refused, clearly and with something an administrator can act on, when
+> the district has not agreed or the placement does not say which year group it
+> is for.
+>
+> What a child may reach is deliberately narrow: their own practice, assignments
+> and notifications, and nothing that names another child. Every parent surface
+> is built on `protectedProcedure`, which means "an adult is signed in" and
+> refuses a child without restating the rule.
 >
 > Not built: NRPS, AGS, Deep Linking, OneRoster.
 > `LtiOnboardingWizardModal.tsx` still renders a configuration form and makes no
