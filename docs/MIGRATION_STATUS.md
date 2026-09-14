@@ -1211,6 +1211,41 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A sync runs with nobody in the room.** Every other part of Track C answers a
+person who clicked and is waiting; a roster sync acts on children's records
+unobserved, which is why `rosterSync.ts` is a list of refusals rather than a
+loop. It never archives a child — archiving is what this product does when
+somebody *asks* for records to be removed, and a roster dropping a row is the
+platform's opinion, not a request. It never creates an adult account — a launch
+does that because a person is present, while an overnight roster minting teacher
+accounts is an LMS deciding who may reach children's data here. And a pupil
+whose records were archived is **skipped rather than restored**.
+
+**The guard that looked like it protected against an empty roster was dead
+code.** There was a `rosterIsSilent` check before the unenrol step, on the
+reasoning that a platform erroring returns zero members and that is
+indistinguishable from a class of thirty leaving at once. Mutating it away
+changed no test — because zero members means **no staff either**, and the
+requirement that a known teacher be on the roster refuses the whole sync before
+anything is removed. The check is gone; the behaviour is asserted directly,
+because what matters is that an empty roster removes nobody rather than which
+line happens to ensure it. Sixth time in this audit that the question was which
+layer does the work.
+
+**Status is matched positively, and absence means present.** `PRESENT_STATUSES`
+lists what counts as still-enrolled rather than excluding `Inactive`, so a word
+nobody here recognises reads as a departure — which unenrols and touches nothing
+else, the cheap direction to be wrong in. But a **missing** status reads as
+present, because most platforms omit it for current members and the opposite
+reading would empty every course that does.
+
+**Two weak tests surfaced while mutating.** "Does not rename a class a teacher
+renamed" read the first classroom row, so it passed even when every sync created
+a fresh class and orphaned the renamed one — worse than renaming. And "staff are
+never enrolled as pupils" used only a teacher this product already knew, whose
+identity row refuses the change anyway; the case that discriminates is an
+**unknown** staff member, who would otherwise be created as a child.
+
 **A roster is a list of children's names, so the channel is part of the
 guard.** The memberships URL is refused unless it is https — at the launch that
 offers it, at every `Link: rel="next"` that continues it, and at the fetch

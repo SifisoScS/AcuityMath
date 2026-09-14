@@ -1,0 +1,1 @@
+ALTER TABLE `lti_contexts` ADD `default_birth_year` smallint;

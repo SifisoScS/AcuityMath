@@ -316,6 +316,8 @@ export async function rememberContext(
     contextId: string;
     title: string | null;
     membershipsUrl: string | null;
+    /** What the placement said about age, when it said anything. */
+    defaultBirthYear?: number | null;
   },
 ): Promise<void> {
   const [existing] = await db
@@ -340,6 +342,8 @@ export async function rememberContext(
     if (input.membershipsUrl !== null && input.membershipsUrl !== existing.membershipsUrl) {
       changes.membershipsUrl = input.membershipsUrl;
     }
+    const year = input.defaultBirthYear ?? null;
+    if (year !== null && year !== existing.defaultBirthYear) changes.defaultBirthYear = year;
 
     // A launch that said nothing new writes nothing. An empty `set` is also an
     // error in Drizzle, so this is both the honest and the working branch.
@@ -359,6 +363,7 @@ export async function rememberContext(
       contextId: input.contextId,
       title: input.title,
       membershipsUrl: input.membershipsUrl,
+      defaultBirthYear: input.defaultBirthYear ?? null,
     })
     /*
      * Two launches for the same course can arrive together — two pupils opening

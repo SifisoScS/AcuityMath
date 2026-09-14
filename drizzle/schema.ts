@@ -251,6 +251,30 @@ export const ltiContexts = mysqlTable(
     title: varchar('title', { length: 255 }),
     membershipsUrl: varchar('memberships_url', { length: 1000 }),
     /**
+     * The year group this course is for, as the placement declared it.
+     *
+     * **No roster carries a birth date**, and a sync has no launch in hand to
+     * read the custom parameters from — so the year a launch worked out is kept
+     * here, on the course it belongs to, which is also the right granularity: a
+     * Year 4 link and a Year 6 link are different placements.
+     *
+     * Null until some launch has resolved one. A sync for a course with no
+     * remembered year creates nobody and says why, rather than inventing an age
+     * for a child, which is the same refusal C3f makes at the launch itself.
+     */
+    defaultBirthYear: smallint('default_birth_year'),
+    /**
+     * The classroom this course maps to, once a sync has made one.
+     *
+     * Null until then, because a classroom needs a teacher and a teacher has to
+     * have opened the tool at least once. `set null` on delete: a teacher
+     * removing a class here should not take the course record with it, and the
+     * next sync makes a fresh one rather than failing on a dangling id.
+     */
+    classroomId: int('classroom_id').references(() => classrooms.id, {
+      onDelete: 'set null',
+    }),
+    /**
      * When a sync last completed. Null means never.
      *
      * Recorded rather than inferred from the rows a sync wrote, because a sync
