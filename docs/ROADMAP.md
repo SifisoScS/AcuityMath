@@ -279,16 +279,44 @@ quarantine it is in now.
 
 Independent of every other track, and the largest *product* gap.
 
-Concepts with at least one authored problem, by age:
+**These figures are computed, not copied.** `server/curriculum/contentCoverage.ts`
+derives them from the corpus and `contentCoverage.test.ts` asserts them, so the
+table below fails the build rather than going stale. It was hand-maintained
+until F1, which is why it is worth saying.
 
-```
- 3:5   4:9   5:9   6:6   7:0   8:3   9:8  10:7
-11:6  12:14 13:25 14:20 15:13 16:8  17:3 18:1
-```
+| Age | Concepts | With authored problems | Authored problems |
+| --- | --- | --- | --- |
+| 3 | 8 | 5 | 100 |
+| 4 | 12 | 9 | 180 |
+| 5 | 12 | 9 | 180 |
+| 6 | 9 | 6 | 120 |
+| **7** | **3** | **0** | **0** |
+| 8 | 6 | 3 | 65 |
+| 9 | 11 | 8 | 185 |
+| 10 | 10 | 7 | 165 |
+| 11 | 9 | 6 | 150 |
+| 12 | 17 | 14 | 340 |
+| 13 | 28 | 25 | 566 |
+| 14 | 23 | 20 | 431 |
+| 15 | 16 | 13 | 272 |
+| 16 | 11 | 8 | 168 |
+| 17 | 6 | 3 | 63 |
+| 18 | 4 | 1 | 21 |
 
-**Age 7 has no authored problems at all.** The generator covers it at runtime, so
-a seven-year-old gets questions — but nobody has checked those the way the 1,132
-authored ones were checked by the integrity gate.
+**Age 7 is the only year between 3 and 18 with no authored problems at all.** It
+is served by three generator concepts and nothing else, where a nine-year-old
+has those plus a hundred and eighty-five written questions.
+
+That is **not incorrect mathematics**. Generated problems pass the same
+integrity gate the authored corpus does — structural invariants and SymPy — so
+a seven-year-old is served correct questions. The year is *narrower*, which is a
+different and smaller complaint than the earlier wording implied.
+
+A caution for whoever measures this next: counting `problems` rows in a
+development database says age 7 has three. Those rows are `source = 'generated'`
+— generator output persisted while somebody used the app. `takeAuthoredProblem`
+filters on that column, and any measurement that does not is counting the
+generator's work as somebody's authoring.
 
 This is authoring work, not engineering, and it can proceed in parallel with
 everything above. It is also the work that most directly serves the §2 vision:
