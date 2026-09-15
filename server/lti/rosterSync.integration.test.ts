@@ -140,6 +140,17 @@ describeWithDb('synchronising a class roster', () => {
     db.select().from(schema.classroomLearners);
   const learners = async () => db.select().from(schema.learners);
 
+  /**
+   * Always forced, because these cases are about reconciliation across repeated
+   * syncs rather than about the cooldown.
+   *
+   * C4d added a five-minute cooldown so a double-clicked button is not two full
+   * roster reads against a district's LMS. Every case here that syncs twice means
+   * "deliberately again", which is precisely what `force` says — and the cooldown
+   * itself is proved in `syncTrigger.integration.test.ts`, where it belongs.
+   */
+  const sync = (now?: Date) => syncRoster(db, contextRowId, now ?? new Date(), { force: true });
+
   async function reasonFor(promise: Promise<unknown>): Promise<string> {
     try {
       await promise;
@@ -154,7 +165,7 @@ describeWithDb('synchronising a class roster', () => {
     it('brings the class across, consented', async () => {
       members = [teacherRow, pupil('p-1'), pupil('p-2')];
 
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.created).toBe(2);
       expect(result.enrolled).toBe(0);
@@ -172,7 +183,7 @@ describeWithDb('synchronising a class roster', () => {
 
     it('makes one classroom and attaches it to the course', async () => {
       members = [teacherRow, pupil('p-1')];
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       const [classroom] = await db.select().from(schema.classrooms);
       expect(classroom.id).toBe(result.classroomId);
@@ -187,10 +198,10 @@ describeWithDb('synchronising a class roster', () => {
       // A teacher renaming their class has said something about their own
       // classroom. Overwriting it every night would make the edit pointless.
       members = [teacherRow, pupil('p-1')];
-      await syncRoster(db, contextRowId);
+      await sync();
       await db.update(schema.classrooms).set({ name: 'Maths — Set 1' });
 
-      await syncRoster(db, contextRowId);
+      await sync();
       const classrooms = await db.select().from(schema.classrooms);
       // One classroom, not a second one alongside it. Without this the test
       // passes even when every sync makes a fresh class and leaves the renamed
@@ -204,7 +215,7 @@ describeWithDb('synchronising a class roster', () => {
       // A moment just ahead of now, not a fixed date in the past: the district's
       // agreement is signed during setup, and a sync dated before it is a sync
       // with no agreement in force — which is the guard working, not this case.
-      await syncRoster(db, contextRowId, new Date(Date.now() + 60_000));
+      await sync(new Date(Date.now() + 60_000));
 
       const [context] = await db.select().from(schema.ltiContexts);
       expect(context.lastSyncedAt).not.toBeNull();
@@ -214,8 +225,8 @@ describeWithDb('synchronising a class roster', () => {
   describe('a second sync', () => {
     it('creates nobody twice', async () => {
       members = [teacherRow, pupil('p-1'), pupil('p-2')];
-      await syncRoster(db, contextRowId);
-      const result = await syncRoster(db, contextRowId);
+      await sync();
+      const result = await sync();
 
       expect(result.created).toBe(0);
       expect(await learners()).toHaveLength(2);
@@ -224,10 +235,10 @@ describeWithDb('synchronising a class roster', () => {
 
     it('enrols a pupil the district already had without creating them again', async () => {
       members = [teacherRow, pupil('p-1')];
-      await syncRoster(db, contextRowId);
+      await sync();
 
       members = [teacherRow, pupil('p-1'), pupil('p-2')];
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.created).toBe(1);
       expect(result.enrolled).toBe(0);
@@ -244,10 +255,10 @@ describeWithDb('synchronising a class roster', () => {
        * request to delete anybody.
        */
       members = [teacherRow, pupil('p-1'), pupil('p-2')];
-      await syncRoster(db, contextRowId);
+      await sync();
 
       members = [teacherRow, pupil('p-1')];
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.unenrolled).toBe(1);
       expect(await enrolments()).toHaveLength(1);
@@ -260,10 +271,10 @@ describeWithDb('synchronising a class roster', () => {
 
     it('is unenrolled when the platform marks them inactive rather than dropping them', async () => {
       members = [teacherRow, pupil('p-1'), pupil('p-2')];
-      await syncRoster(db, contextRowId);
+      await sync();
 
       members = [teacherRow, pupil('p-1'), pupil('p-2', { status: 'Inactive' })];
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.unenrolled).toBe(1);
       expect(await learners()).toHaveLength(2);
@@ -271,12 +282,12 @@ describeWithDb('synchronising a class roster', () => {
 
     it('can come back without being created twice', async () => {
       members = [teacherRow, pupil('p-1')];
-      await syncRoster(db, contextRowId);
+      await sync();
       members = [teacherRow];
-      await syncRoster(db, contextRowId);
+      await sync();
 
       members = [teacherRow, pupil('p-1')];
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.created).toBe(0);
       expect(result.enrolled).toBe(1);
@@ -293,10 +304,10 @@ describeWithDb('synchronising a class roster', () => {
        * children leaving at once. Acting on it is how a sync empties a school.
        */
       members = [teacherRow, pupil('p-1'), pupil('p-2')];
-      await syncRoster(db, contextRowId);
+      await sync();
 
       members = [];
-      await expect(reasonFor(syncRoster(db, contextRowId))).resolves.toBe('no_known_teacher');
+      await expect(reasonFor(sync())).resolves.toBe('no_known_teacher');
 
       expect(await enrolments()).toHaveLength(2);
       expect(await learners()).toHaveLength(2);
@@ -306,10 +317,10 @@ describeWithDb('synchronising a class roster', () => {
       // The teacher alone is enough to get past the classroom check, so this is
       // the case where the emptiness is about pupils specifically.
       members = [teacherRow, pupil('p-1'), pupil('p-2')];
-      await syncRoster(db, contextRowId);
+      await sync();
 
       members = [teacherRow];
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.unenrolled).toBe(2);
       expect(await learners()).toHaveLength(2);
@@ -329,7 +340,7 @@ describeWithDb('synchronising a class roster', () => {
         pupil('p-1'),
       ];
 
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.unknownStaff).toBe(1);
       const users = await db.select().from(schema.users);
@@ -347,7 +358,7 @@ describeWithDb('synchronising a class roster', () => {
 
     it('are never enrolled as pupils', async () => {
       members = [teacherRow, pupil('p-1')];
-      await syncRoster(db, contextRowId);
+      await sync();
 
       const enrolled = await enrolments();
       const [learner] = await learners();
@@ -361,7 +372,7 @@ describeWithDb('synchronising a class roster', () => {
       await db.delete(schema.ltiIdentities);
       members = [teacherRow, pupil('p-1')];
 
-      expect(await reasonFor(syncRoster(db, contextRowId))).toBe('no_known_teacher');
+      expect(await reasonFor(sync())).toBe('no_known_teacher');
       expect(await learners()).toHaveLength(0);
     });
   });
@@ -373,7 +384,7 @@ describeWithDb('synchronising a class roster', () => {
       await db.update(schema.ltiContexts).set({ defaultBirthYear: null });
       members = [teacherRow, pupil('p-1')];
 
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.created).toBe(0);
       expect(result.skipped).toBe(1);
@@ -386,11 +397,11 @@ describeWithDb('synchronising a class roster', () => {
        * again is the platform's opinion, not a withdrawal of that request.
        */
       members = [teacherRow, pupil('p-1')];
-      await syncRoster(db, contextRowId);
+      await sync();
       await db.update(schema.learners).set({ archivedAt: new Date() });
       await db.delete(schema.classroomLearners);
 
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
 
       expect(result.skipped).toBe(1);
       expect(result.created).toBe(0);
@@ -402,7 +413,7 @@ describeWithDb('synchronising a class roster', () => {
       // into a child.
       members = [teacherRow, { user_id: 'teacher-sub', roles: [LEARNER], name: 'Confused' }];
 
-      const result = await syncRoster(db, contextRowId);
+      const result = await sync();
       expect(result.created).toBe(0);
       expect(await learners()).toHaveLength(0);
     });
@@ -418,13 +429,13 @@ describeWithDb('synchronising a class roster', () => {
       await withdrawAgreement(db, agreement.id);
       members = [teacherRow, pupil('p-1')];
 
-      expect(await reasonFor(syncRoster(db, contextRowId))).toBe('no_agreement');
+      expect(await reasonFor(sync())).toBe('no_agreement');
       expect(await learners()).toHaveLength(0);
     });
 
     it('refuses a course with no roster endpoint on record', async () => {
       await db.update(schema.ltiContexts).set({ membershipsUrl: null });
-      expect(await reasonFor(syncRoster(db, contextRowId))).toBe('no_roster');
+      expect(await reasonFor(sync())).toBe('no_roster');
     });
   });
 });

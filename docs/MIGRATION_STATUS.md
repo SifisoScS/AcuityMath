@@ -1211,6 +1211,37 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A mutation anchor that is not unique mutates somebody else's code.** The
+harness replaces the first occurrence of a string; `throw new TRPCError({ code:
+'BAD_REQUEST', message: error.message });` appears **twice** in
+`server/trpc/routers.ts`, so the mutation for the sync trigger's refusal edited
+a different router entirely and came back green. Two rounds of debugging went
+into the test before the anchor was the suspect. Assert `count(anchor) == 1`
+before mutating, and include enough surrounding context — a comment line above
+it is usually enough — to make it unique.
+
+**A network failure must not read as our fault.** An unreachable platform threw
+a bare `TypeError: fetch failed` out of `readMembership`, which the tRPC layer
+turned into a 500 — so a district whose LMS was down was told the fault was
+ours, and whoever saw it went looking for a mistake they had not made. Both the
+roster fetch and the token exchange now wrap it, name the host, and report
+status `0`: there was no response, and inventing a 502 would claim to know
+something about a server we never reached.
+
+**`harness.db` is a getter, and one suite closes the connection behind it.**
+`reconnect()` in `server/test-support/database.ts` ends the connection and makes
+a new one, so a handle captured once in `beforeAll` is dead for every test after
+the one that restarts. It surfaced in C4a as an insert error that looked like a
+duplicate key and was neither. Read `harness.db` in `beforeEach`. *(Recorded
+late — this was found in C4a and only written down in C4d.)*
+
+**A sync has a cooldown, and it is not about people.** Five minutes, overridable
+with `force`. A double-clicked button, or two administrators reaching for it at
+once, would otherwise be two full roster reads against a district's LMS — and
+being rate-limited out of a school is worse than a sync somebody has to ask for
+twice. The C4c suite forces every re-sync, because those cases mean
+"deliberately again"; the cooldown itself is proved where the trigger lives.
+
 **A sync runs with nobody in the room.** Every other part of Track C answers a
 person who clicked and is waiting; a roster sync acts on children's records
 unobserved, which is why `rosterSync.ts` is a list of refusals rather than a
