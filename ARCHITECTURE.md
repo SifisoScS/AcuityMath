@@ -302,7 +302,13 @@ sequenceDiagram
 > is built on `protectedProcedure`, which means "an adult is signed in" and
 > refuses a child without restating the rule.
 >
-> Not built: NRPS, AGS, Deep Linking, OneRoster.
+> **NRPS, AGS and Deep Linking are built too.** A district administrator can
+> synchronise a course roster; a completed session puts a pupil's curriculum
+> coverage in their school's gradebook; and a teacher adding this product to a
+> course chooses what the link opens and gets a signed content item back.
+>
+> Not built: OneRoster, and 1EdTech conformance — the latter is not engineering
+> but membership, and is deferred with Track A.
 > `LtiOnboardingWizardModal.tsx` still renders a configuration form and makes no
 > network calls. `acuitymath.org` is not yet registered to this project, so the
 > host name in the endpoints below is still aspirational — and because an LTI

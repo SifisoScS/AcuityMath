@@ -1211,6 +1211,34 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**The content picker is rendered instead of the family app, not inside it.**
+There is no router in this project and C6b did not add one — `main.tsx`
+branches on `window.location.pathname` before either application is mounted. A
+teacher choosing content sits in a frame on their own course page, mid-task, and
+the shell built for a parent at home (avatars, a child switcher, screen-time
+controls) would be noise at best. Rendering the picker *inside* `App` would have
+meant threading a mode through a component that has no concept of one. The match
+is a prefix, so a trailing slash or a query string a platform appends does not
+drop a teacher into the family app.
+
+**The last step of deep linking belongs to the browser.** The specification
+requires the response to reach the platform as a POST from the teacher's own
+session, so the server hands the component a signed token and the component
+submits it. Two failures there are invisible from the server side and both are
+tested: a form built and never submitted, and `submit()` called before React has
+rendered the form — which does nothing, silently, and leaves a teacher looking at
+a page that says it is sending and never does. The submit happens in an effect
+for exactly that reason, and a real button sits beside it for anyone the script
+does not reach.
+
+**A teacher may choose nothing in particular, and that is a real answer.**
+"Whatever each pupil needs next" is what this product does by default — the
+adaptive engine picks. Making a concept mandatory would have made every link
+narrower than the product is, and a teacher wanting general practice would have
+had to pick something arbitrary and misleading. The link is named after the
+topic when one is chosen, because three links called "AcuityMath" tell a teacher
+nothing about which is which.
+
 **Deep linking is the one exchange where this product is the issuer, and every
 field flips with it.** Inbound, `iss` is the platform and `aud` is our client
 id. Outbound, `iss` is our client id and `aud` is the platform's issuer. Writing
