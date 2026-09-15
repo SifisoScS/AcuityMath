@@ -181,12 +181,30 @@ async function fetchPage(
   url: string,
   token: string,
 ): Promise<{ status: number; body: string; link: string | null }> {
-  const response = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${token}`,
-      accept: MEMBERSHIP_MEDIA_TYPE,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: MEMBERSHIP_MEDIA_TYPE,
+      },
+    });
+  } catch (error) {
+    /*
+     * The platform is unreachable — DNS, a refused connection, a certificate.
+     * Left unwrapped this escapes as `TypeError: fetch failed`, which the layer
+     * above turns into a 500, and **a district whose LMS is down is told the
+     * fault is ours**. An administrator staring at that goes looking for a
+     * mistake they did not make.
+     *
+     * Status 0 rather than a made-up code: there was no response, and inventing
+     * a 502 here would claim to know something about a server we never reached.
+     */
+    throw new RosterUnavailable(
+      0,
+      `Could not reach ${new URL(url).host}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 
   return {
     status: response.status,

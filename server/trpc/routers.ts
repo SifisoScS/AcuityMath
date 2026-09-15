@@ -12,6 +12,8 @@ import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import * as schema from '../../drizzle/schema';
+import { syncRoster, SyncRefused } from '../lti/rosterSync';
+import { RosterUnavailable } from '../lti/nrps';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
@@ -84,6 +86,7 @@ import {
   protectedProcedure,
   publicProcedure,
   router,
+  type Context,
 } from './index';
 
 const learnersRouter = router({
@@ -727,6 +730,52 @@ const notificationsRouter = router({
  * order: the entities exist before anyone is scoped to them, rather than a scope
  * existing before there is anything to scope it to.
  */
+/**
+ * Whether this caller may administer that district.
+ *
+ * Written once and called from both procedures below, so the two cannot drift —
+ * the failure of drift here is one district's administrator reaching another
+ * district's courses, and the children on them.
+ *
+ * A platform administrator passes, as they do everywhere: that role is the
+ * single global bypass and exists for supporting districts. An
+ * `institution_admin` passes only for **their own** institution, and the null
+ * check matters for the same reason it does in `institutionReaches` — most
+ * accounts have no institution, and absence must never compare equal to absence.
+ */
+async function assertMayAdminister(
+  ctx: Context & { user: NonNullable<Context['user']> },
+  institutionId: number,
+  code: 'FORBIDDEN' | 'NOT_FOUND' = 'FORBIDDEN',
+): Promise<void> {
+  if (ctx.user.role === 'admin') return;
+
+  if (ctx.user.role === 'institution_admin') {
+    /*
+     * Read from the database rather than taken from the session, which is the
+     * rule B2 set for `institutionReaches` and holds for the same reason: a
+     * session lasts thirty days, so an administrator removed from a district
+     * would otherwise keep reaching its courses until their cookie expired.
+     * `AuthenticatedUser` deliberately does not carry this.
+     */
+    const [row] = await ctx.db
+      .select({ institutionId: schema.users.institutionId })
+      .from(schema.users)
+      .where(eq(schema.users.id, ctx.user.id))
+      .limit(1);
+
+    // Null is not a match. Most accounts have no institution, and absence
+    // comparing equal to absence is how one administrator reaches every
+    // district at once.
+    if (row?.institutionId && row.institutionId === institutionId) return;
+  }
+
+  throw new TRPCError({
+    code,
+    message: code === 'NOT_FOUND' ? 'No such course.' : 'Administrators of this institution only.',
+  });
+}
+
 const institutionsRouter = router({
   list: adminProcedure.query(({ ctx }) => listInstitutions(ctx.db)),
 
@@ -856,6 +905,115 @@ const ltiRouter = router({
     .mutation(({ ctx, input }) =>
       addDeployment(ctx.db, input.platformId, input.deploymentId, input.institutionId),
     ),
+
+  /**
+   * The courses a district could synchronise, and when each last was.
+   *
+   * `protectedProcedure` with the check written out below rather than
+   * `adminProcedure`, because **a district's own administrator has to be able to
+   * do this**. Requiring a platform administrator would make this company the
+   * bottleneck on every roster in every school, which is the kind of design that
+   * works until the second customer.
+   */
+  courses: protectedProcedure
+    .input(z.object({ institutionId: z.number().int().positive() }).strict())
+    .query(async ({ ctx, input }) => {
+      await assertMayAdminister(ctx, input.institutionId);
+
+      const rows = await ctx.db
+        .select({
+          id: schema.ltiContexts.id,
+          contextId: schema.ltiContexts.contextId,
+          title: schema.ltiContexts.title,
+          lastSyncedAt: schema.ltiContexts.lastSyncedAt,
+          classroomId: schema.ltiContexts.classroomId,
+          membershipsUrl: schema.ltiContexts.membershipsUrl,
+          defaultBirthYear: schema.ltiContexts.defaultBirthYear,
+        })
+        .from(schema.ltiContexts)
+        .innerJoin(
+          schema.ltiDeployments,
+          eq(schema.ltiContexts.deploymentId, schema.ltiDeployments.id),
+        )
+        .where(eq(schema.ltiDeployments.institutionId, input.institutionId));
+
+      return rows.map(row => ({
+        id: row.id,
+        contextId: row.contextId,
+        title: row.title,
+        lastSyncedAt: row.lastSyncedAt,
+        classroomId: row.classroomId,
+        /*
+         * Said plainly rather than left for the administrator to infer from a
+         * failure. These are the two things that stop a sync and the two things
+         * only they can fix — the URL by enabling the Names and Roles scope, the
+         * year group by adding a custom parameter to the placement.
+         */
+        canSync: row.membershipsUrl !== null,
+        knowsYearGroup: row.defaultBirthYear !== null,
+      }));
+    }),
+
+  /**
+   * Brings one course's roster across, now.
+   *
+   * A mutation because it writes, and slow because it is several requests to
+   * somebody else's server. The counts come back rather than a bare success, so
+   * an administrator can see that a sync which "worked" created nobody — which
+   * is what a course with no year group configured looks like.
+   */
+  syncRoster: protectedProcedure
+    .input(
+      z
+        .object({
+          contextId: z.number().int().positive(),
+          /** For an administrator who has just fixed something and wants to see it. */
+          force: z.boolean().optional(),
+        })
+        .strict(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [context] = await ctx.db
+        .select({ institutionId: schema.ltiDeployments.institutionId })
+        .from(schema.ltiContexts)
+        .innerJoin(
+          schema.ltiDeployments,
+          eq(schema.ltiContexts.deploymentId, schema.ltiDeployments.id),
+        )
+        .where(eq(schema.ltiContexts.id, input.contextId))
+        .limit(1);
+
+      /*
+       * NOT_FOUND for a course in another district, the same way a learner in
+       * another family answers NOT_FOUND. FORBIDDEN would confirm the course
+       * exists, which lets one district's administrator map another's courses
+       * one id at a time.
+       */
+      if (!context) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No such course.' });
+      }
+      await assertMayAdminister(ctx, context.institutionId, 'NOT_FOUND');
+
+      try {
+        return await syncRoster(ctx.db, input.contextId, new Date(), { force: input.force });
+      } catch (error) {
+        if (error instanceof SyncRefused) {
+          /*
+           * These messages are written for the administrator reading them and
+           * each names something they can go and do, so they are passed through
+           * rather than flattened. Nothing in them describes another district.
+           */
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+        if (error instanceof RosterUnavailable) {
+          throw new TRPCError({
+            code: 'BAD_GATEWAY',
+            message: `The platform could not be read: ${error.message}`,
+          });
+        }
+        throw error;
+      }
+    }),
 });
 
 const consentRouter = router({

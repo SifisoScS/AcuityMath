@@ -139,14 +139,31 @@ export async function requestAccessToken(
     scope,
   });
 
-  const response = await fetch(platform.authTokenUrl, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/x-www-form-urlencoded',
-      accept: 'application/json',
-    },
-    body: body.toString(),
-  });
+  let response: Response;
+  try {
+    response = await fetch(platform.authTokenUrl, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        accept: 'application/json',
+      },
+      body: body.toString(),
+    });
+  } catch (error) {
+    /*
+     * The same defect one layer down, found while wiring the sync trigger: an
+     * unreachable token endpoint threw `TypeError: fetch failed`, which reads to
+     * whoever sees it as a fault in this product rather than in the platform we
+     * could not reach.
+     *
+     * Status 0 because there was no response to have a status.
+     */
+    throw new TokenRefused(
+      0,
+      `Could not reach the token endpoint at ${new URL(platform.authTokenUrl).host}: ` +
+        `${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 
   const text = await response.text();
   let parsed: TokenResponse;

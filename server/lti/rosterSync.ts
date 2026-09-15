@@ -61,6 +61,21 @@ function isPresent(member: RosterMember): boolean {
   return PRESENT_STATUSES.has(member.status.trim().toLowerCase());
 }
 
+/**
+ * How soon a course may be synchronised again.
+ *
+ * Not a rate limit on people — it is a limit on **what one human action costs
+ * somebody else's server**. A button double-clicked, or two administrators
+ * reaching for it at the same time, would otherwise become two full roster
+ * reads against a district's LMS, each of them several pages. A district is
+ * entitled to rate-limit us, and being rate-limited out of a school is a worse
+ * outcome than a sync somebody has to ask for twice.
+ *
+ * Overridable, because an administrator who has just fixed a misconfiguration
+ * and wants to see it work should not be told to wait.
+ */
+export const SYNC_COOLDOWN_MS = 5 * 60 * 1000;
+
 export class SyncRefused extends Error {
   readonly reason: string;
 
@@ -101,6 +116,7 @@ export async function syncRoster(
   db: Db,
   contextRowId: number,
   now: Date = new Date(),
+  options: { force?: boolean } = {},
 ): Promise<SyncResult> {
   const [context] = await db
     .select()
@@ -108,6 +124,23 @@ export async function syncRoster(
     .where(eq(schema.ltiContexts.id, contextRowId))
     .limit(1);
   if (!context) throw new SyncRefused('no_context', `No such course ${contextRowId}.`);
+
+  /*
+   * Checked before the agreement and before the network, because the cheapest
+   * refusal is the one that touches nothing. A sync asked for twice in a minute
+   * is almost always a double click.
+   */
+  if (
+    !options.force &&
+    context.lastSyncedAt &&
+    now.getTime() - context.lastSyncedAt.getTime() < SYNC_COOLDOWN_MS
+  ) {
+    throw new SyncRefused(
+      'too_soon',
+      'This course was synchronised a moment ago. Wait a few minutes, or ask for ' +
+        'it again explicitly if something has just been fixed.',
+    );
+  }
 
   if (!context.membershipsUrl) {
     throw new SyncRefused(

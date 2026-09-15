@@ -327,6 +327,29 @@ describeWithDb('asking a platform for an access token', () => {
       await expect(requestAccessToken(db, platform, NRPS_SCOPE)).rejects.toThrow(/did not return JSON/);
     });
 
+    it('says which host it could not reach, rather than "fetch failed"', async () => {
+      /*
+       * Found while wiring the sync trigger in C4d. An unreachable endpoint threw
+       * a raw `TypeError`, which the layer above turned into a 500 — so a
+       * district whose LMS was down was told the fault was ours, and whoever saw
+       * it went looking for a mistake they had not made.
+       */
+      const unreachable = {
+        ...platform,
+        authTokenUrl: 'https://nowhere.invalid/token',
+      };
+
+      try {
+        await requestAccessToken(db, unreachable, NRPS_SCOPE);
+        throw new Error('expected a refusal');
+      } catch (error) {
+        expect((error as TokenRefused).message).toContain('nowhere.invalid');
+        // No response means no status to report. Inventing a 502 would claim to
+        // know something about a server we never reached.
+        expect((error as TokenRefused).status).toBe(0);
+      }
+    });
+
     it('refuses a success with no token in it', async () => {
       behaviour = { status: 200, body: { token_type: 'Bearer', expires_in: 3600 } };
       await expect(requestAccessToken(db, platform, NRPS_SCOPE)).rejects.toThrow(/no access_token/);
