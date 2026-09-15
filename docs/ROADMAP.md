@@ -207,8 +207,8 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | ~~**C5a Gradebook protocol**~~ | Line items and score posting, against a platform that checks | **Done.** One column per placement, scores named by the platform's own user id |
 | ~~**C5b Score policy**~~ | Which number is sent, and what triggers sending it | **Done.** A completed session puts the child's curriculum coverage in the gradebook, and a failure there never reaches the child |
 | ~~**C6a Deep Linking protocol**~~ | Accept the launch, hold the request, sign and return a content item | **Done.** A platform verifying our response against our JWKS accepts it |
-| **C6b The picker** | What a teacher actually sees and chooses from | A teacher can embed a specific quest |
-| **C7 Conformance** | Run 1EdTech's suite per service | Certification, and only then the badge |
+| ~~**C6b The picker**~~ | What a teacher actually sees and chooses from | **Done.** A teacher embeds a link, adaptive or for one topic, and their browser carries the signed answer back |
+| **C7 Conformance** | Run 1EdTech's suite per service | **Blocked, not pending.** It needs 1EdTech membership, which is Track A and deferred — so Track C's engineering is complete without it |
 
 **Reuse rather than rebuild, with one correction found while building C3c.**
 A school-consented pupil must satisfy the existing consent gate rather than
