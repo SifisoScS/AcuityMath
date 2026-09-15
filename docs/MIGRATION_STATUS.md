@@ -1211,6 +1211,29 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Counting rows in a development database is not counting the corpus.** Age 7's
+authored content reads as three problems from `SELECT ... FROM problems` and as
+zero from the corpus on disk. The database is wrong: those rows are
+`source = 'generated'`, generator output persisted while somebody used the app.
+`takeAuthoredProblem` filters on that column, and a measurement that does not is
+counting the generator's work as somebody's authoring. `contentCoverage.ts`
+reads the corpus for that reason, which also means it needs no database and
+cannot depend on whether a seed has been run.
+
+**The generator's concepts are not in `CONCEPT_AGE_BANDS`.** They are inserted at
+runtime by `ensureGeneratorConcepts`, with bands derived from their tier. The
+first version of `conceptCoverage` read only the authored band map, so every
+generator column was zero and `unservedConcepts()` returned an empty list
+**because it was scanning a set that could never contain them** — the
+guard-that-checks-nothing shape again, and found by the numbers looking wrong
+rather than by a test.
+
+**A hand-copied number in a document is checked by nobody.** The roadmap's
+authored-problems-per-age table was maintained by hand. It happened to be right,
+which is the least useful way to find out. It is computed now, and asserted — so
+the moment somebody authors for age 7 the test fails, the document has to be
+rewritten, and the failure is what makes anyone do it.
+
 **The content picker is rendered instead of the family app, not inside it.**
 There is no router in this project and C6b did not add one — `main.tsx`
 branches on `window.location.pathname` before either application is mounted. A
