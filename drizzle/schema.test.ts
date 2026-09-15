@@ -118,6 +118,14 @@ const NOT_LEARNER_SCOPED = [
    */
   'institution_agreements',
   /*
+   * That a child was deleted, and nothing about who they were. It holds a
+   * `learner_id` that deliberately resolves to nobody — not a foreign key, not
+   * a child's record, and the one row in this schema whose whole purpose is to
+   * outlive the learner it names. Classifying it as learner-scoped would put it
+   * inside the deletion cascade it exists to record.
+   */
+  'learner_deletions',
+  /*
    * Cryptographic material belonging to the platform, not to anybody. It holds
    * no learner id and must never hold one — a key row is what this deployment
    * signs messages with, and nothing about a child belongs in it.
@@ -321,7 +329,23 @@ describe('referential integrity is the database"s job', () => {
         // for one placement of this product inside a course. Nothing here holds
         // resource links — a launch mentions one and it is recorded against the
         // gradebook column it belongs to.
+        /*
+         * Scoped to one table, unlike every exemption below it.
+         *
+         * `learner_deletions.learner_id` must **not** have a foreign key: it
+         * names a child who has been erased, and a constraint would either
+         * forbid the deletion or drag the record of it away too. It is the one
+         * id column in this schema whose purpose is to outlive what it names.
+         *
+         * Exempting the *column name* the way the others do would have excused
+         * `learner_id` in all sixteen tables that must keep their cascade — the
+         * blast radius of a one-word exemption, and the reason this one names
+         * its table.
+         */
+        const exemptHere = name === 'learner_deletions' && column.name === 'learner_id';
+
         const exempt =
+          exemptHere ||
           column.name === 'external_id' ||
           column.name === 'client_id' ||
           column.name === 'deployment_id' ||

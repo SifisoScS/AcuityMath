@@ -299,6 +299,58 @@ export const ltiContexts = mysqlTable(
 );
 
 /**
+ * That a child was deleted, and nothing about who they were.
+ *
+ * A deletion request has to leave **something** behind, and choosing what is the
+ * whole design. A district that asked for a pupil's erasure may later need to
+ * show they asked; this product may need to show it complied. Neither of those
+ * needs the child's name, their answers, or their guardian's address — and
+ * keeping any of it would make "deletion" a word rather than an act.
+ *
+ * So this row holds a number that no longer resolves to anybody, when it
+ * happened, and which adult asked. `learnerId` is deliberately **not** a foreign
+ * key: the row it named is gone, which is the point, and a constraint would
+ * either forbid that or drag this record down with it.
+ */
+export const learnerDeletions = mysqlTable(
+  'learner_deletions',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    /** The id the child had. It resolves to nothing now, by design. */
+    learnerId: int('learner_id').notNull(),
+    /**
+     * The district they belonged to, when they belonged to one.
+     *
+     * `restrict`, so a district cannot be removed while records of the children
+     * it erased still name it — somebody has to answer for those requests.
+     */
+    institutionId: int('institution_id').references(() => institutions.id, {
+      onDelete: 'restrict',
+    }),
+    /**
+     * Who asked. `set null` rather than `restrict`: an administrator who leaves
+     * should not be un-deletable because of requests they once made, and the
+     * snapshot below is what keeps the record legible after they are gone.
+     */
+    requestedByUserId: int('requested_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    /** Snapshotted, because `users.email` changes and this row must not. */
+    requestedByEmail: varchar('requested_by_email', { length: 320 }).notNull(),
+    /**
+     * How many rows went, by table, as JSON.
+     *
+     * A receipt. "We deleted a child" is not checkable afterwards; "we removed
+     * 412 attempts, 31 sessions and 6 consent events" is, and it is the only
+     * evidence left that the cascades did what they were supposed to.
+     */
+    removedCounts: json('removed_counts').notNull(),
+    deletedAt: timestamp('deleted_at').defaultNow().notNull(),
+  },
+  table => [index('learner_deletion_institution_idx').on(table.institutionId, table.deletedAt)],
+);
+
+/**
  * A teacher's request to choose content, held between the launch and the choice.
  *
  * A deep-linking launch arrives, the teacher is shown a picker, and some time
@@ -666,7 +718,21 @@ export const learners = mysqlTable(
     avatar: varchar('avatar', { length: 16 }).notNull().default('🌱'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
-    /** Soft delete: a COPPA deletion request must not orphan a teacher's roster. */
+    /**
+     * Hidden, not deleted — and the distinction became load-bearing in E3.
+     *
+     * This comment used to call archiving the answer to "a COPPA deletion
+     * request". It is not, and the institutional agreement districts sign says
+     * so in as many words: *deletion removes their practice history rather than
+     * hiding it*. Two documents in this repository disagreed, and the code
+     * implemented the weaker one.
+     *
+     * What archiving is for is a child who has **stopped**, not one who has
+     * asked to be erased: they left the school, the family paused, a roster no
+     * longer lists them. Their records stay, they vanish from every surface, and
+     * nothing is lost if they come back. `deleteLearner` is the other thing, and
+     * it removes the row so every cascade below it fires.
+     */
     archivedAt: timestamp('archived_at'),
   },
   table => [

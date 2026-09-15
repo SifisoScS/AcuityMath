@@ -266,7 +266,17 @@ export const elevatedLearnerProcedure = learnerProcedure.use(async ({ ctx, next 
   if (!(await hasElevation(ctx.headers, ctx.user.id))) {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'STEP_UP_REQUIRED' });
   }
-  return next({ ctx });
+
+  /*
+   * The adult is passed on **narrowed**, the way `protectedProcedure` does it.
+   *
+   * The refusal above already proves `ctx.user` is present, but the type did not
+   * carry that forward — so a procedure here that needed the adult had to assert
+   * it was there. An assertion is a promise the compiler stops checking, and this
+   * is the surface that guards a child's deletion. Found by `tsc` on the first
+   * procedure that actually needed the adult's identity.
+   */
+  return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
 export type Learner = typeof schema.learners.$inferSelect;

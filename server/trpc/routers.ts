@@ -16,6 +16,7 @@ import { syncRoster, SyncRefused } from '../lti/rosterSync';
 import { RosterUnavailable } from '../lti/nrps';
 import { reportScore } from '../lti/reportScore';
 import { exportLearner, exportSummary } from '../learning/learnerExport';
+import { CannotDelete, deleteLearner } from '../learning/learnerDeletion';
 import { consumeChoice, pendingChoice } from '../lti/deepLinkRequests';
 import { activeAgreement, agreementHistory } from '../learning/institutionAgreements';
 import { buildDeepLinkingResponse, CannotReturnChoice } from '../lti/deepLinking';
@@ -278,6 +279,46 @@ const learnersRouter = router({
       throw new TRPCError({ code: 'NOT_FOUND', message: 'No such learner.' });
     }
     return dump;
+  }),
+
+  /**
+   * Erases a child, as the institutional agreement says this product will.
+   *
+   * A **mutation** and irreversible, which is the whole point: the agreement
+   * districts sign says deletion "removes their practice history rather than
+   * hiding it", and until E3 the product only had `archivedAt`, which hides.
+   *
+   * `elevatedLearnerProcedure`, so the same adult who may see everything about a
+   * child is the one who may erase them — and the step-up means a family tablet
+   * left unlocked cannot delete a sibling's year of work with two taps.
+   *
+   * The confirmation is the caller's job and not enforced here. A server-side
+   * "are you sure" is a second request that proves nothing about intent; what
+   * protects a child is that only an entitled adult, recently re-authenticated,
+   * can reach this at all.
+   */
+  delete: elevatedLearnerProcedure.mutation(async ({ ctx }) => {
+    try {
+      return await deleteLearner(ctx.db, ctx.learner.id, {
+        userId: ctx.user.id,
+        email: ctx.user.email,
+      });
+    } catch (error) {
+      if (error instanceof CannotDelete) {
+        /*
+         * `incomplete` is the one that matters and it must not read as an
+         * ordinary refusal — it means a cascade is missing and a child's records
+         * may have survived their own deletion. It is logged loudly for that
+         * reason, because nobody watching a UI would know what they were seeing.
+         */
+        if (error.reason === 'incomplete') {
+          console.error(`[deletion] ${error.message}`);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+        }
+        throw new TRPCError({ code: 'NOT_FOUND', message: error.message });
+      }
+      throw error;
+    }
   }),
 
   /** What an export would contain, for a surface that asks before downloading. */
