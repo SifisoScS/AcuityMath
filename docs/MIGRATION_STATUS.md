@@ -1211,6 +1211,37 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Two signed documents promised an export that did not exist.** The family
+consent policy — the text whose SHA-256 is stored against every consent row —
+says *"You can see everything recorded about your child."* The institutional
+agreement says a district *"may request an export or the deletion of any pupil's
+records at any time."* Neither had anything behind it. They are the same
+capability seen from two sides, so one export backs both, and
+`elevatedLearnerProcedure` already knows who may ask.
+
+**"Everything" is a claim that decays**, and that is the part worth engineering.
+Assembling fifteen tables is easy; the next learner-scoped table somebody adds
+will not be in the export, the export will still work, and the promise will
+quietly become false. So `learnerExport.ts` is checked against the same
+`LEARNER_SCOPED` inventory `drizzle/schema.test.ts` enforces — a new table has to
+be acknowledged **twice**, once as learner-scoped and once as exportable, or the
+build fails. The list is duplicated as a literal in the test rather than
+imported, deliberately: sharing it would let one edit relax both at once.
+
+**Empty tables keep their keys.** An empty array says "nothing recorded here"; a
+missing key makes an export of a child who has never practised look like an
+export that failed halfway.
+
+**An archived child still exports.** Archiving honours a deletion request in this
+product's own surfaces; it does not erase the rows. A family or district asking
+what is *still held* deserves the true answer rather than an empty one — that is
+the entire question they are asking.
+
+**A child cannot export their own record**, though they can practise. The export
+is more than analytics — every answer, every timing, every notification about
+them — and the promise it fulfils is made to the adult responsible for them.
+Same reasoning that put analytics behind step-up in C3g.
+
 **An unrouted surface that would lie is not meaningfully safer than one that
 does.** `DistrictAdminDashboard.tsx` was 1,356 lines showing four campuses that
 do not exist, their principals by name, their mean ability and ELO, and a 99.4%

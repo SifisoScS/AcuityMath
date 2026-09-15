@@ -269,6 +269,22 @@ describeWithDb('a child holding their own session', () => {
       );
     });
 
+    it('cannot export their own full record', async () => {
+      /*
+       * E2 made "everything recorded about your child" real, and it is more than
+       * analytics: every answer, every timing, every notification about them.
+       * The promise it fulfils is made to the adult responsible for the child,
+       * and `elevatedLearnerProcedure` is what establishes that the adult is the
+       * one asking. A child with a session is not that adult.
+       */
+      await expect(asChild(mine).learners.export({ learnerId: mine })).rejects.toThrow(
+        /parent or teacher/,
+      );
+      await expect(
+        asChild(mine).learners.exportSummary({ learnerId: mine }),
+      ).rejects.toThrow(/parent or teacher/);
+    });
+
     it('cannot set their own badge', async () => {
       // Deciding how a child identifies themselves is a parent's decision — a
       // child who could set their own badge could set their sibling's.

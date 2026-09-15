@@ -15,6 +15,7 @@ import * as schema from '../../drizzle/schema';
 import { syncRoster, SyncRefused } from '../lti/rosterSync';
 import { RosterUnavailable } from '../lti/nrps';
 import { reportScore } from '../lti/reportScore';
+import { exportLearner, exportSummary } from '../learning/learnerExport';
 import { consumeChoice, pendingChoice } from '../lti/deepLinkRequests';
 import { activeAgreement, agreementHistory } from '../learning/institutionAgreements';
 import { buildDeepLinkingResponse, CannotReturnChoice } from '../lti/deepLinking';
@@ -253,6 +254,37 @@ const learnersRouter = router({
    * the person most motivated to change it. It lived in browser state before,
    * where the learner it restricted could clear it.
    */
+  /**
+   * Everything recorded about one child.
+   *
+   * Two signed promises meet here. The family consent policy — the text whose
+   * hash is stored against every consent row — says a parent can see everything
+   * recorded about their child. The institutional agreement says a district may
+   * request an export of any pupil's records. Both were true only in the sense
+   * that nobody had asked.
+   *
+   * `elevatedLearnerProcedure`, not `learnerProcedure`, and the difference is
+   * the point. Since C3g a child can hold a session, and this returns more than
+   * their analytics do — every answer, every timing, every notification about
+   * them. The promise is made to the adult responsible for them, and the step-up
+   * is what establishes that the adult is the one asking.
+   */
+  export: elevatedLearnerProcedure.query(async ({ ctx }) => {
+    const dump = await exportLearner(ctx.db, ctx.learner.id);
+    if (!dump) {
+      // Unreachable in practice: `learnerProcedure` has already loaded the
+      // learner. Answered rather than asserted, because a crash here would be a
+      // parent asking a fair question and getting a stack trace.
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'No such learner.' });
+    }
+    return dump;
+  }),
+
+  /** What an export would contain, for a surface that asks before downloading. */
+  exportSummary: elevatedLearnerProcedure.query(({ ctx }) =>
+    exportSummary(ctx.db, ctx.learner.id),
+  ),
+
   setScreenTimeLimit: elevatedLearnerProcedure
     .input(z.object({ dailyLimitMinutes: z.number().int().min(5).max(480) }))
     .mutation(async ({ ctx, input }) => {
