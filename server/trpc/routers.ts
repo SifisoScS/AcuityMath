@@ -15,6 +15,8 @@ import * as schema from '../../drizzle/schema';
 import { syncRoster, SyncRefused } from '../lti/rosterSync';
 import { RosterUnavailable } from '../lti/nrps';
 import { reportScore } from '../lti/reportScore';
+import { consumeChoice, pendingChoice } from '../lti/deepLinkRequests';
+import { buildDeepLinkingResponse, CannotReturnChoice } from '../lti/deepLinking';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
@@ -906,6 +908,100 @@ const ltiRouter = router({
     .mutation(({ ctx, input }) =>
       addDeployment(ctx.db, input.platformId, input.deploymentId, input.institutionId),
     ),
+
+  /**
+   * What a teacher is currently being asked to choose, if anything.
+   *
+   * `protectedProcedure`, and scoped to the caller's own pending request — a
+   * teacher may only answer the request their own launch created. Returning
+   * somebody else's would let them create a link, signed by us, in a course they
+   * have nothing to do with.
+   */
+  pendingChoice: protectedProcedure.query(async ({ ctx }) => {
+    const pending = await pendingChoice(ctx.db, ctx.user.id);
+    if (!pending) return null;
+    return {
+      requestId: pending.id,
+      acceptMultiple: pending.acceptMultiple,
+      acceptTypes: pending.acceptTypes,
+    };
+  }),
+
+  /**
+   * Sends a teacher's choice back to their LMS.
+   *
+   * Returns the return URL and the signed token rather than posting anything:
+   * the specification requires the response to arrive at the platform as a POST
+   * **from the teacher's own browser**, so the last step is theirs to make.
+   */
+  returnChoice: protectedProcedure
+    .input(
+      z
+        .object({
+          requestId: z.number().int().positive(),
+          chosen: z
+            .array(
+              z
+                .object({
+                  title: z.string().trim().min(1).max(255),
+                  conceptId: z.string().trim().max(120).optional(),
+                })
+                .strict(),
+            )
+            .min(1)
+            .max(20),
+        })
+        .strict(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      /*
+       * Claimed before anything is signed. A choice creates a link in somebody's
+       * course, so a teacher who submits the same page twice must not create it
+       * twice — and claiming after signing would leave a window in which both
+       * submissions succeeded.
+       */
+      const claimed = await consumeChoice(ctx.db, input.requestId, ctx.user.id);
+      if (!claimed) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'That request has already been answered, or has expired. Start again from your LMS.',
+        });
+      }
+
+      const [platform] = await ctx.db
+        .select()
+        .from(schema.ltiPlatforms)
+        .where(eq(schema.ltiPlatforms.id, claimed.platformId))
+        .limit(1);
+      if (!platform) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'That platform is no longer registered.' });
+      }
+
+      try {
+        const { jwt, returnUrl } = await buildDeepLinkingResponse(ctx.db, {
+          target: {
+            issuer: platform.issuer,
+            clientId: platform.clientId,
+            deploymentId: claimed.deploymentId,
+            returnUrl: claimed.returnUrl,
+            acceptTypes: claimed.acceptTypes,
+            acceptMultiple: claimed.acceptMultiple,
+            data: claimed.data,
+          },
+          chosen: input.chosen,
+          launchUrl: `${(process.env.APP_BASE_URL ?? '').replace(/\/$/, '')}/api/lti/launch`,
+        });
+
+        return { returnUrl, jwt };
+      } catch (error) {
+        if (error instanceof CannotReturnChoice) {
+          // Each of these names something the teacher or their administrator can
+          // act on, so they are passed through rather than flattened.
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+        throw error;
+      }
+    }),
 
   /**
    * The courses a district could synchronise, and when each last was.

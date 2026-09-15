@@ -299,6 +299,54 @@ export const ltiContexts = mysqlTable(
 );
 
 /**
+ * A teacher's request to choose content, held between the launch and the choice.
+ *
+ * A deep-linking launch arrives, the teacher is shown a picker, and some time
+ * later they choose. Everything needed to answer — where to post back, what the
+ * platform will accept, and the opaque `data` that must be echoed — arrives in
+ * the launch token and is **gone by the time they click**, because that token is
+ * spent on arrival.
+ *
+ * So it is kept here rather than in a cookie: a row can be single-use, can
+ * expire, and can be looked at afterwards when a district asks what happened.
+ * `consumedAt` is what makes a choice final — a teacher who goes back and
+ * submits the same page twice must not create the link twice.
+ */
+export const ltiDeepLinkRequests = mysqlTable(
+  'lti_deep_link_requests',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    platformId: int('platform_id')
+      .notNull()
+      .references(() => ltiPlatforms.id, { onDelete: 'cascade' }),
+    /** The member of staff choosing. A pupil is never offered this. */
+    userId: int('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** The platform's own id for the installation, echoed into the response. */
+    deploymentId: varchar('deployment_id', { length: 255 }).notNull(),
+    /** Where the signed response is posted back. https, checked at the launch. */
+    returnUrl: varchar('return_url', { length: 1000 }).notNull(),
+    /** Space-separated, as the platform listed them. Empty means "it did not say". */
+    acceptTypes: varchar('accept_types', { length: 500 }).notNull().default(''),
+    acceptMultiple: boolean('accept_multiple').notNull().default(false),
+    /**
+     * The platform's opaque token, stored exactly as sent.
+     *
+     * Never parsed, never trimmed, never defaulted. It is how they know the
+     * response belongs to the request they started, and the only correct thing
+     * to do with it is give it back unchanged.
+     */
+    data: text('data'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    /** Set when a choice is returned. A second submission finds it set. */
+    consumedAt: timestamp('consumed_at'),
+  },
+  table => [index('lti_dl_user_idx').on(table.userId, table.expiresAt)],
+);
+
+/**
  * One column in a district's gradebook, as this product knows it.
  *
  * A line item is a **column somebody else's teacher sees**, which is what makes

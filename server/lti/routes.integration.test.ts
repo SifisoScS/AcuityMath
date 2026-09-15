@@ -308,6 +308,82 @@ describeWithDb('the launch endpoint', () => {
     });
   });
 
+  describe('a teacher asked to choose content', () => {
+    const DL = 'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
+
+    const deepLinkToken = (nonce: string, extra: Record<string, unknown> = {}) =>
+      mint(nonce, {
+        [LTI_CLAIM.messageType]: 'LtiDeepLinkingRequest',
+        [DL]: {
+          deep_link_return_url: 'https://platform.test/deep_link_return',
+          accept_types: ['ltiResourceLink'],
+          accept_multiple: false,
+          data: 'opaque-platform-token',
+        },
+        ...extra,
+      });
+
+    it('is signed in and sent to the picker, with the request held for them', async () => {
+      const { state, nonce } = await startTrip();
+      const response = await post('/api/lti/launch', {
+        state,
+        id_token: await deepLinkToken(nonce),
+      });
+
+      expect(response.status).toBe(302);
+      expect(response.headers.get('location')).toBe('/lti/choose');
+      expect(response.headers.get('set-cookie') ?? '').toContain('acuity_session=');
+
+      const [request] = await harness.db.select().from(schema.ltiDeepLinkRequests);
+      expect(request.returnUrl).toBe('https://platform.test/deep_link_return');
+      expect(request.data).toBe('opaque-platform-token');
+      expect(request.consumedAt).toBeNull();
+    });
+
+    it('never starts a practice session for them', async () => {
+      /*
+       * The reason this branches before the staff/pupil split. Sending a
+       * deep-linking launch down the ordinary path would start practice for a
+       * teacher who asked to pick a topic.
+       */
+      const { state, nonce } = await startTrip();
+      await post('/api/lti/launch', { state, id_token: await deepLinkToken(nonce) });
+
+      expect(await harness.db.select().from(schema.learners)).toHaveLength(0);
+      expect(await harness.db.select().from(schema.practiceSessions)).toHaveLength(0);
+    });
+
+    it('refuses a pupil, because choosing is not theirs to do', async () => {
+      const { state, nonce } = await startTrip();
+      const response = await post('/api/lti/launch', {
+        state,
+        id_token: await deepLinkToken(nonce, {
+          sub: 'sub-pupil-1',
+          [LTI_CLAIM.roles]: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Learner'],
+        }),
+      });
+
+      expect(response.status).toBe(403);
+      expect(await response.text()).toContain('Choosing what a class works on is for a teacher');
+      expect(await harness.db.select().from(schema.ltiDeepLinkRequests)).toHaveLength(0);
+    });
+
+    it('refuses when the platform gave no secure address to answer', async () => {
+      // A content item is signed with the key that proves we are this product.
+      const { state, nonce } = await startTrip();
+      const response = await post('/api/lti/launch', {
+        state,
+        id_token: await mint(nonce, {
+          [LTI_CLAIM.messageType]: 'LtiDeepLinkingRequest',
+          [DL]: { deep_link_return_url: 'http://platform.test/return' },
+        }),
+      });
+
+      expect(response.status).toBe(403);
+      expect(await response.text()).toContain('did not say where to send the');
+    });
+  });
+
   describe('a launch that does not verify', () => {
     it('says nothing about which check failed', async () => {
       /*

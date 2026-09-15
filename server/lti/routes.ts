@@ -29,6 +29,8 @@ import { LaunchRejected, verifyLaunch } from './idToken';
 import { publicJwks, signingKey } from './keys';
 import { AmbiguousPlatform, beginLaunch, UnknownPlatform } from './launchState';
 import { CannotProvision, provisionPupil, provisionStaff } from './provision';
+import { DEEP_LINKING_REQUEST } from './idToken';
+import { beginChoice } from './deepLinkRequests';
 import { rememberContext } from './nrps';
 import { AgeUnknown, resolvePupilAge } from './pupilAge';
 import { resolveLaunch } from './platforms';
@@ -332,6 +334,69 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
   const courseRowId = context.contextId
     ? await rememberCourse(db, context)
     : null;
+
+  /*
+   * A deep-linking launch is a **teacher choosing what a class will work on**,
+   * not anybody coming in to work. It gets its own path before the staff/pupil
+   * split below, because sending it down that path would start a practice
+   * session for somebody who asked to pick a topic.
+   */
+  if (context.messageType === DEEP_LINKING_REQUEST) {
+    if (!context.isStaff) {
+      /*
+       * A pupil is never offered a content picker. The platform should not send
+       * one this message, and if it does, the answer is no rather than a child
+       * being asked to decide what their class studies.
+       */
+      console.warn(`[lti] deep-linking launch from a non-staff subject ${context.subject}`);
+      refuse(
+        res,
+        403,
+        'Not signed in',
+        'Choosing what a class works on is for a teacher. This link was opened by ' +
+          'an account your LMS did not describe as staff.',
+      );
+      return;
+    }
+
+    if (!context.deepLinking) {
+      refuse(
+        res,
+        403,
+        'This link could not be set up',
+        'Your LMS asked for content to be chosen but did not say where to send the ' +
+          'answer, or gave an address that is not secure. An administrator needs to ' +
+          'look at how this tool is configured.',
+      );
+      return;
+    }
+
+    try {
+      const staff = await provisionStaff(db, context);
+      await beginChoice(db, {
+        platformId: context.platformId,
+        userId: staff.userId,
+        deploymentId: context.deploymentId,
+        returnUrl: context.deepLinking.returnUrl,
+        acceptTypes: context.deepLinking.acceptTypes,
+        acceptMultiple: context.deepLinking.acceptMultiple,
+        data: context.deepLinking.data,
+      });
+
+      res.setHeader('Set-Cookie', ltiSessionCookie(await issueSession(staff.userId)));
+      // The picker itself is C6b. Until then a teacher lands on a page that does
+      // not exist yet, which is a visible gap rather than a silent one.
+      res.redirect(302, '/lti/choose');
+      return;
+    } catch (error) {
+      if (error instanceof CannotProvision) {
+        console.warn(`[lti] deep linking refused (${error.reason}) for ${context.subject}`);
+        refuse(res, 403, 'Not signed in', error.message);
+        return;
+      }
+      throw error;
+    }
+  }
 
   let cookie: string;
   try {

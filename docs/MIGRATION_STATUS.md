@@ -1211,6 +1211,33 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Deep linking is the one exchange where this product is the issuer, and every
+field flips with it.** Inbound, `iss` is the platform and `aud` is our client
+id. Outbound, `iss` is our client id and `aud` is the platform's issuer. Writing
+it the familiar way round produces a token the platform rejects with nothing
+worth reading in the error, and the mutation that swaps them is the first one in
+the C6a list.
+
+The platform's `data` is its nonce by another name: opaque, and it must come
+back **untouched**. Dropping it and inventing one are both failures, and the
+second is worse — the platform matches an invented value against nothing and
+rejects a response that was otherwise correct.
+
+**A closed set widened by one member is still closed.** C3b refused every
+message type but `LtiResourceLinkRequest`, on the grounds that one we do not
+handle arriving at the handler for one we do is how a launch does something
+nobody designed. C6a added `LtiDeepLinkingRequest` and kept the rule: the route
+branches on which arrived, *before* the staff/pupil split, because sending a
+deep-linking launch down the ordinary path would start a practice session for a
+teacher who asked to pick a topic. A pupil is refused outright — choosing what a
+class studies is not a child's to do.
+
+**A stale example in a test is a stale claim.** The C3b case "refuses a message
+type this product does not handle" used deep linking as its example, with a
+comment saying deep linking "is real, and is not built". Both became false the
+moment C6a landed. The example moved to `LtiSubmissionReviewRequest` rather than
+the test being deleted — the rule still holds, only the illustration had expired.
+
 **A hook timeout reads as a flaky test.** Two LTI suites began failing
 intermittently at almost exactly ten seconds in full parallel runs and passing
 alone. `testTimeout` was already 30s — but `hookTimeout` had never been raised
