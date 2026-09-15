@@ -59,7 +59,7 @@ missing is the institutional layer and the content to fill the tiers.
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
 | §7 OneRoster 1.2 (`/api/oneroster/v1p2`) | Nothing exists |
 | §7 Self-serve wizard with handshake testing | `LtiOnboardingWizardModal.tsx` renders a form and **makes no network calls** |
-| §8 District console, CSV, CCSS audit, PDF brief | `DistrictAdminDashboard.tsx` exists but is unrouted, and seeds **invented campuses** into its own state |
+| §8 District console, CSV, CCSS audit, PDF brief | **The console is real and routed** at `/district/<id>` (E1): agreement status, pupil and staff counts, campuses, and LMS courses with a synchronise button. The invented-campus dashboard is deleted. CSV, CCSS audit and PDF brief do not exist |
 | §8 "COPPA Safe Harbor Compliant" | Consent is real; the **certification is not held** |
 | §8 "FERPA aligned… encrypted in transit and at rest" | No TLS config, no at-rest encryption in this repo |
 | §4 `ELO = 1000 + 250θ` | Code uses `1200 + 300θ`, range 600–2400. **The document and the code disagree** |
