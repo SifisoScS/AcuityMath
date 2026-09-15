@@ -27,6 +27,18 @@ const syncState: {
   isPending: boolean;
 } = { data: null, error: null, isPending: false };
 
+/*
+ * The records panel is mocked, not mounted.
+ *
+ * It has its own suite. Rendering it here would drag its whole set of
+ * procedures into this file's trpc mock, and a test for the console would start
+ * failing whenever a child component gained a query — which is exactly what
+ * happened when E4 mounted it.
+ */
+vi.mock('./PupilRecords', () => ({
+  PupilRecords: () => <div data-testid="pupil-records" />,
+}));
+
 vi.mock('../../lib/trpc', () => ({
   trpc: {
     institutions: { overview: { useQuery: () => overviewQuery() } },

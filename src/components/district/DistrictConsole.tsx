@@ -23,6 +23,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 
 import { trpc } from '../../lib/trpc';
+import { PupilRecords } from './PupilRecords';
 
 export function DistrictConsole({ institutionId }: { institutionId: number }) {
   const overview = trpc.institutions.overview.useQuery({ institutionId });
@@ -117,6 +118,8 @@ export function DistrictConsole({ institutionId }: { institutionId: number }) {
           </ul>
         )}
       </section>
+
+      <PupilRecords institutionId={institutionId} />
 
       <section style={section} aria-labelledby="courses">
         <h2 id="courses" style={h2}>

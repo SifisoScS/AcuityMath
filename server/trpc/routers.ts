@@ -958,6 +958,39 @@ const institutionsRouter = router({
       };
     }),
 
+  /**
+   * The children a district provisioned, so somebody can act on one.
+   *
+   * Names are included, and that is the point rather than an oversight: an
+   * administrator asked to erase a particular child cannot do it from a list of
+   * numbers. The list is already inside `assertMayAdminister`, which is what
+   * decides that these are *their* children.
+   *
+   * Archived pupils are included and marked. They are the ones most likely to be
+   * the subject of a deletion request — a child who left months ago is exactly
+   * who a family writes in about — and hiding them would mean the request could
+   * not be honoured through this surface at all.
+   */
+  pupils: protectedProcedure
+    .input(z.object({ institutionId: z.number().int().positive() }).strict())
+    .query(async ({ ctx, input }) => {
+      await assertMayAdminister(ctx, input.institutionId);
+
+      const rows = await ctx.db
+        .select({
+          id: schema.learners.id,
+          displayName: schema.learners.displayName,
+          birthYear: schema.learners.birthYear,
+          archivedAt: schema.learners.archivedAt,
+          createdAt: schema.learners.createdAt,
+        })
+        .from(schema.learners)
+        .where(eq(schema.learners.institutionId, input.institutionId))
+        .orderBy(schema.learners.displayName);
+
+      return rows;
+    }),
+
   members: adminProcedure
     .input(z.object({ institutionId: z.number().int().positive() }).strict())
     .query(({ ctx, input }) => listMembers(ctx.db, input.institutionId)),
