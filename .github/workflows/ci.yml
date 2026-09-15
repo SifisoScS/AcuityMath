@@ -45,12 +45,21 @@ jobs:
       DATABASE_URL: mysql://root:root@127.0.0.1:3306/acuitymath
 
     steps:
-      - uses: actions/checkout@v4
+      # Every action below is pinned to the **lowest** major that runs on Node
+      # 24. GitHub deprecated Node 20 on its runners and began forcing those
+      # actions onto 24 anyway, with a warning on every run — so the choice was
+      # not whether to move but whether to move deliberately.
+      #
+      # Lowest rather than latest, on purpose. CI is the safety net under every
+      # other change in this repository, and a jump of three majors brings
+      # behavioural changes that have nothing to do with the deprecation. This
+      # is the smallest edit that makes the warning untrue.
+      - uses: actions/checkout@v5
 
       # action-setup reads `packageManager` from package.json.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
@@ -58,7 +67,7 @@ jobs:
       # The mathematical half of the integrity gate is SymPy. It is a hard
       # dependency, not an optional extra: without it the gate would report
       # "structurally fine" on a generator emitting wrong answers.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -106,7 +115,7 @@ jobs:
       # not a reconstruction. Uploaded on failure only, to keep green runs cheap.
       - name: Upload generator artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: generator-sample-and-report
           path: data/
