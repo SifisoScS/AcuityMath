@@ -14,6 +14,9 @@
  */
 
 import express, { Router, type Request, type Response } from 'express';
+import { and, eq } from 'drizzle-orm';
+
+import * as schema from '../../drizzle/schema';
 
 import { getDatabase } from '../db/client';
 import {
@@ -203,6 +206,73 @@ function refuse(res: Response, status: number, heading: string, detail: string):
  * in front of the product with nothing on file, which is the one outcome the
  * consent work exists to prevent.
  */
+/**
+ * Records the course a launch came from, and says which row it is.
+ *
+ * Called **before** a session is minted, because a pupil's token has to carry
+ * the placement they arrived through — nothing else knows it once the launch is
+ * over, and a score with no column to go to is a score that never goes.
+ *
+ * Fails soft and returns null. A launch that succeeded must not become an error
+ * page because a bookkeeping write did not land; the cost is a gradebook that
+ * does not update until the next launch, which is a smaller harm than a child
+ * staring at a failure.
+ */
+async function rememberCourse(
+  db: ReturnType<typeof getDatabase>,
+  launch: Awaited<ReturnType<typeof verifyLaunch>>,
+): Promise<number | null> {
+  if (!launch.contextId) return null;
+
+  try {
+    const resolved = await resolveLaunch(
+      db,
+      launch.issuer,
+      launch.clientId,
+      launch.deploymentId,
+    );
+    if (!resolved) return null;
+
+    /*
+     * The placement's year group, worked out here because a roster sync has no
+     * launch to read it from. Absent is ordinary — a staff launch carries no
+     * age, and plenty of placements are not configured — so it is stored when
+     * known and left alone when not.
+     */
+    let defaultBirthYear: number | null = null;
+    try {
+      defaultBirthYear = resolvePupilAge(launch.custom).birthYear;
+    } catch (error) {
+      if (!(error instanceof AgeUnknown)) throw error;
+    }
+
+    await rememberContext(db, {
+      deploymentRowId: resolved.deployment.id,
+      contextId: launch.contextId,
+      title: launch.contextTitle,
+      membershipsUrl: launch.membershipsUrl,
+      defaultBirthYear,
+      lineItemsUrl: launch.ags?.lineItems ?? null,
+    });
+
+    const [row] = await db
+      .select({ id: schema.ltiContexts.id })
+      .from(schema.ltiContexts)
+      .where(
+        and(
+          eq(schema.ltiContexts.deploymentId, resolved.deployment.id),
+          eq(schema.ltiContexts.contextId, launch.contextId),
+        ),
+      )
+      .limit(1);
+
+    return row?.id ?? null;
+  } catch (error) {
+    console.warn(`[lti] could not record the course for ${launch.deploymentId}:`, error);
+    return null;
+  }
+}
+
 ltiRouter.post('/launch', async (req: Request, res: Response) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const state = String(body.state ?? '');
@@ -254,6 +324,15 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
    * launch — both check `isStaff` again for themselves — so this branch being
    * wrong is a refusal rather than a pupil holding a teacher's session.
    */
+  /*
+   * Recorded before the session is minted, because a pupil's token has to carry
+   * the placement they came in through — nothing else knows it once the launch
+   * is over, and a score with no column to go to is a score that never goes.
+   */
+  const courseRowId = context.contextId
+    ? await rememberCourse(db, context)
+    : null;
+
   let cookie: string;
   try {
     if (context.isStaff) {
@@ -268,7 +347,14 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
        * so analytics, screen-time rules, export and consent stay closed without
        * any of them restating the rule.
        */
-      cookie = ltiLearnerCookie(await issueLearnerSession(pupil.learnerId));
+      cookie = ltiLearnerCookie(
+        await issueLearnerSession(
+          pupil.learnerId,
+          courseRowId && context.resourceLinkId
+            ? { contextRowId: courseRowId, resourceLinkId: context.resourceLinkId }
+            : null,
+        ),
+      );
     }
   } catch (error) {
     if (error instanceof CannotProvision) {
@@ -291,42 +377,6 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
    * never allowed to see. It also fails soft: a launch that succeeded must not
    * be turned into an error page because a bookkeeping write did not land.
    */
-  if (context.contextId) {
-    try {
-      const resolved = await resolveLaunch(
-        db,
-        context.issuer,
-        context.clientId,
-        context.deploymentId,
-      );
-      if (resolved) {
-        /*
-         * The placement's year group, worked out here because a roster sync has
-         * no launch to read it from. Absent is ordinary — a staff launch carries
-         * no age, and plenty of placements are not configured — so it is stored
-         * when known and left alone when not.
-         */
-        let defaultBirthYear: number | null = null;
-        try {
-          defaultBirthYear = resolvePupilAge(context.custom).birthYear;
-        } catch (error) {
-          if (!(error instanceof AgeUnknown)) throw error;
-        }
-
-        await rememberContext(db, {
-          deploymentRowId: resolved.deployment.id,
-          contextId: context.contextId,
-          title: context.contextTitle,
-          membershipsUrl: context.membershipsUrl,
-          defaultBirthYear,
-          lineItemsUrl: context.ags?.lineItems ?? null,
-        });
-      }
-    } catch (error) {
-      console.warn(`[lti] could not record the course for ${context.deploymentId}:`, error);
-    }
-  }
-
   res.setHeader('Set-Cookie', cookie);
 
   /*

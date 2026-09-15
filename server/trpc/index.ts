@@ -21,7 +21,14 @@ import { z } from 'zod';
 import * as schema from '../../drizzle/schema';
 import { institutionReaches } from '../auth/tenancy';
 import { transformer } from '../../src/lib/transformer';
-import { hasElevation, resolveLearnerSession, resolveUser, type AuthenticatedUser, type RequestHeaders } from '../auth/session';
+import {
+  hasElevation,
+  resolveLearnerSession,
+  resolveUser,
+  type AuthenticatedUser,
+  type LearnerSession,
+  type RequestHeaders,
+} from '../auth/session';
 import { getDatabase, type Database } from '../db/client';
 
 export interface Context {
@@ -39,7 +46,7 @@ export interface Context {
    * adult who happens to have a stale learner cookie is still an adult, and
    * `learnerProcedure` is the only thing that reads this.
    */
-  learnerSessionId: number | null;
+  learnerSession: LearnerSession | null;
   /**
    * Kept so elevation can be checked per procedure rather than once per
    * request. Most procedures do not need it, and verifying a signature on every
@@ -61,7 +68,7 @@ export async function createContext(
   return {
     db,
     user: await resolveUser(db, headers),
-    learnerSessionId: await resolveLearnerSession(headers),
+    learnerSession: await resolveLearnerSession(headers),
     headers,
     setCookie,
   };
@@ -159,7 +166,7 @@ export const learnerProcedure = t.procedure.input(learnerIdInput).use(async ({ c
    * child, so every parent surface — analytics, screen-time rules, export,
    * consent, the family list — is closed to one without anybody restating it.
    */
-  if (!ctx.user && ctx.learnerSessionId === null) {
+  if (!ctx.user && ctx.learnerSession === null) {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in to continue.' });
   }
 
@@ -199,7 +206,7 @@ export const learnerProcedure = t.procedure.input(learnerIdInput).use(async ({ c
      * one line is what stands between a nine-year-old and the rest of their
      * class.
      */
-    ctx.learnerSessionId === learner.id ||
+    ctx.learnerSession?.learnerId === learner.id ||
     ctx.user?.role === 'admin' ||
     /*
      * `guardianId` is nullable since C3d, so this is written as a comparison

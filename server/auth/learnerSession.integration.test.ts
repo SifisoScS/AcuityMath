@@ -99,7 +99,7 @@ describeWithDb('a child holding their own session', () => {
     appRouter.createCaller({
       db,
       user: null,
-      learnerSessionId: learnerId,
+      learnerSession: { learnerId, launch: null },
       headers: {},
       setCookie: () => {},
     } satisfies Context);
@@ -109,7 +109,7 @@ describeWithDb('a child holding their own session', () => {
     appRouter.createCaller({
       db,
       user: null,
-      learnerSessionId: null,
+      learnerSession: null,
       headers: {},
       setCookie: () => {},
     } satisfies Context);
@@ -117,7 +117,42 @@ describeWithDb('a child holding their own session', () => {
   describe('the token', () => {
     it('resolves the child it was minted for', async () => {
       const token = await issueLearnerSession(mine);
-      expect(await resolveLearnerSession({ cookie: `${LEARNER_COOKIE}=${token}` })).toBe(mine);
+      const resolved = await resolveLearnerSession({ cookie: `${LEARNER_COOKIE}=${token}` });
+
+      expect(resolved?.learnerId).toBe(mine);
+      // No placement, because this one was not minted by a launch.
+      expect(resolved?.launch).toBeNull();
+    });
+
+    it('carries the placement a launch came in through', async () => {
+      /*
+       * C5b put it here because nothing else knows it later: a practice session
+       * records no course, and by the time one finishes the launch is long gone.
+       * Without it a score has no column to go to.
+       */
+      const token = await issueLearnerSession(mine, {
+        contextRowId: 7,
+        resourceLinkId: 'link-1',
+      });
+      const resolved = await resolveLearnerSession({ cookie: `${LEARNER_COOKIE}=${token}` });
+
+      expect(resolved?.launch).toEqual({ contextRowId: 7, resourceLinkId: 'link-1' });
+    });
+
+    it('refuses half a placement', async () => {
+      /*
+       * A column needs a course **and** a placement. Half a pair would send a
+       * score to a course's default column — a mark in a place no teacher put a
+       * link.
+       */
+      const token = await issueLearnerSession(mine, {
+        contextRowId: 7,
+        resourceLinkId: '',
+      });
+      const resolved = await resolveLearnerSession({ cookie: `${LEARNER_COOKIE}=${token}` });
+
+      expect(resolved?.learnerId).toBe(mine);
+      expect(resolved?.launch).toBeNull();
     });
 
     it('is not an adult session, and an adult session is not one of these', async () => {
@@ -273,7 +308,7 @@ describeWithDb('a child holding their own session', () => {
       appRouter.createCaller({
         db,
         user: sarah,
-        learnerSessionId: null,
+        learnerSession: null,
         headers: {},
         setCookie: () => {},
       } satisfies Context);
@@ -299,7 +334,7 @@ describeWithDb('a child holding their own session', () => {
       const both = appRouter.createCaller({
         db,
         user: sarah,
-        learnerSessionId: stranger,
+        learnerSession: { learnerId: stranger, launch: null },
         headers: {},
         setCookie: () => {},
       } satisfies Context);

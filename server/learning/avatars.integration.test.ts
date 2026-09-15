@@ -83,7 +83,7 @@ describeWithDb('companion avatars', () => {
   }, 60_000);
 
   const caller = () =>
-    appRouter.createCaller({ db, user: sarah, learnerSessionId: null, headers: {}, setCookie: () => {} } satisfies Context);
+    appRouter.createCaller({ db, user: sarah, learnerSession: null, headers: {}, setCookie: () => {} } satisfies Context);
 
   const give = async (coins: number) => {
     await db.insert(schema.learnerRewards).values({ learnerId: maya, coins, xp: 0 });

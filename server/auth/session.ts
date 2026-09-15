@@ -25,6 +25,18 @@ import { jwtVerify, SignJWT } from 'jose';
 import * as schema from '../../drizzle/schema';
 import type { Database } from '../db/client';
 
+/** The placement a child arrived through, when they arrived through one. */
+export interface LearnerLaunch {
+  contextRowId: number;
+  resourceLinkId: string;
+}
+
+/** A child, and where they came in from. */
+export interface LearnerSession {
+  learnerId: number;
+  launch: LearnerLaunch | null;
+}
+
 export interface AuthenticatedUser {
   id: number;
   email: string;
@@ -147,8 +159,24 @@ export async function issueSession(userId: number): Promise<string> {
  * `learnerProcedure` rather than here — a token says who somebody is, never
  * what they may do.
  */
-export async function issueLearnerSession(learnerId: number): Promise<string> {
-  return new SignJWT({ sub: String(learnerId) })
+export async function issueLearnerSession(
+  learnerId: number,
+  launch?: LearnerLaunch | null,
+): Promise<string> {
+  return new SignJWT({
+    sub: String(learnerId),
+    /*
+     * Which placement the child came in through, carried in the token because
+     * nothing else knows it later. A practice session records no course, and by
+     * the time one finishes the launch is long gone — so without this, a score
+     * would have no column to go to and guessing one means writing a mark
+     * somewhere nobody chose.
+     *
+     * Safe to trust: this token is signed by us and nobody else can mint one.
+     */
+    ctx: launch?.contextRowId,
+    rl: launch?.resourceLinkId,
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setIssuer(ISSUER)
@@ -167,7 +195,9 @@ export async function issueLearnerSession(learnerId: number): Promise<string> {
  * on `archivedAt`, which is what makes a deletion request effective without a
  * session table.
  */
-export async function resolveLearnerSession(headers: RequestHeaders): Promise<number | null> {
+export async function resolveLearnerSession(
+  headers: RequestHeaders,
+): Promise<LearnerSession | null> {
   const token = readCookie(headers.cookie, LEARNER_COOKIE);
   if (!token) return null;
 
@@ -179,7 +209,23 @@ export async function resolveLearnerSession(headers: RequestHeaders): Promise<nu
       audience: LEARNER_AUDIENCE,
     });
     const learnerId = Number(payload.sub);
-    return Number.isInteger(learnerId) && learnerId > 0 ? learnerId : null;
+    if (!Number.isInteger(learnerId) || learnerId <= 0) return null;
+
+    const contextRowId = Number(payload.ctx);
+    const resourceLinkId = typeof payload.rl === 'string' ? payload.rl : null;
+
+    return {
+      learnerId,
+      /*
+       * Both or neither. A column needs a course *and* a placement, and half of
+       * a pair would send a score to a course's default column — a mark in a
+       * place no teacher put a link.
+       */
+      launch:
+        Number.isInteger(contextRowId) && contextRowId > 0 && resourceLinkId
+          ? { contextRowId, resourceLinkId }
+          : null,
+    };
   } catch {
     return null;
   }

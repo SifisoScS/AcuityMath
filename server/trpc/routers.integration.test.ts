@@ -37,7 +37,7 @@ describeWithDb('practice loop API', () => {
     appRouter.createCaller({
       db: harness.db,
       user,
-      learnerSessionId: null,
+      learnerSession: null,
       headers: {},
     } satisfies Context);
 

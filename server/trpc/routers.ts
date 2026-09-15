@@ -14,6 +14,7 @@ import { z } from 'zod';
 import * as schema from '../../drizzle/schema';
 import { syncRoster, SyncRefused } from '../lti/rosterSync';
 import { RosterUnavailable } from '../lti/nrps';
+import { reportScore } from '../lti/reportScore';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
@@ -1262,7 +1263,25 @@ const practiceRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No such session.' });
       }
 
-      return { completed: true };
+      /*
+       * The gradebook, last and best-effort.
+       *
+       * After the session is marked complete, so a district's LMS being down
+       * cannot lose a child's work — and `reportScore` never throws, so it
+       * cannot turn a finished session into an error a nine-year-old has to
+       * read. A child practising outside a launch has no placement to report
+       * against and nothing is sent.
+       */
+      const launch = ctx.learnerSession?.launch;
+      const reported = launch
+        ? await reportScore(ctx.db, {
+            learnerId: ctx.learner.id,
+            contextRowId: launch.contextRowId,
+            resourceLinkId: launch.resourceLinkId,
+          })
+        : null;
+
+      return { completed: true, reportedToGradebook: reported?.sent ?? false };
     }),
 });
 
