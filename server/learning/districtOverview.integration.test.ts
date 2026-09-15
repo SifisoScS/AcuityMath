@@ -168,6 +168,63 @@ describeWithDb('what a district overview reports', () => {
     });
   });
 
+  describe('the pupil list', () => {
+    it('lists its pupils by name, because a number cannot be acted on', async () => {
+      /*
+       * Names are the point rather than an oversight. An administrator asked to
+       * erase a particular child cannot do it from a list of ids, and the list is
+       * already inside the check that decides these are *their* children.
+       */
+      await createDistrictLearner(db, {
+        institutionId: lincoln.id,
+        displayName: 'Ada',
+        birthYear: 2016,
+      });
+
+      const pupils = await as(head).institutions.pupils({ institutionId: lincoln.id });
+      expect(pupils.map(pupil => pupil.displayName)).toEqual(['Ada']);
+    });
+
+    it('includes an archived pupil, marked', async () => {
+      /*
+       * They are the ones most likely to be the subject of a deletion request —
+       * a child who left months ago is exactly who a family writes in about — so
+       * hiding them would mean the request could not be honoured at all.
+       */
+      const pupil = await createDistrictLearner(db, {
+        institutionId: lincoln.id,
+        displayName: 'Ada',
+        birthYear: 2016,
+      });
+      await db
+        .update(schema.learners)
+        .set({ archivedAt: new Date() })
+        .where(eq(schema.learners.id, pupil.id));
+
+      const pupils = await as(head).institutions.pupils({ institutionId: lincoln.id });
+      expect(pupils).toHaveLength(1);
+      expect(pupils[0].archivedAt).not.toBeNull();
+    });
+
+    it('never includes a family’s child', async () => {
+      const [parent] = await db
+        .insert(schema.users)
+        .values({ email: 'parent@home.test', role: 'parent' })
+        .$returningId();
+      await db
+        .insert(schema.learners)
+        .values({ guardianId: parent.id, displayName: 'At home', birthYear: 2016 });
+
+      expect(await as(head).institutions.pupils({ institutionId: lincoln.id })).toEqual([]);
+    });
+
+    it('refuses another district’s administrator', async () => {
+      await expect(
+        as(otherHead).institutions.pupils({ institutionId: lincoln.id }),
+      ).rejects.toThrow(/Administrators of this institution/);
+    });
+  });
+
   describe('whose district it is', () => {
     it('is refused to another district’s administrator', async () => {
       await expect(

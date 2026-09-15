@@ -1211,6 +1211,35 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A capability nobody can reach is a promise nobody can keep.** E2 built the
+export and E3 built the deletion; neither had a surface, so a district could
+exercise neither right its agreement grants. The same gap C4d closed for the
+roster sync, found the same way — by asking who would press the button.
+
+**The step-up path had been complete on the server and shown to nobody.**
+`elevate` answers `PRECONDITION_FAILED` when an administrator has never set a
+PIN, which is a genuinely different next step from a wrong one: an unset PIN is
+chosen, a wrong one is retyped. Nothing had ever surfaced the difference, so a
+district administrator reaching for an export would have seen `STEP_UP_REQUIRED`
+— an implementation detail — and had no way forward.
+
+**Removal asks for the child's name to be typed.** Not an "are you sure": a
+confirmation dialogue is dismissed by the same reflex that opened it.
+Reproducing the name is the smallest thing that cannot be done by accident, and
+it makes somebody say which child they mean, which is the mistake that actually
+happens in a list of thirty.
+
+**The export file is named by id and date, never by the child.** The contents
+identify them completely, but a filename sits in a Downloads folder, appears in
+a file picker during a screen share, and is read by people who were never meant
+to open it.
+
+**Mocking a child component beats widening a parent's mock.** Mounting
+`PupilRecords` inside `DistrictConsole` broke ten E1 tests, because the console's
+trpc mock knew nothing of the panel's procedures. Widening it would have made a
+test about the console fail every time a child component gained a query. The
+console's suite now mocks the panel, which has its own.
+
 **Two documents in this repository contradicted each other, and the code
 implemented the weaker one.** The institutional agreement districts sign says
 *"deletion removes their practice history rather than hiding it."* The schema's
