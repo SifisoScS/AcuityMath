@@ -32,7 +32,7 @@ type Db = MySql2Database<typeof schema>;
  * assumption, because `notifications` names its subject differently and
  * assuming `learner_id` everywhere would have silently exported nothing from it.
  */
-const LEARNER_TABLES = {
+export const LEARNER_TABLES = {
   learner_access_tokens: {
     table: schema.learnerAccessTokens,
     column: schema.learnerAccessTokens.learnerId,
@@ -88,13 +88,19 @@ const LEARNER_TABLES = {
  * column that says so. Omitting it would mean an export that claimed to be
  * everything while leaving out every message this product ever sent about them.
  */
-const ABOUT_LEARNER_TABLES = {
+export const ABOUT_LEARNER_TABLES = {
   notifications: {
     table: schema.notifications,
     column: schema.notifications.aboutLearnerId,
   },
 } as const;
 
+/*
+ * Exported so `deleteLearner` can use the *same* definition of "everything
+ * about a child". Two lists would eventually disagree, and the disagreement
+ * would be silent in the worst direction: an export that shows a parent a table
+ * deletion does not empty.
+ */
 export const EXPORTED_TABLES = Object.keys(LEARNER_TABLES);
 export const EXPORTED_ABOUT_TABLES = Object.keys(ABOUT_LEARNER_TABLES);
 

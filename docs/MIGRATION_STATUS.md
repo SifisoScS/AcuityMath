@@ -1211,6 +1211,44 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Two documents in this repository contradicted each other, and the code
+implemented the weaker one.** The institutional agreement districts sign says
+*"deletion removes their practice history rather than hiding it."* The schema's
+comment on `learners.archivedAt` called that column the answer to "a COPPA
+deletion request" — and it hides. Nothing hard-deleted a learner anywhere.
+
+E3 makes archiving and deleting different acts with different meanings.
+Archiving is for a child who has **stopped** — left the school, family paused,
+dropped from a roster; their records stay and nothing is lost if they come back.
+Deletion removes the row so every cascade fires. The schema comment now says
+which is which.
+
+**Deletion's definition of "everything" is the export's**, imported rather than
+restated. Two lists would eventually disagree, and the disagreement would be
+silent in the worst direction: an export showing a parent a table that deletion
+does not empty.
+
+**The count is taken twice** — before the delete and after. The cascades do the
+real work, so a foreign key added later without `onDelete: cascade` would leave
+a child's answers behind while the function reported success. The second count is
+what turns that into a failure rather than a district being told an erasure
+happened that did not. The check is unreachable today and is tested directly for
+that reason, the same way `escapeForRefusal` is.
+
+**One id column must not have a foreign key.** `learner_deletions.learner_id`
+names a child who has been erased; a constraint would either forbid the deletion
+or drag the record of it away too. The exemption in the FK guard is **scoped to
+that table**, unlike every other exemption there, which are by column name —
+exempting `learner_id` by name would have excused it in all sixteen tables that
+must keep their cascade.
+
+**`elevatedLearnerProcedure` refused a null user without narrowing it.** Every
+procedure on it had used only `ctx.learner`, so nothing noticed until deletion
+needed the adult's identity for the tombstone and `tsc` objected. It now passes
+the adult on narrowed, the way `protectedProcedure` does — an assertion at the
+call site would have been a promise the compiler stops checking, on the surface
+that guards a child's erasure.
+
 **Two signed documents promised an export that did not exist.** The family
 consent policy — the text whose SHA-256 is stored against every consent row —
 says *"You can see everything recorded about your child."* The institutional
