@@ -1211,6 +1211,30 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**An unrouted surface that would lie is not meaningfully safer than one that
+does.** `DistrictAdminDashboard.tsx` was 1,356 lines showing four campuses that
+do not exist, their principals by name, their mean ability and ELO, and a 99.4%
+"LMS sync health" computed from nothing. Nothing rendered it, which is the only
+reason it had never told anybody those things — one route away from being the
+most serious falsehood in the product, because a district administrator has no
+way to tell an invented figure about their own schools from a real one. It is
+deleted, and `SchoolEntity` with it: that type declared seven fields this
+product does not record, so it was less a description of data than a
+specification of numbers somebody would have to invent.
+
+`DistrictConsole.tsx` replaces it under one rule — **every number shown is one
+the product can answer.** An empty district shows zeroes, which is true and
+useful; a plausible unmeasured figure is worse than a blank, because a blank
+prompts a question and a plausible figure ends one. What is deliberately absent
+is listed in the component's own comment, each item with why: aggregate ability
+per campus is a statistical claim nobody has made, standards coverage needs a
+mapping that does not exist, and nothing flags interventions.
+
+Half of `DistrictConsole.test.tsx` asserts an **absence** — that "ELO", "mean
+ability", "standards coverage", "intervention", "sync health" and "principal"
+appear nowhere on the page. That is unusual and deliberate: nothing else in the
+build would notice such a figure reappearing.
+
 **Counting rows in a development database is not counting the corpus.** Age 7's
 authored content reads as three problems from `SELECT ... FROM problems` and as
 zero from the corpus on disk. The database is wrong: those rows are

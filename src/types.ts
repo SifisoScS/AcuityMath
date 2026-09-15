@@ -183,21 +183,18 @@ export interface NotificationItem {
 
 
 // Phase 4: Enterprise & District LMS Types
-export interface SchoolEntity {
-  id: string;
-  name: string;
-  type: 'elementary' | 'middle' | 'high' | 'stem_academy';
-  studentCount: number;
-  teacherCount: number;
-  activeLms: 'google_classroom' | 'canvas' | 'clever' | 'schoology';
-  meanThetaAbility: number;
-  meanEloRating: number;
-  curriculumCompletionRate: number;
-  standardsCoverageRate: number;
-  interventionFlaggedCount: number;
-  principalName: string;
-  location: string;
-}
+/*
+ * `SchoolEntity` stood here until Graft E1, and its removal is the point.
+ *
+ * It declared `meanThetaAbility`, `meanEloRating`, `curriculumCompletionRate`,
+ * `standardsCoverageRate`, `interventionFlaggedCount`, `principalName` and
+ * `location` — none of which this product records. It was not a type describing
+ * data; it was a specification of numbers somebody would have had to invent, and
+ * `DistrictAdminDashboard.tsx` duly invented them for four fictional campuses.
+ *
+ * The real `schools` table holds an id, an institution and a name. The district
+ * console shows those, and shows nothing it cannot answer.
+ */
 
 export interface LMSConnection {
   id: string;

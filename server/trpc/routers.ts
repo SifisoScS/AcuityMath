@@ -16,6 +16,7 @@ import { syncRoster, SyncRefused } from '../lti/rosterSync';
 import { RosterUnavailable } from '../lti/nrps';
 import { reportScore } from '../lti/reportScore';
 import { consumeChoice, pendingChoice } from '../lti/deepLinkRequests';
+import { activeAgreement, agreementHistory } from '../learning/institutionAgreements';
 import { buildDeepLinkingResponse, CannotReturnChoice } from '../lti/deepLinking';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
@@ -804,6 +805,86 @@ const institutionsRouter = router({
    * to others, which needs its own thought about who may promote whom. Until
    * then, adding people is a platform act.
    */
+  /**
+   * What a district actually is, for the people who administer it.
+   *
+   * **Every field here is a fact this product holds.** The component it feeds
+   * replaced one that invented four campuses, their principals by name, their
+   * mean ability, and a 99.4% "LMS sync health" — none of which existed. That
+   * dashboard was never routed, which is the only reason it never lied to
+   * anybody; a surface that would mislead the moment somebody linked to it is
+   * not meaningfully safer than one that already does.
+   *
+   * So the rule for anything added below: if the product cannot answer it, it
+   * does not appear. An empty district shows zeroes, which is true and useful,
+   * rather than a plausible number that is not.
+   */
+  overview: protectedProcedure
+    .input(z.object({ institutionId: z.number().int().positive() }).strict())
+    .query(async ({ ctx, input }) => {
+      await assertMayAdminister(ctx, input.institutionId);
+
+      const [institution] = await ctx.db
+        .select()
+        .from(schema.institutions)
+        .where(eq(schema.institutions.id, input.institutionId))
+        .limit(1);
+      if (!institution) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No such institution.' });
+      }
+
+      const members = await listMembers(ctx.db, input.institutionId);
+      const campuses = await ctx.db
+        .select({ id: schema.schools.id, name: schema.schools.name })
+        .from(schema.schools)
+        .where(eq(schema.schools.institutionId, input.institutionId));
+
+      /*
+       * Children the district owns outright, not children it can reach. The
+       * second number would include the families of its own staff, which is a
+       * different thing and not the district's to report on.
+       */
+      const pupils = await ctx.db
+        .select({ id: schema.learners.id })
+        .from(schema.learners)
+        .where(
+          and(
+            eq(schema.learners.institutionId, input.institutionId),
+            isNull(schema.learners.archivedAt),
+          ),
+        );
+
+      const agreement = await activeAgreement(ctx.db, input.institutionId);
+      const history = await agreementHistory(ctx.db, input.institutionId);
+
+      return {
+        id: institution.id,
+        name: institution.name,
+        slug: institution.slug,
+        /*
+         * The first thing an administrator needs to know, because it gates
+         * everything else: with no agreement in force, this district's pupils
+         * cannot practise and no roster can be synchronised.
+         */
+        agreement: agreement
+          ? {
+              inForce: true as const,
+              signatoryName: agreement.signatoryName,
+              signatoryTitle: agreement.signatoryTitle,
+              signedAt: agreement.signedAt,
+              expiresAt: agreement.expiresAt,
+            }
+          : { inForce: false as const, everSigned: history.length > 0 },
+        staff: {
+          administrators: members.filter(member => member.role === 'institution_admin').length,
+          teachers: members.filter(member => member.role === 'teacher').length,
+          total: members.length,
+        },
+        campuses,
+        pupils: pupils.length,
+      };
+    }),
+
   members: adminProcedure
     .input(z.object({ institutionId: z.number().int().positive() }).strict())
     .query(({ ctx, input }) => listMembers(ctx.db, input.institutionId)),
