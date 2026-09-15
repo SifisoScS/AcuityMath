@@ -103,6 +103,7 @@ describeWithDb('a pupil arriving from an LMS', () => {
       custom: { grade_level: '3' },
       targetLinkUri: 'https://acuitymath.test/practice',
       membershipsUrl: null,
+      ags: null,
       claims: {},
       ...overrides,
     };

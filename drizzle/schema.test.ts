@@ -146,6 +146,13 @@ const NOT_LEARNER_SCOPED = [
    */
   'lti_contexts',
   /*
+   * A column in somebody else's gradebook. It names a course and a placement,
+   * and holds no learner id — the mark for a particular child lives at the
+   * platform, which is the point of posting it there. Whose marks went into it
+   * is not a fact this table keeps.
+   */
+  'lti_line_items',
+  /*
    * One launch in progress: a state, a nonce and an expiry. It names a platform
    * and never a learner — the launch resolves a child *after* this row is spent,
    * and putting one here would keep a child's identity in a table designed to be
@@ -303,11 +310,17 @@ describe('referential integrity is the database"s job', () => {
         // course record, so there is nothing else for it to reference, and its
         // uniqueness is per deployment — which is a separate index, and the one
         // that stops two districts' courses colliding.
+        //
+        // `resource_link_id` is the third of the same family: the platform's id
+        // for one placement of this product inside a course. Nothing here holds
+        // resource links — a launch mentions one and it is recorded against the
+        // gradebook column it belongs to.
         const exempt =
           column.name === 'external_id' ||
           column.name === 'client_id' ||
           column.name === 'deployment_id' ||
           column.name === 'context_id' ||
+          column.name === 'resource_link_id' ||
           // `avatar_id` names an entry in the catalogue in `src/data/avatars.ts`,
           // which the server reads so that the price charged is not the price a
           // browser claimed. There is no table for it to reference.
