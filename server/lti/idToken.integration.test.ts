@@ -583,6 +583,58 @@ describeWithDb('accepting a launch back from a platform', () => {
     });
   });
 
+  describe('the gradebook endpoints a platform offers', () => {
+    const AGS = 'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
+
+    it('carries the container, the column and the granted scopes', async () => {
+      const { state, idToken } = await goodLaunch({
+        claims: {
+          [AGS]: {
+            lineitems: 'https://platform.test/courses/1/line_items',
+            lineitem: 'https://platform.test/courses/1/line_items/7',
+            scope: [
+              'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+              'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+            ],
+          },
+        },
+      });
+
+      const context = await verifyLaunch(db, { idToken, state });
+      expect(context.ags?.lineItems).toBe('https://platform.test/courses/1/line_items');
+      expect(context.ags?.lineItem).toBe('https://platform.test/courses/1/line_items/7');
+      expect(context.ags?.scopes).toHaveLength(2);
+    });
+
+    it('drops a gradebook URL that is not https', async () => {
+      /*
+       * A gradebook URL somebody can rewrite is a gradebook somebody else can
+       * write to, using a token we hand over. Dropped rather than refusing the
+       * whole launch, because the claim is optional and a district that has not
+       * granted the scope must still be able to teach.
+       */
+      const { state, idToken } = await goodLaunch({
+        claims: {
+          [AGS]: {
+            lineitems: 'http://platform.test/courses/1/line_items',
+            lineitem: 'http://platform.test/courses/1/line_items/7',
+            scope: ['https://purl.imsglobal.org/spec/lti-ags/scope/score'],
+          },
+        },
+      });
+
+      const context = await verifyLaunch(db, { idToken, state });
+      expect(context.ags).not.toBeNull();
+      expect(context.ags?.lineItems).toBeNull();
+      expect(context.ags?.lineItem).toBeNull();
+    });
+
+    it('is absent when the platform offers no gradebook', async () => {
+      const { state, idToken } = await goodLaunch();
+      expect((await verifyLaunch(db, { idToken, state })).ags).toBeNull();
+    });
+  });
+
   describe('what a platform is allowed to withhold', () => {
     it('accepts a launch with no name and no email', async () => {
       /*

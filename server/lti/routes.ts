@@ -319,6 +319,7 @@ ltiRouter.post('/launch', async (req: Request, res: Response) => {
           title: context.contextTitle,
           membershipsUrl: context.membershipsUrl,
           defaultBirthYear,
+          lineItemsUrl: context.ags?.lineItems ?? null,
         });
       }
     } catch (error) {

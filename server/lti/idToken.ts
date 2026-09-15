@@ -63,6 +63,15 @@ export const LTI_CLAIM = {
    * require it to be present.
    */
   namesRoleService: 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice',
+  /**
+   * Where grades for this course go, when the platform offers a gradebook.
+   *
+   * Carries the container URL for a course's line items, sometimes a specific
+   * line item when the link was placed as an assignment, and **the scopes the
+   * platform actually granted** — which is not the same as the ones we asked
+   * for, and is the only place it says so per course.
+   */
+  agsEndpoint: 'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint',
 } as const;
 
 export const LTI_VERSION = '1.3.0';
@@ -154,6 +163,19 @@ export interface LaunchContext {
    * later reads it from `lti_contexts` rather than from anywhere else.
    */
   membershipsUrl: string | null;
+  /**
+   * The gradebook endpoints for this course, if the platform offers them.
+   *
+   * `lineItems` is the container a line item can be created in. `lineItem` is
+   * set only when the link was placed **as an assignment**, in which case the
+   * platform has already made one and creating another would put a second
+   * column in somebody's gradebook.
+   *
+   * `scopes` is what the platform granted, which is the honest thing to check
+   * before attempting a write: asking for a scope we were not given produces a
+   * 403 from a district's server rather than a sentence anyone can act on.
+   */
+  ags: { lineItems: string | null; lineItem: string | null; scopes: string[] } | null;
   claims: JWTPayload;
 }
 
@@ -211,6 +233,12 @@ export interface VerifyLaunchOptions {
 
 function asString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+/** A URL we are willing to send a token to, or nothing. */
+function httpsOnly(value: unknown): string | null {
+  const url = asString(value);
+  return url && url.startsWith('https://') ? url : null;
 }
 
 /**
@@ -376,6 +404,12 @@ export async function verifyLaunch(
     }
   }
 
+  const agsClaim = (payload[LTI_CLAIM.agsEndpoint] ?? null) as {
+    lineitems?: unknown;
+    lineitem?: unknown;
+    scope?: unknown;
+  } | null;
+
   const nrps = (payload[LTI_CLAIM.namesRoleService] ?? null) as {
     context_memberships_url?: string;
     service_versions?: unknown;
@@ -416,6 +450,22 @@ export async function verifyLaunch(
       nrps.context_memberships_url.startsWith('https://')
         ? nrps.context_memberships_url
         : null,
+    /*
+     * https on both, and dropped rather than trusted otherwise — the same rule
+     * the roster endpoint gets. A gradebook URL somebody can rewrite is a
+     * gradebook somebody else can write to, using a token we hand over.
+     */
+    ags: agsClaim
+      ? {
+          lineItems: httpsOnly(agsClaim.lineitems),
+          lineItem: httpsOnly(agsClaim.lineitem),
+          scopes: Array.isArray(agsClaim.scope)
+            ? (agsClaim.scope as unknown[]).filter(
+                (scope): scope is string => typeof scope === 'string',
+              )
+            : [],
+        }
+      : null,
     targetLinkUri: claimed.targetLinkUri,
     claims: payload,
   };

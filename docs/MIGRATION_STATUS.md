@@ -1211,6 +1211,39 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Writing to a platform is a different risk again from reading one.** Every
+outbound call through C4 was a read. AGS **changes a district's records**, and
+what it changes is a mark against a child's name that their teacher and their
+parents will see. Three rules follow, and each is a test in
+`ags.integration.test.ts`:
+
+- **A line item is a column a teacher sees.** A second one for the same link is
+  a duplicate in their gradebook that nobody asked for and only they can delete.
+  `resolveLineItem` checks a stored row, then the URL the platform itself
+  provided, and only then creates — reversing any two of those turns a second
+  launch into a second column.
+- **A score names the platform's `sub`, never a learner id from here.** The
+  wrong one either fails or lands on whichever of their users happens to have
+  that number.
+- **The column's maximum is believed, not assumed.** A platform may clamp what
+  we asked for, and scoring against a denominator the column does not have is a
+  child's mark being changed by arithmetic nobody chose. Scores above the maximum
+  are clamped rather than sent: rejected outright by some platforms and silently
+  stored by others, and 130 out of 100 in a gradebook is a conversation a teacher
+  has to have with somebody.
+
+`activityProgress` and `gradingProgress` are always `Completed` / `FullyGraded`,
+because this product marks instantly and continuously — anything else leaves a
+column showing work as pending that nothing will ever come back to finish.
+
+**A fake server that records requests only after authorising them cannot see a
+retry.** The AGS suite's 401 test read one request where there were two, which
+looked exactly like "the retry never happened". Two separate defects in the same
+test, in fact: the fake logged after its auth check, *and* the scenario cleared
+the platform's tokens before a score-scope token had ever been cached, so the
+call minted a fresh valid one and never saw a 401 at all. A retry test has to
+make the **cached** credential go stale, not merely make credentials scarce.
+
 **A mutation anchor that is not unique mutates somebody else's code.** The
 harness replaces the first occurrence of a string; `throw new TRPCError({ code:
 'BAD_REQUEST', message: error.message });` appears **twice** in

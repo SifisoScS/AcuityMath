@@ -204,7 +204,8 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | ~~**C4b Roster read**~~ | The NRPS claim, the memberships call, pagination | **Done.** A course's membership list is read from the platform, over https, one token across all its pages |
 | ~~**C4c Reconciliation**~~ | Turning a membership list into classrooms and learners | **Done.** A roster matches the platform's without manual entry; a departure unenrols and nothing else, and no sync creates an adult account |
 | ~~**C4d Sync trigger**~~ | A district administrator can list their courses and run a sync | **Done.** NRPS is reachable; scope is checked against the database, not the session |
-| **C5 AGS v2.0** | Line items and score passback | A completed session appears in the platform gradebook |
+| ~~**C5a Gradebook protocol**~~ | Line items and score posting, against a platform that checks | **Done.** One column per placement, scores named by the platform's own user id |
+| **C5b Score policy** | Which number is sent, and what triggers sending it | A completed session appears in the platform gradebook |
 | **C6 Deep Linking 2.0** | Teacher selects a concept or quest; platform receives a signed content item | A teacher can embed a specific quest |
 | **C7 Conformance** | Run 1EdTech's suite per service | Certification, and only then the badge |
 

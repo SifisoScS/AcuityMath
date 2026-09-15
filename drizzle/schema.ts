@@ -264,6 +264,14 @@ export const ltiContexts = mysqlTable(
      */
     defaultBirthYear: smallint('default_birth_year'),
     /**
+     * Where a gradebook column for this course can be created.
+     *
+     * Like the roster URL, a launch is the only moment a platform says it, and
+     * null is ordinary: a district that has not granted the line-item scope
+     * launches perfectly well and simply has no gradebook integration.
+     */
+    lineItemsUrl: varchar('line_items_url', { length: 1000 }),
+    /**
      * The classroom this course maps to, once a sync has made one.
      *
      * Null until then, because a classroom needs a teacher and a teacher has to
@@ -287,6 +295,48 @@ export const ltiContexts = mysqlTable(
   },
   table => [
     uniqueIndex('lti_context_idx').on(table.deploymentId, table.contextId),
+  ],
+);
+
+/**
+ * One column in a district's gradebook, as this product knows it.
+ *
+ * A line item is a **column somebody else's teacher sees**, which is what makes
+ * the identity of this row matter more than it looks. Creating a second one for
+ * the same link puts a duplicate column in their gradebook that nobody asked
+ * for and only they can delete, so the unique key is the whole point: one
+ * resource link, one column, for ever.
+ *
+ * `resourceLinkId` rather than the course, because a teacher may place this
+ * product twice in one course — a fractions link and a times-tables link — and
+ * those are two columns, not one.
+ */
+export const ltiLineItems = mysqlTable(
+  'lti_line_items',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    contextId: int('context_id')
+      .notNull()
+      .references(() => ltiContexts.id, { onDelete: 'cascade' }),
+    /** The platform's id for the placement this column belongs to. */
+    resourceLinkId: varchar('resource_link_id', { length: 255 }).notNull(),
+    /** The URL the platform gave the column. Scores are posted beneath it. */
+    lineItemUrl: varchar('line_item_url', { length: 1000 }).notNull(),
+    /** What the column is called in their gradebook. Ours to set, theirs to see. */
+    label: varchar('label', { length: 255 }).notNull(),
+    /**
+     * The denominator, as agreed with the platform when the column was made.
+     *
+     * Stored rather than assumed, because a score whose maximum disagrees with
+     * the column's is rescaled or rejected depending on the platform — and a
+     * silently rescaled grade is a child's mark being changed by a rounding
+     * decision nobody made.
+     */
+    scoreMaximum: decimal('score_maximum', { precision: 8, scale: 2 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('lti_line_item_idx').on(table.contextId, table.resourceLinkId),
   ],
 );
 
