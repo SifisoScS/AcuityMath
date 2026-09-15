@@ -1211,6 +1211,44 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A hook timeout reads as a flaky test.** Two LTI suites began failing
+intermittently at almost exactly ten seconds in full parallel runs and passing
+alone. `testTimeout` was already 30s — but `hookTimeout` had never been raised
+from vitest's 10s default, and **vitest attributes a hook timeout to the test
+that was about to run**, so setup running out of time looked like two unrelated
+assertions failing at random. It was written off as a flake once before it was
+chased.
+
+The work is real and grows with the schema: every integration suite's
+`beforeEach` empties roughly thirty-five tables and seeds a fixture, and there
+are thirty-seven such suites sharing one MySQL. Both timeouts are 30s now. The
+lesson is narrower than "raise the timeout": **when a test fails at a suspiciously
+round number, check which budget it actually spent.**
+
+**What the gradebook column means is a product decision, and it lives in one
+function.** `curriculumCoverage` reports the share of a child's *own year group*
+they have mastered, with un-practised concepts counting as nothing — "how much of
+what they should know do they know". It starts near zero in September for
+everybody and climbs all year, which is the honest shape of the thing.
+
+The rejected alternatives are recorded in that file rather than lost: averaging
+over only the concepts already *practised* reads as encouraging and rewards
+narrowness, since one easy concept taken to 90 outranks ten averaging 70; and
+counting concepts *fully mastered* is the most interpretable but is a step
+function, so weeks of real movement below the threshold show nothing.
+
+Null is returned, never zero, when a tier has no concepts authored — true of age
+7 today. Zero means "has covered none of it"; null means "there is nothing to
+have covered", and reporting zero would tell a teacher their class is failing at
+a curriculum nobody has written.
+
+**A gradebook must never break a child's practice.** `reportScore` does not
+throw. A district's LMS being down, a scope never granted, a certificate expired
+— none of those is a nine-year-old's problem, and none may turn a finished
+session into an error they have to read. The cost is that silence looks like a
+child who stopped working, so every refusal returns a named reason and is
+logged with the learner and the status.
+
 **Writing to a platform is a different risk again from reading one.** Every
 outbound call through C4 was a read. AGS **changes a district's records**, and
 what it changes is a mark against a child's name that their teacher and their

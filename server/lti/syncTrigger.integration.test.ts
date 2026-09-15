@@ -141,7 +141,7 @@ describeWithDb('asking for a roster sync', () => {
     appRouter.createCaller({
       db,
       user,
-      learnerSessionId: null,
+      learnerSession: null,
       headers: {},
       setCookie: () => {},
     } satisfies Context);

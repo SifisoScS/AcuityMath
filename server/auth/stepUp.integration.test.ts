@@ -96,7 +96,7 @@ describeWithDb('step-up and child access', () => {
     appRouter.createCaller({
       db,
       user,
-      learnerSessionId: null,
+      learnerSession: null,
       headers: elevation ? { cookie: `${ELEVATION_COOKIE}=${elevation}` } : {},
       setCookie: () => {},
     } satisfies Context);
