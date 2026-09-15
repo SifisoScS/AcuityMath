@@ -206,7 +206,8 @@ testable against 1EdTech's reference platform before any real LMS is involved.
 | ~~**C4d Sync trigger**~~ | A district administrator can list their courses and run a sync | **Done.** NRPS is reachable; scope is checked against the database, not the session |
 | ~~**C5a Gradebook protocol**~~ | Line items and score posting, against a platform that checks | **Done.** One column per placement, scores named by the platform's own user id |
 | ~~**C5b Score policy**~~ | Which number is sent, and what triggers sending it | **Done.** A completed session puts the child's curriculum coverage in the gradebook, and a failure there never reaches the child |
-| **C6 Deep Linking 2.0** | Teacher selects a concept or quest; platform receives a signed content item | A teacher can embed a specific quest |
+| ~~**C6a Deep Linking protocol**~~ | Accept the launch, hold the request, sign and return a content item | **Done.** A platform verifying our response against our JWKS accepts it |
+| **C6b The picker** | What a teacher actually sees and chooses from | A teacher can embed a specific quest |
 | **C7 Conformance** | Run 1EdTech's suite per service | Certification, and only then the badge |
 
 **Reuse rather than rebuild, with one correction found while building C3c.**

@@ -72,10 +72,31 @@ export const LTI_CLAIM = {
    * for, and is the only place it says so per course.
    */
   agsEndpoint: 'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint',
+  /**
+   * How a platform wants content chosen and where to send it back.
+   *
+   * Present only on a deep-linking launch. `data` inside it is opaque to us and
+   * **must be echoed back untouched** — it is the platform's own way of knowing
+   * the response belongs to the request it started, the mirror of the `state`
+   * this product uses on the way in.
+   */
+  deepLinkingSettings: 'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings',
 } as const;
 
 export const LTI_VERSION = '1.3.0';
 export const RESOURCE_LINK_REQUEST = 'LtiResourceLinkRequest';
+export const DEEP_LINKING_REQUEST = 'LtiDeepLinkingRequest';
+
+/**
+ * The message types this product handles, and nothing beyond them.
+ *
+ * Still a closed set. C3b refused deep linking by name on the grounds that a
+ * message type we do not handle arriving at the handler for one we do is how a
+ * launch ends up doing something nobody designed — and widening the set does not
+ * weaken that, because **the caller still has to branch on which one arrived**.
+ * `verifyLaunch` reports the type; the route decides what it means.
+ */
+const HANDLED_MESSAGE_TYPES = new Set<string>([RESOURCE_LINK_REQUEST, DEEP_LINKING_REQUEST]);
 
 /**
  * Roles that mean "this person marks work", by the suffix of the role URI.
@@ -176,6 +197,31 @@ export interface LaunchContext {
    * 403 from a district's server rather than a sentence anyone can act on.
    */
   ags: { lineItems: string | null; lineItem: string | null; scopes: string[] } | null;
+  /**
+   * Which kind of message this was.
+   *
+   * Reported rather than assumed, because the two kinds mean entirely different
+   * things: one is a person coming in to work, the other is a teacher choosing
+   * what the work should be. A handler that did not branch on this would offer a
+   * content picker to a child, or start a practice session for a teacher who
+   * asked to pick a topic.
+   */
+  messageType: string;
+  /**
+   * How a platform wants content chosen, on a deep-linking launch only.
+   *
+   * `data` is opaque and must be echoed back untouched. `acceptMultiple` says
+   * whether a teacher may choose more than one thing, and is the platform's
+   * decision rather than ours — returning two items to a platform that asked
+   * for one is a response it is entitled to reject.
+   */
+  deepLinking: {
+    returnUrl: string;
+    acceptTypes: string[];
+    acceptMultiple: boolean;
+    data: string | null;
+    title: string | null;
+  } | null;
   claims: JWTPayload;
 }
 
@@ -342,12 +388,12 @@ export async function verifyLaunch(
   }
 
   const messageType = asString(payload[LTI_CLAIM.messageType]);
-  if (messageType !== RESOURCE_LINK_REQUEST) {
+  if (!messageType || !HANDLED_MESSAGE_TYPES.has(messageType)) {
     /*
-     * Deep linking and the other message types are real and are not built. They
-     * are refused by name rather than waved through, because a message type we
-     * do not handle arriving at the handler for one we do is how a launch ends
-     * up doing something nobody designed.
+     * Still a closed set, widened by exactly one member in C6a. The other
+     * message types are real and are not built, and one arriving at the handler
+     * for a type we do handle is how a launch ends up doing something nobody
+     * designed.
      */
     throw new LaunchRejected(
       'message_type',
@@ -403,6 +449,14 @@ export async function verifyLaunch(
       custom[key.trim().toLowerCase()] = String(value).trim();
     }
   }
+
+  const dlClaim = (payload[LTI_CLAIM.deepLinkingSettings] ?? null) as {
+    deep_link_return_url?: unknown;
+    accept_types?: unknown;
+    accept_multiple?: unknown;
+    data?: unknown;
+    title?: unknown;
+  } | null;
 
   const agsClaim = (payload[LTI_CLAIM.agsEndpoint] ?? null) as {
     lineitems?: unknown;
@@ -466,6 +520,27 @@ export async function verifyLaunch(
             : [],
         }
       : null,
+    messageType,
+    /*
+     * The return URL must be https, and the whole settings object is dropped
+     * without one. A content item is signed with the key that proves we are this
+     * product, and posting it to a channel somebody can rewrite hands them a
+     * signed message to replay wherever they like.
+     */
+    deepLinking:
+      dlClaim && httpsOnly(dlClaim.deep_link_return_url)
+        ? {
+            returnUrl: httpsOnly(dlClaim.deep_link_return_url) as string,
+            acceptTypes: Array.isArray(dlClaim.accept_types)
+              ? (dlClaim.accept_types as unknown[]).filter(
+                  (type): type is string => typeof type === 'string',
+                )
+              : [],
+            acceptMultiple: dlClaim.accept_multiple === true,
+            data: asString(dlClaim.data),
+            title: asString(dlClaim.title),
+          }
+        : null,
     targetLinkUri: claimed.targetLinkUri,
     claims: payload,
   };

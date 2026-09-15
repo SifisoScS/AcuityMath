@@ -83,6 +83,8 @@ describeWithDb('signing somebody in from a launch', () => {
       custom: {},
       membershipsUrl: null,
       ags: null,
+      messageType: 'LtiResourceLinkRequest',
+      deepLinking: null,
       claims: {},
       ...overrides,
     };

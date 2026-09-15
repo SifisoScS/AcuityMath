@@ -153,6 +153,12 @@ const NOT_LEARNER_SCOPED = [
    */
   'lti_line_items',
   /*
+   * A teacher's pending request to choose content. It names the member of staff
+   * doing the choosing and the platform to answer, and never a learner — the
+   * choice is about *what* a class will work on, not about any particular child.
+   */
+  'lti_deep_link_requests',
+  /*
    * One launch in progress: a state, a nonce and an expiry. It names a platform
    * and never a learner — the launch resolves a child *after* this row is spent,
    * and putting one here would keep a child's identity in a table designed to be

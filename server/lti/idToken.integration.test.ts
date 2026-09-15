@@ -486,11 +486,13 @@ describeWithDb('accepting a launch back from a platform', () => {
 
     it('refuses a message type this product does not handle', async () => {
       /*
-       * Deep linking is real, and is not built. Letting it through would put a
-       * message designed to *choose* content into the handler that *serves* it.
+       * This used to name `LtiDeepLinkingRequest`, which C6a built — so the
+       * example moved rather than the rule. The set of handled types is still
+       * closed, and something designed to *review a submission* arriving at the
+       * handler that *serves practice* is the failure it exists to prevent.
        */
       const { state, idToken } = await goodLaunch({
-        claims: { [LTI_CLAIM.messageType]: 'LtiDeepLinkingRequest' },
+        claims: { [LTI_CLAIM.messageType]: 'LtiSubmissionReviewRequest' },
       });
       expect(await reasonFor(verifyLaunch(db, { idToken, state }))).toBe('message_type');
     });
@@ -580,6 +582,77 @@ describeWithDb('accepting a launch back from a platform', () => {
 
       expect(context.membershipsUrl).toBeNull();
       expect(context.subject).toBe('platform-user-77');
+    });
+  });
+
+  describe('a deep-linking launch', () => {
+    const DL = 'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
+    const deepLink = (settings: Record<string, unknown>) => ({
+      claims: {
+        [LTI_CLAIM.messageType]: 'LtiDeepLinkingRequest',
+        [DL]: settings,
+      },
+    });
+
+    it('is accepted now, where C3b refused it by name', async () => {
+      /*
+       * The closed set of message types gained exactly one member. It is still
+       * closed — the caller branches on which arrived, because a teacher
+       * choosing content and a child coming in to work are not the same thing.
+       */
+      const { state, idToken } = await goodLaunch(
+        deepLink({
+          deep_link_return_url: 'https://platform.test/return',
+          accept_types: ['ltiResourceLink'],
+          accept_multiple: true,
+          data: 'opaque',
+        }),
+      );
+
+      const context = await verifyLaunch(db, { idToken, state });
+      expect(context.messageType).toBe('LtiDeepLinkingRequest');
+      expect(context.deepLinking).toEqual({
+        returnUrl: 'https://platform.test/return',
+        acceptTypes: ['ltiResourceLink'],
+        acceptMultiple: true,
+        data: 'opaque',
+        title: null,
+      });
+    });
+
+    it('still refuses a message type nobody built', async () => {
+      const { state, idToken } = await goodLaunch({
+        claims: { [LTI_CLAIM.messageType]: 'LtiSubmissionReviewRequest' },
+      });
+      expect(await reasonFor(verifyLaunch(db, { idToken, state }))).toBe('message_type');
+    });
+
+    it('drops the settings when the return URL is not https', async () => {
+      /*
+       * A content item is signed with the key that proves we are this product.
+       * Posting it to a channel somebody can rewrite hands them a signed message
+       * to replay wherever they like — so the whole settings object goes, and
+       * the route refuses rather than guessing a destination.
+       */
+      const { state, idToken } = await goodLaunch(
+        deepLink({
+          deep_link_return_url: 'http://platform.test/return',
+          accept_types: ['ltiResourceLink'],
+          data: 'opaque',
+        }),
+      );
+
+      const context = await verifyLaunch(db, { idToken, state });
+      expect(context.messageType).toBe('LtiDeepLinkingRequest');
+      expect(context.deepLinking).toBeNull();
+    });
+
+    it('leaves an ordinary launch with no settings at all', async () => {
+      const { state, idToken } = await goodLaunch();
+      const context = await verifyLaunch(db, { idToken, state });
+
+      expect(context.messageType).toBe('LtiResourceLinkRequest');
+      expect(context.deepLinking).toBeNull();
     });
   });
 

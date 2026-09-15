@@ -104,6 +104,8 @@ describeWithDb('a pupil arriving from an LMS', () => {
       targetLinkUri: 'https://acuitymath.test/practice',
       membershipsUrl: null,
       ags: null,
+      messageType: 'LtiResourceLinkRequest',
+      deepLinking: null,
       claims: {},
       ...overrides,
     };
