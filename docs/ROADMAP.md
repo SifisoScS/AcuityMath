@@ -54,11 +54,11 @@ missing is the institutional layer and the content to fill the tiers.
 
 | Architecture claims | Reality |
 | --- | --- |
-| §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Core is served** (C1–C3c): keys, registry, initiation, token validation, staff launch. **NRPS, AGS and Deep Linking do not exist** |
+| §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Served, C1–C6.** Keys, registry, initiation, token validation, staff and pupil launch, NRPS roster sync, AGS score posting, Deep Linking with a teacher-facing picker. Only C7 conformance remains, and it is blocked on Track A |
 | §7 A pupil launching from an LMS | **Works.** The child is provisioned, consented under their district's agreement, and holds a learner session — refused clearly if the district has not agreed or the placement names no year group |
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
 | §7 OneRoster 1.2 (`/api/oneroster/v1p2`) | Nothing exists |
-| §7 Self-serve wizard with handshake testing | `LtiOnboardingWizardModal.tsx` renders a form and **makes no network calls** |
+| §7 Self-serve wizard with handshake testing | **Rebuilt in E5.** Endpoints come from the same constants `routes.ts` mounts, and the checks are real reads that can fail. It still cannot prove a *platform* can reach this instance — no local read can — and it says so rather than implying it |
 | §8 District console, CSV, CCSS audit, PDF brief | **The console is real and routed** at `/district/<id>` (E1), and **a full per-child export exists** (E2), which is what the family policy and the institutional agreement both promise, and **real deletion** (E3), which is what the agreement's "removes rather than hides" clause requires — **both reachable** from the console (E4), with step-up and a typed-name confirmation. CCSS audit and PDF brief do not exist; neither does a bulk district-wide CSV |
 | §8 "COPPA Safe Harbor Compliant" | Consent is real; the **certification is not held** |
 | §8 "FERPA aligned… encrypted in transit and at rest" | No TLS config, no at-rest encryption in this repo |
@@ -115,8 +115,10 @@ urgent.
 Both are here because **waiting makes them more expensive**, not because they are
 urgent.
 
-**1. The consent disclosure. This is not Track A at all — it is a product bug.**
-`CONSENT_POLICY_VERSION = '2026-09-v1'` tells parents their child's information
+**1. ~~The consent disclosure.~~ Done.** `CONSENT_POLICY_VERSION` is now
+`'2026-09-v2'`, which says what v1 did not. The rest of this entry is kept
+because the cost curve it describes is the reason it was done early rather than
+later. v1 told parents their child's information
 "is not sold or shared with anyone else", unqualified, while a child's free-text
 message to the Socratic coach is sent to Google. Google is a processor rather
 than a third party and no identifier accompanies the request — and that
@@ -253,25 +255,44 @@ pupil removed at the SIS is deactivated rather than deleted.
 
 ## 8. Track E — the district surfaces, rebuilt
 
-`DistrictAdminDashboard.tsx` is 1,353 lines and was the second-largest file in
-the product on the day it was scaffolded — before any institutional data existed
-to fill it. It seeds its own campuses, and it still renders "Google Classroom &
-Canvas Live".
+`DistrictAdminDashboard.tsx` **was** 1,353 lines and the second-largest file in
+the product on the day it was scaffolded, before any institutional data existed
+to fill it. It seeded its own campuses and rendered "Google Classroom & Canvas
+Live". E1 deleted it and re-derived the console from real queries, which is what
+"design reference, not a head start" meant in practice.
 
-**Treat it as a design reference, not a head start.** The layout and the
-information architecture are worth keeping; the data layer under it must be
-built from B1 and the component re-derived from real queries. Reviving it as-is
-would reintroduce invented data behind a real login, which is worse than the
-quarantine it is in now.
+> **A note on the numbering, because this section and §3 disagreed.** The list
+> below originally read E1 analytics, E2 CSV, E3 CCSS, E4 nav-and-cleanup. What
+> shipped under those labels was different — the cleanup happened inside E1, and
+> E2–E4 went to the rights the institutional agreement grants, which turned out
+> to matter more than a second export format. The labels below are now **what
+> was actually built**, because these are the names used to pick the next step.
 
-- **E1** — Multi-campus analytics from real attempts, via the same derivation
-  `learnerAnalytics` already uses for parents.
-- **E2** — RFC 4180 CSV export from those queries.
-- **E3** — CCSS coverage from the authored corpus, which means it will honestly
-  show the gap in §9 rather than a full matrix.
-- **E4** — Restore the nav entry and the route, and delete the seeded state in
-  the same change. The `'district' → 'admin'` role mapping was kept for exactly
-  this moment.
+- ~~**E1**~~ — **Done.** The district console: multi-campus analytics from real
+  attempts, via the same derivation `learnerAnalytics` uses for parents. Deleted
+  `DistrictAdminDashboard.tsx` and its seeded campuses in the same change.
+- ~~**E2**~~ — **Done.** A full per-child export, which is what the family policy
+  and the institutional agreement both promise.
+- ~~**E3**~~ — **Done.** Real deletion, removing a child's history rather than
+  hiding it, as the agreement's own wording requires.
+- ~~**E4**~~ — **Done.** The records panel, which is what made E2 and E3 reachable
+  by a human being.
+- ~~**E5**~~ — **Done.** The LTI onboarding wizard, made true. It advertised three
+  endpoints that were not routes, printed a client id, a deployment id and a
+  `sec_live_…` secret belonging to no platform, offered an LTI **1.1** cartridge
+  under a 1.3 heading, and its "Test LMS Handshake" button was a 1,200ms
+  `setTimeout` that reported success unconditionally. The paths now live once, in
+  `server/lti/toolConfiguration.ts`, and `routes.ts` mounts from the same
+  constants the wizard reads.
+- **E6** — RFC 4180 CSV export from the console's queries. Not started.
+- **E7** — CCSS coverage from the authored corpus, which means it will honestly
+  show the gap in §9 rather than a full matrix. Not started; `contentCoverage.ts`
+  from F1 is the input.
+
+The PDF brief named in `ARCHITECTURE.md` §8 is **deliberately not listed**. A
+console plus a CSV covers what it was for, and a generated PDF is a dependency
+serving a format somebody would export anyway. It should be argued for before it
+is built.
 
 ---
 

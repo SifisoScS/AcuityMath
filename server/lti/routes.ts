@@ -34,6 +34,7 @@ import { beginChoice } from './deepLinkRequests';
 import { rememberContext } from './nrps';
 import { AgeUnknown, resolvePupilAge } from './pupilAge';
 import { resolveLaunch } from './platforms';
+import { LTI_MOUNT_PATH, LTI_ROUTE_PATHS } from './toolConfiguration';
 
 export const ltiRouter = Router();
 
@@ -66,7 +67,7 @@ ltiRouter.use(express.urlencoded({ extended: false }));
  * which reads as a broken integration rather than an un-provisioned one. Every
  * subsequent call is a plain read.
  */
-ltiRouter.get('/jwks.json', async (_req: Request, res: Response) => {
+ltiRouter.get(LTI_ROUTE_PATHS.jwks, async (_req: Request, res: Response) => {
   const db = getDatabase();
   await signingKey(db);
   const jwks = await publicJwks(db);
@@ -142,7 +143,7 @@ async function initiate(req: Request, res: Response): Promise<void> {
           ? String(source.lti_deployment_id)
           : undefined,
       },
-      `${appBaseUrl(req)}/api/lti/launch`,
+      `${appBaseUrl(req)}${LTI_MOUNT_PATH}${LTI_ROUTE_PATHS.launch}`,
     );
 
     res.redirect(302, redirectUrl);
@@ -160,8 +161,8 @@ async function initiate(req: Request, res: Response): Promise<void> {
   }
 }
 
-ltiRouter.get('/login', initiate);
-ltiRouter.post('/login', initiate);
+ltiRouter.get(LTI_ROUTE_PATHS.login, initiate);
+ltiRouter.post(LTI_ROUTE_PATHS.login, initiate);
 
 /**
  * A refusal a person can act on, rendered as a page rather than JSON.
@@ -275,7 +276,7 @@ async function rememberCourse(
   }
 }
 
-ltiRouter.post('/launch', async (req: Request, res: Response) => {
+ltiRouter.post(LTI_ROUTE_PATHS.launch, async (req: Request, res: Response) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const state = String(body.state ?? '');
   const idToken = String(body.id_token ?? '');

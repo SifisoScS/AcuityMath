@@ -1,83 +1,128 @@
+/**
+ * What a platform administrator needs to connect an LMS to this instance.
+ *
+ * **Everything this modal showed before E5 was invented.** Three of its four
+ * endpoints pointed at routes that do not exist; it printed a client id, a
+ * deployment id and a live-looking secret (`sec_live_…`) that belong to no
+ * platform; it offered an LTI 1.1 cartridge under an LTI 1.3 heading; and its
+ * "Test LMS Handshake" button was a 1,200ms `setTimeout` that reported *HTTP
+ * 200 OK · RSA-256 JWT Signed · AGS v2.0 Passback Active* regardless of the
+ * state of anything at all.
+ *
+ * The layout was worth keeping and the data under it was not — the same
+ * judgement E1 made about the district dashboard. Endpoints now come from
+ * `server/lti/toolConfiguration.ts`, which is also what `routes.ts` mounts, so
+ * the advertisement and the route cannot drift apart again. The checks are real
+ * reads, they can fail, and the one thing they cannot establish — whether a
+ * platform can actually reach us — is printed beside them rather than implied
+ * by a row of ticks.
+ */
+
 import React, { useState } from 'react';
 import {
   ShieldCheck,
   Check,
   Copy,
   Download,
-  ExternalLink,
   RefreshCw,
   X,
-  Layers,
   HelpCircle,
-  Sparkles,
   Server,
-  FileCode,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import { playClickSound, playSuccessSound } from '../utils/audio';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { trpc } from '../lib/trpc';
 
 interface LtiOnboardingWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  districtName?: string;
 }
 
-type LmsPlatform = 'canvas' | 'schoology' | 'google_classroom' | 'clever' | 'blackboard' | 'brightspace';
+type Tab = 'endpoints' | 'guides' | 'oneroster' | 'checks';
 
 export const LtiOnboardingWizardModal: React.FC<LtiOnboardingWizardModalProps> = ({
   isOpen,
   onClose,
-  districtName = 'Lincoln Unified School District'
 }) => {
-  // Traps Tab, handles Escape, and returns focus where it came from.
-  // `aria-modal` on the panel below promises the rest of the page is
-  // inert; this is what makes that true rather than a claim.
+  /*
+   * Every hook runs before the early return below.
+   *
+   * It did not: `if (!isOpen) return null` sat above four `useState` calls, so
+   * opening the modal rendered more hooks than the render before it — the
+   * condition React refuses outright. It survived because nothing ever mounted
+   * this component in a test.
+   */
   const panelRef = useModalA11y(isOpen, onClose);
+  const [activeTab, setActiveTab] = useState<Tab>('endpoints');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const config = trpc.lti.toolConfiguration.useQuery(undefined, { enabled: isOpen });
+
   if (!isOpen) return null;
 
-  const [selectedLms, setSelectedLms] = useState<LmsPlatform>('canvas');
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'endpoints' | 'guides' | 'oneroster' | 'test'>('endpoints');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [testResult, setTestResult] = useState<{ status: 'idle' | 'success' | 'error'; message: string }>({
-    status: 'idle',
-    message: ''
-  });
+  /*
+   * With `APP_BASE_URL` unset the server returns paths rather than a guessed
+   * host, so the browser's own origin fills them in — and the checks tab says
+   * that is what happened. This address is a fact about where the reader is
+   * standing; the server inventing a hostname would be the thing E5 undid.
+   */
+  const origin = typeof window === 'undefined' ? '' : window.location.origin;
+  const absolute = (url: string) =>
+    config.data?.baseUrlConfigured ? url : `${origin}${url}`;
 
-  const configData = {
-    title: 'AcuityMath K-12 Adaptive Learning Platform',
-    description: 'Psychometric 3PL Item Response Theory & Virtual Manipulatives Hub',
-    targetUrl: 'https://acuitymath.org/api/lti/launch',
-    oidcUrl: 'https://acuitymath.org/api/lti/login_init',
-    jwksUrl: 'https://acuitymath.org/api/lti/jwks.json',
-    deepLinkingUrl: 'https://acuitymath.org/api/lti/deep_link',
-    clientId: '10920000000049281',
-    deploymentId: 'dep_district_lincoln_2026',
-    oneRosterBase: 'https://acuitymath.org/api/oneroster/v1p2',
-    oneRosterConsumerKey: 'acuity_lincoln_k12_prod',
-    oneRosterSecret: 'sec_live_948f29d71c88e9a2'
-  };
+  const endpoints = config.data
+    ? [
+        {
+          key: 'oidc',
+          label: 'OpenID Connect initiation URL',
+          value: absolute(config.data.endpoints.loginUrl),
+          note: 'Accepts GET and POST — platforms disagree about which they send.',
+        },
+        {
+          key: 'target',
+          label: 'Target link URI (launch URL)',
+          value: absolute(config.data.endpoints.launchUrl),
+          note: 'Deep linking arrives here too. It is told apart by its message type, not by a separate URL.',
+        },
+        {
+          key: 'jwks',
+          label: 'Public keyset URL',
+          value: absolute(config.data.endpoints.jwksUrl),
+          note: 'Fetched by the platform to verify anything we sign.',
+        },
+      ]
+    : [];
 
   const handleCopy = (text: string, keyName: string) => {
     playClickSound();
-    navigator.clipboard.writeText(text);
+    void navigator.clipboard.writeText(text);
     setCopiedKey(keyName);
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  /**
+   * The LTI 1.3 tool configuration, as JSON.
+   *
+   * The XML cartridge this replaced was `imslticc_v1p0` — **an LTI 1.1
+   * document** offered under a 1.3 heading, which no 1.3 platform reads. It is
+   * gone rather than fixed; there is nothing to fix it into.
+   *
+   * No `custom_fields` and no client id: those are issued by the platform
+   * during registration, and the previous version's invented pair
+   * (`dep_district_lincoln_2026`, a `sec_live_…` secret) read as credentials
+   * somebody might try to use.
+   */
   const handleDownloadJson = () => {
+    if (!config.data) return;
     playClickSound();
-    const ltiJson = {
-      title: configData.title,
-      description: configData.description,
-      oidc_initiation_url: configData.oidcUrl,
-      target_link_uri: configData.targetUrl,
-      public_jwk_url: configData.jwksUrl,
-      custom_fields: {
-        district_id: 'lincoln-unified-ca',
-        user_tier: '$Canvas.user.loginId'
-      },
+    const document_ = {
+      title: 'AcuityMath',
+      description: 'Adaptive K–12 mathematics practice',
+      oidc_initiation_url: absolute(config.data.endpoints.loginUrl),
+      target_link_uri: absolute(config.data.endpoints.launchUrl),
+      public_jwk_url: absolute(config.data.endpoints.jwksUrl),
       extensions: [
         {
           platform: 'canvas.instructure.com',
@@ -85,67 +130,48 @@ export const LtiOnboardingWizardModal: React.FC<LtiOnboardingWizardModalProps> =
           settings: {
             placements: [
               { placement: 'course_navigation', message_type: 'LtiResourceLinkRequest' },
-              { placement: 'assignment_selection', message_type: 'LtiDeepLinkingRequest' }
-            ]
-          }
-        }
-      ]
+              {
+                placement: 'assignment_selection',
+                message_type: 'LtiDeepLinkingRequest',
+                target_link_uri: absolute(config.data.endpoints.launchUrl),
+              },
+            ],
+          },
+        },
+      ],
     };
 
-    const blob = new Blob([JSON.stringify(ltiJson, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(document_, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `acuitymath-lti13-${selectedLms}-config.json`;
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'acuitymath-lti13-config.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
     URL.revokeObjectURL(url);
     playSuccessSound();
   };
 
-  const handleDownloadXml = () => {
-    playClickSound();
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0"
-    xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0"
-    xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0"
-    xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0">
-  <blti:title>${configData.title}</blti:title>
-  <blti:description>${configData.description}</blti:description>
-  <blti:launch_url>${configData.targetUrl}</blti:launch_url>
-  <blti:secure_launch_url>${configData.targetUrl}</blti:secure_launch_url>
-  <blti:extensions platform="canvas.instructure.com">
-    <lticm:property name="privacy_level">public</lticm:property>
-    <lticm:options name="course_navigation">
-      <lticm:property name="enabled">true</lticm:property>
-      <lticm:property name="text">AcuityMath</lticm:property>
-    </lticm:options>
-  </blti:extensions>
-</cartridge_basiclti_link>`;
-
-    const blob = new Blob([xml], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `acuitymath-cartridge-${selectedLms}.xml`;
-    a.click();
-    URL.revokeObjectURL(url);
-    playSuccessSound();
-  };
-
-  const handleVerifyHandshake = () => {
-    playClickSound();
-    setIsVerifying(true);
-    setTestResult({ status: 'idle', message: '' });
-
-    setTimeout(() => {
-      setIsVerifying(false);
-      setTestResult({
-        status: 'success',
-        message: 'LTI 1.3 Core & AGS 2.0 handshake verified (200 OK). OpenID Connect discovery returned valid RSA-256 keyset.'
-      });
-      playSuccessSound();
-    }, 1200);
-  };
+  const tab = (id: Tab, label: string) => (
+    <button
+      key={id}
+      type="button"
+      role="tab"
+      aria-selected={activeTab === id}
+      onClick={() => {
+        playClickSound();
+        setActiveTab(id);
+      }}
+      className={`px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+        activeTab === id
+          ? 'bg-indigo-600 text-white shadow-sm'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div
@@ -154,299 +180,237 @@ export const LtiOnboardingWizardModal: React.FC<LtiOnboardingWizardModalProps> =
       aria-modal="true"
       aria-label="Learning management system setup"
       tabIndex={-1}
-      className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-      <div className="bg-white w-full max-w-3xl rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 my-auto max-h-[92vh] flex flex-col">
-        {/* Modal Header */}
+      className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+    >
+      <div className="bg-white w-full max-w-3xl rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 my-auto max-h-[92vh] flex flex-col">
         <div className="flex items-start justify-between pb-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-sm">
               <Server className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-lg sm:text-xl text-slate-900">
-                  LTI 1.3 & OneRoster Integration Wizard
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  IMS Advantage Certified
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Self-service SIS/LMS connectivity for {districtName}
+              <h3 className="font-extrabold text-lg sm:text-xl text-slate-900">
+                Connect a learning management system
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                LTI 1.3 Advantage — Core, Names and Roles, Assignment and Grade Services, and
+                Deep Linking.
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition"
+            aria-label="Close"
+            className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* LMS Selector Pills */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200 overflow-x-auto shrink-0">
-          {[
-            { id: 'canvas', name: 'Canvas' },
-            { id: 'schoology', name: 'Schoology' },
-            { id: 'google_classroom', name: 'Google Classroom' },
-            { id: 'clever', name: 'Clever Roster' },
-            { id: 'blackboard', name: 'Blackboard' },
-            { id: 'brightspace', name: 'D2L Brightspace' }
-          ].map(lms => (
-            <button
-              key={lms.id}
-              onClick={() => {
-                playClickSound();
-                setSelectedLms(lms.id as LmsPlatform);
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize whitespace-nowrap transition cursor-pointer ${
-                selectedLms === lms.id
-                  ? 'bg-white text-indigo-700 shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {lms.name}
-            </button>
-          ))}
+        <div role="tablist" className="flex flex-wrap gap-2 shrink-0">
+          {tab('endpoints', 'Endpoints')}
+          {tab('guides', 'How to register')}
+          {tab('oneroster', 'OneRoster')}
+          {tab('checks', 'Check this instance')}
         </div>
 
-        {/* Sub-Navigation Tabs */}
-        <div className="flex border-b border-slate-200 text-xs font-bold gap-6 shrink-0">
-          <button
-            onClick={() => setActiveTab('endpoints')}
-            className={`pb-2 transition cursor-pointer ${
-              activeTab === 'endpoints'
-                ? 'border-b-2 border-indigo-600 text-indigo-600 font-extrabold'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            LTI 1.3 Advantage Endpoints
-          </button>
-          <button
-            onClick={() => setActiveTab('guides')}
-            className={`pb-2 transition cursor-pointer ${
-              activeTab === 'guides'
-                ? 'border-b-2 border-indigo-600 text-indigo-600 font-extrabold'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            Setup Guide ({selectedLms})
-          </button>
-          <button
-            onClick={() => setActiveTab('oneroster')}
-            className={`pb-2 transition cursor-pointer ${
-              activeTab === 'oneroster'
-                ? 'border-b-2 border-indigo-600 text-indigo-600 font-extrabold'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            OneRoster 1.2 REST Sync
-          </button>
-          <button
-            onClick={() => setActiveTab('test')}
-            className={`pb-2 transition cursor-pointer ${
-              activeTab === 'test'
-                ? 'border-b-2 border-indigo-600 text-indigo-600 font-extrabold'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            Verify Handshake
-          </button>
-        </div>
+        <div className="overflow-y-auto grow">
+          {config.isLoading ? <p className="text-sm text-slate-500">Loading…</p> : null}
 
-        {/* Tab Content Area */}
-        <div className="overflow-y-auto space-y-4 pr-1 flex-1">
-          {activeTab === 'endpoints' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-3">
-                {[
-                  { label: 'Target Link URI (Tool Launch)', val: configData.targetUrl, key: 'targetUrl' },
-                  { label: 'OpenID Connect (OIDC) Initiation URL', val: configData.oidcUrl, key: 'oidcUrl' },
-                  { label: 'Public Keyset URL (JWKS)', val: configData.jwksUrl, key: 'jwksUrl' },
-                  { label: 'Deep Linking Content Selection URL', val: configData.deepLinkingUrl, key: 'deepLinking' },
-                  { label: 'Canvas / IMS Client ID', val: configData.clientId, key: 'clientId' },
-                  { label: 'Deployment ID', val: configData.deploymentId, key: 'deploymentId' }
-                ].map(item => (
-                  <div key={item.key} className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-500">{item.label}</span>
-                      <button
-                        onClick={() => handleCopy(item.val, item.key)}
-                        className="px-2 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition shadow-2xs"
-                      >
-                        {copiedKey === item.key ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            <span className="text-emerald-700">Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <code className="block text-xs font-mono font-bold text-slate-800 break-all select-all">
-                      {item.val}
-                    </code>
+          {config.error ? (
+            <p role="alert" className="text-sm text-rose-700">
+              {config.error.message}
+            </p>
+          ) : null}
+
+          {activeTab === 'endpoints' && config.data ? (
+            <div className="space-y-3">
+              {!config.data.baseUrlConfigured ? (
+                <p className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                  <strong>This server has no public address configured.</strong> The addresses
+                  below use the one your browser is on, which is almost certainly not what a
+                  platform should be given. See <em>Check this instance</em>.
+                </p>
+              ) : null}
+
+              {endpoints.map(endpoint => (
+                <div
+                  key={endpoint.key}
+                  className="p-3 rounded-2xl bg-slate-50 border border-slate-200"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-bold text-slate-900">{endpoint.label}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(endpoint.value, endpoint.key)}
+                      aria-label={`Copy ${endpoint.label}`}
+                      className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-500 transition cursor-pointer shrink-0"
+                    >
+                      {copiedKey === endpoint.key ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
                   </div>
-                ))}
-              </div>
+                  <code className="block mt-1 text-xs font-mono text-slate-800 break-all select-all">
+                    {endpoint.value}
+                  </code>
+                  <p className="mt-1 text-[11px] text-slate-500">{endpoint.note}</p>
+                </div>
+              ))}
 
-              {/* Download Buttons */}
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <button
-                  onClick={handleDownloadJson}
-                  className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs transition"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download JSON Cartridge</span>
-                </button>
-                <button
-                  onClick={handleDownloadXml}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-2 cursor-pointer border border-slate-200 transition"
-                >
-                  <FileCode className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Download XML Cartridge</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleDownloadJson}
+                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download LTI 1.3 configuration (JSON)</span>
+              </button>
             </div>
-          )}
+          ) : null}
 
-          {activeTab === 'guides' && (
+          {activeTab === 'guides' ? (
+            <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
+              <p className="flex items-start gap-2">
+                <HelpCircle className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                <span>
+                  Registration happens in your LMS. Paste the three addresses from{' '}
+                  <em>Endpoints</em>, or import the JSON. Your platform then issues a{' '}
+                  <strong>client id</strong> and a <strong>deployment id</strong>.
+                </span>
+              </p>
+              <p>
+                Send those two values, along with your platform&rsquo;s own authorization, token
+                and keyset URLs, to whoever administers this instance — they are registered here
+                before a launch can succeed. This modal does not show them because they belong
+                to your platform, not to this tool.
+              </p>
+              <p>
+                A launch will only place pupils in your district once an institutional agreement
+                is recorded for it. Until then a pupil launching is refused with an explanation
+                rather than admitted without consent.
+              </p>
+            </div>
+          ) : null}
+
+          {activeTab === 'oneroster' && config.data ? (
             <div className="space-y-3 text-xs">
-              {selectedLms === 'canvas' && (
-                <div className="space-y-3">
-                  <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
-                    <h4 className="font-extrabold text-sm text-indigo-950">Canvas LMS Setup Instructions:</h4>
-                    <ol className="list-decimal list-inside space-y-1.5 text-slate-700 leading-relaxed">
-                      <li>Log into Canvas as an <strong>Account Administrator</strong>.</li>
-                      <li>Navigate to <strong>Admin &gt; Developer Keys</strong>.</li>
-                      <li>Click <strong>+ Developer Key &gt; + LTI Key</strong>.</li>
-                      <li>Select <em>"Paste JSON"</em> and click <strong>Download JSON Cartridge</strong> above.</li>
-                      <li>Toggle the State to <strong>ON</strong> and copy the generated numeric <strong>Client ID</strong>.</li>
-                      <li>Go to <strong>Settings &gt; Apps &gt; View App Configurations &gt; + App</strong>, choose <em>"By Client ID"</em>, paste the key, and click <strong>Submit</strong>.</li>
-                    </ol>
-                  </div>
-                  <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900">
-                    ✓ Supports Canvas Course Navigation and Gradebook Passback (AGS v2.0).
-                  </div>
-                </div>
-              )}
-
-              {selectedLms === 'schoology' && (
-                <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
-                  <h4 className="font-extrabold text-sm text-indigo-950">Schoology Setup Instructions:</h4>
-                  <ol className="list-decimal list-inside space-y-1.5 text-slate-700 leading-relaxed">
-                    <li>Go to <strong>System Settings &gt; Integration &gt; External Tools</strong>.</li>
-                    <li>Click <strong>Add External Tool Provider</strong>.</li>
-                    <li>Tool Provider: <code>AcuityMath</code></li>
-                    <li>Privacy: Set to <em>Send Name and Email / Username of user who launches the tool</em>.</li>
-                    <li>Configuration Type: Select <em>Manual</em> or <em>By URL</em>.</li>
-                    <li>Paste the Target Link URI and JWKS URL from the Endpoints tab.</li>
-                  </ol>
-                </div>
-              )}
-
-              {selectedLms === 'google_classroom' && (
-                <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
-                  <h4 className="font-extrabold text-sm text-indigo-950">Google Classroom Setup:</h4>
-                  <p className="text-slate-700 leading-relaxed">
-                    Google Classroom utilizes Google Workspace OAuth single sign-on with Rostering API synchronization.
-                    Teachers can share assignments directly via the <strong>Share to Google Classroom</strong> stream button.
+              {config.data.oneRosterAvailable ? (
+                <p className="text-slate-600">OneRoster is available on this instance.</p>
+              ) : (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                  <p className="font-bold text-slate-900 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    OneRoster is not available yet
                   </p>
-                </div>
-              )}
-
-              {['clever', 'blackboard', 'brightspace'].includes(selectedLms) && (
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                  <h4 className="font-extrabold text-sm text-slate-900 capitalize">{selectedLms} Configuration:</h4>
                   <p className="text-slate-600 leading-relaxed">
-                    Use the 1.3 Advantage Endpoints tab to copy the Target Link URI, OIDC Login Initiation, and Public JWKS Keyset URL directly into your {selectedLms} institutional administrator console.
+                    This tab used to print a OneRoster 1.2 base URL, a consumer key and a
+                    secret. Nothing served that address — an administrator who configured it
+                    would have got a 404 on every sync.
+                  </p>
+                  <p className="text-slate-600 leading-relaxed">
+                    Rostering works today through <strong>Names and Roles</strong> over LTI: once
+                    a course has launched, an administrator can synchronise its roster from the
+                    district console without any separate credentials.
                   </p>
                 </div>
               )}
             </div>
-          )}
+          ) : null}
 
-          {activeTab === 'oneroster' && (
-            <div className="space-y-4">
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2">
-                <span className="font-extrabold text-slate-900">OneRoster v1.2 REST API Endpoints</span>
-                <p className="text-slate-500 text-[11px]">
-                  Allows district Student Information Systems (PowerSchool, Infinite Campus, Skyward, SIS) to provision schools, classes, and rosters nightly.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  { label: 'OneRoster 1.2 Base URL', val: configData.oneRosterBase, key: 'orBase' },
-                  { label: 'Consumer Key / Client ID', val: configData.oneRosterConsumerKey, key: 'orKey' },
-                  { label: 'Consumer Secret / Token', val: configData.oneRosterSecret, key: 'orSec' }
-                ].map(item => (
-                  <div key={item.key} className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-500">{item.label}</span>
-                      <button
-                        onClick={() => handleCopy(item.val, item.key)}
-                        className="px-2 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition shadow-2xs"
-                      >
-                        {copiedKey === item.key ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>{copiedKey === item.key ? 'Copied' : 'Copy'}</span>
-                      </button>
-                    </div>
-                    <code className="block text-xs font-mono font-bold text-slate-800 select-all">
-                      {item.val}
-                    </code>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'test' && (
-            <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs">
-                <h4 className="font-extrabold text-sm text-slate-900">Verify Tool Handshake & Keyset</h4>
-                <p className="text-slate-600 leading-relaxed">
-                  Sends an automated validation request to simulate an OpenID Connect launch sequence, check TLS 1.3 cipher requirements, and verify IMS Global AGS 2.0 grade payload serialization.
-                </p>
-
+          {activeTab === 'checks' && config.data ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h4 className="font-extrabold text-sm text-slate-900">This instance</h4>
                 <button
-                  onClick={handleVerifyHandshake}
-                  disabled={isVerifying}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs transition disabled:opacity-50"
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    void config.refetch();
+                  }}
+                  disabled={config.isFetching}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-2 cursor-pointer transition disabled:opacity-50"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isVerifying ? 'animate-spin' : ''}`} />
-                  <span>{isVerifying ? 'Verifying OIDC Launch...' : 'Test LMS Handshake'}</span>
+                  <RefreshCw className={`w-3.5 h-3.5 ${config.isFetching ? 'animate-spin' : ''}`} />
+                  <span>{config.isFetching ? 'Checking…' : 'Check again'}</span>
                 </button>
               </div>
 
-              {testResult.status === 'success' && (
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-start gap-3 text-xs animate-in fade-in">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <span className="font-black text-emerald-950">Handshake Successful!</span>
-                    <p className="text-emerald-800">{testResult.message}</p>
-                    <div className="pt-2 text-[11px] font-mono text-emerald-700">
-                      • HTTP 200 OK • RSA-256 JWT Signed • AGS v2.0 Passback Active
+              <ul className="space-y-2">
+                {config.data.checks.map(check => (
+                  <li
+                    key={check.id}
+                    className={`p-3 rounded-2xl border flex items-start gap-3 ${
+                      check.state === 'pass'
+                        ? 'bg-emerald-50 border-emerald-200'
+                        : 'bg-rose-50 border-rose-200'
+                    }`}
+                  >
+                    {check.state === 'pass' ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    )}
+                    <div className="space-y-0.5">
+                      <span
+                        className={`block text-xs font-black ${
+                          check.state === 'pass' ? 'text-emerald-950' : 'text-rose-950'
+                        }`}
+                      >
+                        {/*
+                          * The state in words, not only in colour.
+                          *
+                          * A tick and a green panel say "passed" to somebody who
+                          * can see both. Found by mutation: swapping the icon for
+                          * an unconditional tick changed nothing any test — or any
+                          * screen reader — could observe.
+                          */}
+                        <span className="sr-only">
+                          {check.state === 'pass' ? 'Passed: ' : 'Failed: '}
+                        </span>
+                        {check.label}
+                      </span>
+                      <p
+                        className={`text-[11px] leading-relaxed ${
+                          check.state === 'pass' ? 'text-emerald-800' : 'text-rose-800'
+                        }`}
+                      >
+                        {check.detail}
+                      </p>
                     </div>
-                  </div>
-                </div>
-              )}
+                  </li>
+                ))}
+              </ul>
+
+              {/*
+                * The limit, next to the results rather than under them.
+                *
+                * These checks run on this server's own network. A platform
+                * reaches it across somebody else's, and no local read can tell a
+                * correctly configured tool behind a firewall from a reachable
+                * one. The version of this screen that claimed otherwise printed
+                * "HTTP 200 OK" without making a request.
+                */}
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                These are checks this server can make about itself. <strong>They cannot tell
+                you whether your platform can reach it</strong> — that depends on DNS, firewalls
+                and certificates outside this application. The first launch is what establishes
+                it, and a failure there will name its own cause.
+              </p>
             </div>
-          )}
+          ) : null}
         </div>
 
-        {/* Modal Footer */}
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs shrink-0">
-          <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+          <span className="flex items-center gap-1.5 text-slate-400 text-[11px]">
             <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Encrypted with TLS 1.3 • FERPA & COPPA compliant</span>
-          </div>
+            Launches are signed RS256 and validated against your platform&rsquo;s keyset.
+          </span>
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition cursor-pointer"
           >
