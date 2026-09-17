@@ -153,6 +153,23 @@ const NOT_LEARNER_SCOPED = [
   'oneroster_providers',
   'oneroster_access_tokens',
   /*
+   * What a SIS identifier means here, and which campus or classroom a
+   * `sourcedId` became. Each holds a foreign key to a person or a place, and
+   * none of them is a record *of* a child — an identity row says "this string
+   * is that learner", which is a fact about the SIS rather than about them.
+   *
+   * `oneroster_identities` is the one worth stating plainly: it carries a
+   * `learner_id`, so it looks learner-scoped from a column list. It is not, for
+   * the same reason `lti_identities` sits in `DUAL_AUDIENCE` rather than here —
+   * except that this table must be reachable from **neither** the export nor a
+   * family's view, because it describes a district's system. It is removed with
+   * the child by cascade, which is what matters, and the export has nothing to
+   * show a parent about a SIS identifier.
+   */
+  'oneroster_identities',
+  'oneroster_school_links',
+  'oneroster_class_links',
+  /*
    * A bearer token a platform issued to us, cached until it expires. It is a
    * credential for calling somebody else's API and names no person on either
    * side — the scope says what we may ask for, never whom we may ask about. A
@@ -365,6 +382,14 @@ describe('referential integrity is the database"s job', () => {
           column.name === 'deployment_id' ||
           column.name === 'context_id' ||
           column.name === 'resource_link_id' ||
+          /*
+           * A OneRoster `sourcedId` is an identifier in **somebody else's**
+           * system. There is nothing here for it to reference, which is the
+           * whole reason the three link tables exist: they are the mapping from
+           * a SIS's vocabulary to ours, and a foreign key is exactly what they
+           * supply on the *other* column.
+           */
+          column.name === 'sourced_id' ||
           // `avatar_id` names an entry in the catalogue in `src/data/avatars.ts`,
           // which the server reads so that the price charged is not the price a
           // browser claimed. There is no table for it to reference.

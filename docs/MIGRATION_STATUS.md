@@ -1211,6 +1211,54 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A mutation harness that is killed leaves its mutation in the source.** The
+restore lives in a `finally`, which does not run when the process is stopped
+rather than raised. The symptom was a grades test failing in the full suite and
+passing alone — the exact shape of the mock-leakage the E4 and E5 steps both
+produced, and this time an entirely different cause. **`git diff` the mutated
+files before trusting any suite result that follows a mutation run**, and read
+"fails in the suite, passes alone" as a question rather than a diagnosis.
+
+**A guard inherited for free in one place has to be written in the other.** C4c
+survives an empty roster because zero members means zero staff, and its
+known-teacher requirement refuses the sync before anything is removed — a
+`rosterIsSilent` check there was found to be dead code and deleted. D2 has no
+such accident: unenrolment is driven by the enrolment list, so an empty read
+would unenrol every child in the district. The same behaviour needed an explicit
+refusal. **A safeguard that is dead in one module is not dead in its sibling.**
+
+**The same question, answered opposite ways, on purpose.** C4c matches roster
+statuses *positively* — an unknown value means gone — because LTI's vocabulary
+is the platform's own and unenrolling is the cheap direction to be wrong in. D2
+matches *negatively*, because OneRoster defines the vocabulary and this sync
+never deletes, so the cheap direction reverses: an odd status read as "present"
+risks a stray enrolment, read as "gone" it removes a child from a class they
+attend. Consistency between the two would have been the mistake.
+
+**Exporting beats copying, for the second time.** `ageForGrade` moved from
+private to exported rather than being reimplemented for CEDS grade codes. The
+*vocabulary* differs — an LMS sends a number, a SIS sends `"KG"` — but the rule
+turning a grade into an age is a product decision about children, and this
+codebase has already paid for the alternative once, when the ELO mapping turned
+out to exist in four places that disagreed.
+
+**Three gates refused this work before any test did, and each was right.**
+`signAgreement` rejected a fixture using `admin`, because C3e deliberately does
+not wave a *platform* administrator through — reading a district's data to
+support them is one thing, agreeing to terms on their behalf another.
+`schema.test.ts` refused three unclassified tables, then refused `sourced_id`
+for carrying no foreign key. That last one needed an exemption with a reason: a
+`sourcedId` is an identifier in **somebody else's** system, and having nothing
+to reference is exactly why the link tables exist.
+
+**An unreachable guard, kept and tested directly.** Nothing in this product
+moves a learner between districts, so a check that the identity and the learner
+agree on institution can never fire today — and deleting it changed no test.
+Kept, for the reason `tablesLeftBehind` and the C3c escaping were: the state is
+representable in the database, and its cost is a child who now belongs to
+another district appearing on a Lincoln teacher's class list. It is tested by
+constructing the state rather than by reaching it.
+
 **A schema gate made the dangerous classification impossible to skip.** Adding
 two tables failed `schema.test.ts` — every table must be declared learner-scoped
 or not — and the refusal forced the question that matters: what would happen if

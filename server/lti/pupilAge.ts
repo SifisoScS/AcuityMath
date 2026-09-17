@@ -42,8 +42,13 @@ export const AGE_PARAMETERS = ['birth_year', 'grade_level'] as const;
  * and `youngestPossibleAge` in the consent gate then rounds back down. Guessing
  * the other way would push a ten-year-old's content down to seven, which reads
  * to a child as the product thinking they are stupid.
+ *
+ * **Exported since D2**, because OneRoster carries grade codes too and a second
+ * copy of this arithmetic is how the ELO mapping ended up existing in four
+ * places. The *vocabulary* differs — an LMS sends a number, a SIS sends `"KG"`
+ * or `"07"` — so `oneroster/grades.ts` translates the code and then asks this.
  */
-function ageForGrade(grade: number): number {
+export function ageForGrade(grade: number): number {
   return grade + 6;
 }
 

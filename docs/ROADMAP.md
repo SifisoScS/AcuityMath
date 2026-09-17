@@ -57,7 +57,7 @@ missing is the institutional layer and the content to fill the tiers.
 | §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Served, C1–C6.** Keys, registry, initiation, token validation, staff and pupil launch, NRPS roster sync, AGS score posting, Deep Linking with a teacher-facing picker. Only C7 conformance remains, and it is blocked on Track A |
 | §7 A pupil launching from an LMS | **Works.** The child is provisioned, consented under their district's agreement, and holds a learner session — refused clearly if the district has not agreed or the placement names no year group |
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
-| §7 OneRoster 1.2 | **The client exists** (D1): credential storage, the client-credentials grant, and paged collection reads. Turning those rows into schools and classes is D2. Note the direction — this product **consumes** a district's OneRoster API; it does not serve one at `/api/oneroster/v1p2`, and the wizard no longer says it does |
+| §7 OneRoster 1.2 | **Consumed** (D1–D2): credential storage, the client-credentials grant, paged collection reads, and a district sync that produces campuses, classrooms, pupils and class lists. Reconciliation hardening is D3. Note the direction — this product **consumes** a district's OneRoster API; it does not serve one at `/api/oneroster/v1p2`, and the wizard no longer says it does |
 | §7 Self-serve wizard with handshake testing | **Rebuilt in E5.** Endpoints come from the same constants `routes.ts` mounts, and the checks are real reads that can fail. It still cannot prove a *platform* can reach this instance — no local read can — and it says so rather than implying it |
 | §8 District console, CSV, CCSS audit, PDF brief | **The console is real and routed** at `/district/<id>` (E1), and **a full per-child export exists** (E2), which is what the family policy and the institutional agreement both promise, and **real deletion** (E3), which is what the agreement's "removes rather than hides" clause requires — **both reachable** from the console (E4), with step-up and a typed-name confirmation. CCSS audit and PDF brief do not exist; neither does a bulk district-wide CSV |
 | §8 "COPPA Safe Harbor Compliant" | Consent is real; the **certification is not held** |
@@ -253,8 +253,29 @@ Depends on B1. Independent of Track C.
   `ONEROSTER_CREDENTIAL_KEY` seals it and its absence **refuses the
   registration** — a deployment that cannot protect a district's credential does
   not get to hold one.
-- **D2** — Sync orgs, academic sessions, courses, classes, enrollments, users.
-  Not started. The client hands back rows; this is where they acquire meaning.
+- ~~**D2**~~ — **Done.** `orgs` become campuses, `classes` become classrooms on
+  them, `users` become children, and `enrollments` become class lists. Three link
+  tables hold the `sourcedId` mapping, which is what makes a second run a no-op —
+  matching on names instead would create a second copy of every child the first
+  time somebody is married or corrected.
+
+  **C4c's three rules hold unchanged**, because they are about meaning rather
+  than about NRPS: a sync never archives a child, never creates an adult account,
+  and never restores an archived pupil.
+
+  Two things differ, and both are OneRoster's doing. **Ages arrive** — a SIS
+  carries `grades`, where an LTI membership list carries no age at all, so the
+  refusal C4c makes constantly is rare here. And **the empty-roster guard had to
+  be written rather than inherited**: C4c gets it free from requiring a known
+  teacher, but unenrolment here is driven by the enrolment list, so an empty read
+  would unenrol a whole district. An empty class collection is refused as a
+  failed read.
+
+  **`academicSessions` and `courses` are deliberately not synchronised.** There
+  is nowhere in this schema for a term or a course of study to live, and adding
+  tables to hold data nothing reads is how a model acquires columns that are
+  always null. When something needs them — a report scoped to a term, most
+  likely — they arrive with the thing that needs them.
 - **D3** — Idempotent reconciliation. **This project already knows how to do
   this**: Graft D's offline queue solved the same problem with a `client_id`
   unique per learner and an "only leaves the queue when the server has it" rule.
