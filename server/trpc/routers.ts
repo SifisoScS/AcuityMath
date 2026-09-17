@@ -20,6 +20,7 @@ import { CannotDelete, deleteLearner } from '../learning/learnerDeletion';
 import { consumeChoice, pendingChoice } from '../lti/deepLinkRequests';
 import { activeAgreement, agreementHistory } from '../learning/institutionAgreements';
 import { buildDeepLinkingResponse, CannotReturnChoice } from '../lti/deepLinking';
+import { ltiEndpoints, toolConfiguration } from '../lti/toolConfiguration';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
@@ -1056,6 +1057,22 @@ const institutionsRouter = router({
  * district could bind it to a platform nobody vetted.
  */
 const ltiRouter = router({
+  /**
+   * What a platform administrator must type into their LMS, and what this
+   * instance can honestly say about itself.
+   *
+   * `protectedProcedure` rather than `adminProcedure`: a teacher is who opens
+   * the setup wizard, and everything returned is either already public by
+   * specification — the keyset URL is fetched by platforms that have no
+   * relationship with us — or a fact about this deployment. **Nothing here
+   * names another tenant.** Which platforms are registered stays on `list`,
+   * behind `adminProcedure`, because that would say which districts use this
+   * product.
+   */
+  toolConfiguration: protectedProcedure.query(({ ctx }) =>
+    toolConfiguration(ctx.db, process.env.APP_BASE_URL),
+  ),
+
   list: adminProcedure.query(({ ctx }) => listPlatforms(ctx.db)),
 
   register: adminProcedure
@@ -1176,7 +1193,7 @@ const ltiRouter = router({
             data: claimed.data,
           },
           chosen: input.chosen,
-          launchUrl: `${(process.env.APP_BASE_URL ?? '').replace(/\/$/, '')}/api/lti/launch`,
+          launchUrl: ltiEndpoints(process.env.APP_BASE_URL ?? '').launchUrl,
         });
 
         return { returnUrl, jwt };

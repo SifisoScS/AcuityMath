@@ -12,6 +12,19 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+/*
+ * The setup wizard is mocked, not configured.
+ *
+ * It is mounted permanently by the dashboard and, since E5, reads its endpoints
+ * from the server. Teaching this suite's trpc mock about `lti.toolConfiguration`
+ * would make a test about the assignment form fail every time a child component
+ * gained a query — the same trade E4 settled the same way. The wizard has its
+ * own suite.
+ */
+vi.mock('./LtiOnboardingWizardModal', () => ({
+  LtiOnboardingWizardModal: () => null,
+}));
+
 import { TeacherDashboard, type AssignableConcept } from './TeacherDashboard';
 import type { TeacherAssignment, UserProfile } from '../types';
 

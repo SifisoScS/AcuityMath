@@ -1211,6 +1211,50 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A second copy of a URL is how the first one becomes wrong.** The wizard
+advertised `/api/lti/login_init`, `/api/lti/deep_link` and a OneRoster base;
+the routes are `/login`, `/launch`, and nothing. Nobody mistyped them — they
+were written while the routes were still a plan, and the routes moved without
+them. Paths now exist once and `routes.ts` mounts from the same constants the
+screen reads, so drifting again means editing the file that defines both.
+
+**A check that cannot fail is not a check.** "Test LMS Handshake" was a 1,200ms
+`setTimeout` reporting *HTTP 200 OK · RSA-256 JWT Signed · AGS v2.0 Passback
+Active* with no request in the function. What replaced it can fail, and it
+states the thing it cannot establish — whether a *platform* can reach this
+instance — beside the results, because a row of ticks implies it otherwise.
+Local reads run on our network; a platform arrives across somebody else's.
+
+**The failure worth checking was the silent one.** A launch over http completes
+— redirect, token validated, page rendered — and the browser then discards the
+session cookie, because a cross-site cookie must be `SameSite=None; Secure`. The
+pupil lands on a signed-out page after a launch every log records as a success.
+
+**Colour is not a state.** A mutation swapping the failure icon for an
+unconditional tick was **silent**: the test read the label, which never changed.
+The state was carried by colour and glyph alone, which is also what a screen
+reader would have found. Each row now says "Passed:" or "Failed:" in words.
+
+**Two silent mutations were weak tests, not dead guards.** One planted a
+`sec_live_…` secret on a tab the test never opened, which made the assertion a
+statement about `activeTab` rather than about the modal; it now sweeps every
+tab. The third non-biting mutation was **my own**, syntactically invalid, and it
+reported `NO TESTS MATCHED` rather than a pass — which is the only reason it was
+not read as a dead guard.
+
+**A component nothing has ever rendered can be broken outright.**
+`if (!isOpen) return null` sat above four `useState` calls, so the closed render
+ran one hook and the open render ran five — what React throws on, not warns
+about. `TeacherDashboard` mounts this permanently and toggles `isOpen`, so that
+was the only way in. Five hundred lines, on a real surface, crashing on open,
+for as long as it had existed.
+
+**`tsc` caught what vitest ran happily.** The test fixture's `state: 'pass' as
+const` made a *failing* check unrepresentable, so the test proving a failure
+renders as a failure could not have been written wrong — it could only have been
+written narrow. esbuild strips types without checking them; the typecheck is not
+redundant with a green suite.
+
 **A capability nobody can reach is a promise nobody can keep.** E2 built the
 export and E3 built the deletion; neither had a surface, so a district could
 exercise neither right its agreement grants. The same gap C4d closed for the
