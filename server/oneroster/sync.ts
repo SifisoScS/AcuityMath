@@ -6,21 +6,38 @@
  * it does to a child's record it does unobserved. Every rule below exists
  * because of what the opposite would cost.
  *
- * The three rules C4c settled hold here unchanged, because they are about
- * *meaning* rather than about NRPS:
+ * **One of C4c's three rules turned out to be stale, and D3 corrects it.**
  *
- * **A sync never deletes a child and never archives one.** Archiving is what
- * this product does when somebody asks for a child's records to be removed. A
- * roster that stops listing a pupil says they left a class; it does not say
- * anybody asked for anything.
+ * C4c says a sync must never archive a child, on the grounds that *"archiving is
+ * what this product does when somebody asks for a child's records to be
+ * removed."* That was true when it was written. **E3 changed it.** After E3 the
+ * schema says, in as many words, that archiving is for a child who has stopped —
+ * *"they left the school, the family paused, a roster no longer lists them"* —
+ * and that deletion is the other thing. The rule outlived its reason, and D2
+ * carried it forward without noticing.
+ *
+ * So a sync may now deactivate a leaver, and the rule that replaces it is
+ * narrower and says what the evidence must be:
+ *
+ * **A sync archives only on a positive statement of departure, never on
+ * absence.** A SIS writing `status: "tobedeleted"` has said something. A child
+ * missing from a paged read has not — OneRoster pages by `limit` and `offset`,
+ * and a collection that changes underneath a minute-long read **skips records**.
+ * A skipped child and a departed child look identical, and only one of those
+ * readings is right.
+ *
+ * **A sync never deletes a child.** Unchanged, and now the only absolute: a
+ * deletion is somebody's request, and no roster is a request.
  *
  * **A sync never creates an adult account.** A launch does, because a person is
  * there, clicking. A nightly file that mints teacher accounts is a SIS deciding
  * who may read children's data here, with nobody deciding anything.
  *
- * **A pupil whose record is archived is skipped, never restored.** A roster
- * listing them again is the SIS's opinion, not a withdrawal of the request that
- * archived them.
+ * **A pupil a *person* archived is skipped, never restored.** A roster listing
+ * them again is the SIS's opinion, not a withdrawal of the request that archived
+ * them. A pupil the *sync* archived is restored when the same SIS says they are
+ * back, which is why `learners.archived_reason` exists — without it the two are
+ * indistinguishable and a nightly job would overturn somebody's decision.
  *
  * Two things differ from C4c, and both are OneRoster's doing.
  *
@@ -82,6 +99,18 @@ export interface OneRosterSyncResult {
   classesWithoutKnownTeacher: number;
   /** Pupils skipped, with a reason each. */
   skipped: Record<string, number>;
+  /** Leavers deactivated by this run. Never deletions. */
+  archived: number;
+  /** Pupils this sync had archived, whom the SIS now lists again. */
+  restored: number;
+  /**
+   * Whether the read was believed complete.
+   *
+   * A partial run still creates and enrols — additive work costs only a child
+   * who arrives a day late — and performs **no** departure, because the evidence
+   * for one was incomplete.
+   */
+  partial: boolean;
 }
 
 /** What the sync reads out of a SIS `user` row. It ignores everything else. */
@@ -169,11 +198,58 @@ export async function syncDistrict(
 ): Promise<OneRosterSyncResult> {
   const provider = await providerFor(db, institutionId);
   if (!provider) {
+    /*
+     * Thrown without a run record, because there is nothing to attach one to.
+     * `oneroster_sync_runs.provider_id` is not nullable on purpose: a run
+     * belongs to a connection, and a row describing a sync of nothing would be
+     * a record of somebody's typo rather than of this product's behaviour.
+     */
     throw new SyncRefused(
       'no_provider',
       'This district has no student information system registered.',
     );
   }
+
+  /*
+   * Recorded whatever happens, including a refusal.
+   *
+   * A sync runs with nobody watching, and the questions asked afterwards — *why
+   * is this child not in her class any more*, *when did we stop seeing Elm
+   * Street* — cannot be answered from the current state, because the current
+   * state is the answer and not the reason. A refusal is the more important half:
+   * three weeks of "nothing changed" is invisible in the data and obvious in
+   * this table.
+   */
+  let outcome: 'completed' | 'refused' = 'refused';
+  let refusedReason: string | null = null;
+  let counts: OneRosterSyncResult | null = null;
+  try {
+    counts = await reconcile(db, institutionId, provider, now);
+    outcome = 'completed';
+    return counts;
+  } catch (error) {
+    refusedReason = error instanceof SyncRefused ? error.reason : 'error';
+    throw error;
+  } finally {
+    await db.insert(schema.onerosterSyncRuns).values({
+      providerId: provider.id,
+      startedAt: now,
+      finishedAt: new Date(),
+      outcome,
+      refusedReason,
+      partial: counts?.partial ?? false,
+      counts,
+    });
+  }
+}
+
+/** The reconciliation itself. Wrapped by `syncDistrict`, which records it. */
+async function reconcile(
+  db: Db,
+  institutionId: number,
+  provider: NonNullable<Awaited<ReturnType<typeof providerFor>>>,
+  now: Date,
+): Promise<OneRosterSyncResult> {
 
   /*
    * Checked before a single row is read, let alone written. A district whose
@@ -201,6 +277,9 @@ export async function syncDistrict(
     unenrolled: 0,
     classesWithoutKnownTeacher: 0,
     skipped: {},
+    archived: 0,
+    restored: 0,
+    partial: false,
   };
 
   const skip = (reason: string) => {
@@ -213,6 +292,27 @@ export async function syncDistrict(
     await readCollection(db, institutionId, 'users'),
     await readCollection(db, institutionId, 'enrollments'),
   ];
+
+  /*
+   * Whether the whole roster was seen.
+   *
+   * **The question D1 deliberately left open.** OneRoster pages by `limit` and
+   * `offset`, so a collection that changes while a minute-long read walks it
+   * skips records — a pupil created on page three shifts everyone after them
+   * back by one, across a boundary the reader has already passed. Following a
+   * provider's own `rel="next"` link, as NRPS does, cannot do this.
+   *
+   * `X-Total-Count` is the only thing a provider offers that can detect it, and
+   * it is advisory: some omit it, some compute it before filtering. So a
+   * mismatch is read as "this might be incomplete" rather than as an error, and
+   * a provider that reports nothing is believed — the alternative is refusing
+   * every sync against a provider that never sends the header, which is a great
+   * many of them.
+   */
+  const shortfall = [userRows, enrolmentRows].some(
+    read => read.reportedTotal !== null && read.rows.length < read.reportedTotal,
+  );
+  result.partial = shortfall;
 
   /*
    * A district that reports no classes at all is treated as a failed read
@@ -350,6 +450,45 @@ export async function syncDistrict(
   }
 
   const learnerIdBySourcedId = new Map<string, number>();
+
+  /*
+   * Returners first, so a restored child rejoins their class in the same run.
+   *
+   * This block sat after the enrolment loop when it was written, which worked
+   * and took **two** runs: the pupil loop below skips anybody archived, so the
+   * child was restored at the end and enrolled the following night. Correct,
+   * and a day of a child's week.
+   *
+   * A child this sync deactivated, whom the same SIS now lists as current, is
+   * brought back — **only** if this sync was what archived them.
+   * `archived_reason` is the whole reason that distinction can be made; without
+   * it a nightly job would quietly overturn a decision a person made through a
+   * surface.
+   */
+  if (!result.partial) {
+    for (const pupil of pupils) {
+      if (!isCurrent(pupil.status)) continue;
+      const identity = identityBySourcedId.get(pupil.sourcedId);
+      if (!identity?.learnerId) continue;
+
+      const [learner] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.id, identity.learnerId))
+        .limit(1);
+      if (!learner || learner.institutionId !== institutionId) continue;
+      if (!learner.archivedAt) continue;
+      if (learner.archivedReason !== 'roster_departure') continue;
+
+      await db
+        .update(schema.learners)
+        .set({ archivedAt: null, archivedReason: null })
+        .where(eq(schema.learners.id, learner.id));
+
+      result.restored += 1;
+    }
+  }
+
   for (const pupil of pupils) {
     if (!isCurrent(pupil.status)) {
       // Not archived, not deleted — simply not brought across. A SIS marking a
@@ -544,7 +683,9 @@ export async function syncDistrict(
      * every answer they ever gave; what changes is which list a teacher sees
      * them on.
      */
-    const departed = current.filter(entry => !shouldBeEnrolled.has(entry.learnerId));
+    const departed = result.partial
+      ? []
+      : current.filter(entry => !shouldBeEnrolled.has(entry.learnerId));
     if (departed.length > 0) {
       await db.delete(schema.classroomLearners).where(
         inArray(
@@ -553,6 +694,50 @@ export async function syncDistrict(
         ),
       );
       result.unenrolled += departed.length;
+    }
+  }
+
+  // ---- departures ---------------------------------------------------------
+
+  /*
+   * Deactivating a leaver, which C4c forbade and E3 made correct.
+   *
+   * Only for a pupil the SIS **said** had gone. Absence is not evidence here —
+   * see `shortfall` above — so this reads the statuses the export carried rather
+   * than comparing what arrived against what we hold.
+   */
+  if (!result.partial) {
+    const departedSourcedIds = pupils
+      .filter(pupil => !isCurrent(pupil.status))
+      .map(pupil => pupil.sourcedId);
+
+    for (const sourcedId of departedSourcedIds) {
+      const identity = identityBySourcedId.get(sourcedId);
+      if (!identity?.learnerId) continue;
+
+      const [learner] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.id, identity.learnerId))
+        .limit(1);
+      if (!learner || learner.institutionId !== institutionId) continue;
+      if (learner.archivedAt) continue; // Already hidden, by whoever.
+
+      await db
+        .update(schema.learners)
+        .set({ archivedAt: now, archivedReason: 'roster_departure' })
+        .where(eq(schema.learners.id, learner.id));
+
+      /*
+       * Taken off every class list as well. A child hidden from surfaces who is
+       * still enrolled would appear in a teacher's count and nowhere else,
+       * which is the kind of discrepancy nobody can explain a term later.
+       */
+      await db
+        .delete(schema.classroomLearners)
+        .where(eq(schema.classroomLearners.learnerId, learner.id));
+
+      result.archived += 1;
     }
   }
 

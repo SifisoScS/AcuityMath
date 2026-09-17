@@ -9,11 +9,21 @@
  *
  * Three rules shape it, and each exists because of what the opposite would cost.
  *
- * **A sync never deletes a child, and never archives one.** Archiving is what
- * this product does when somebody asks for a child's records to be removed. A
- * roster that no longer lists a pupil says they left a course — it does not say
- * anybody asked for anything, and reading it that way would let a platform
- * quietly erase a term's work by dropping a row.
+ * **A sync never deletes a child, and this one never archives one either — but
+ * the reason given here was wrong, and D3 corrected it.**
+ *
+ * This paragraph used to say archiving is what the product does when somebody
+ * asks for records to be removed. E3 made that false: archiving is now for a
+ * child who has *stopped*, and deletion is the other thing. The prohibition
+ * outlived its justification and was inherited by D2 before anybody noticed.
+ *
+ * The behaviour here is nonetheless still right, for a different reason. NRPS
+ * describes **one course**. A pupil absent from it has left that course, which
+ * is not a statement about whether they are still at the school — so there is
+ * no departure to act on, only an enrolment to remove. D3's OneRoster sync may
+ * archive because a SIS speaks for the district and says `tobedeleted` out
+ * loud; it still refuses to infer a departure from absence, for the same reason
+ * this module refuses to act on one at all.
  *
  * **A sync never creates an adult account.** A launch does, because a person is
  * there, clicking. A roster arriving overnight that mints teacher accounts is an

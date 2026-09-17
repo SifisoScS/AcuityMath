@@ -262,7 +262,7 @@ describeWithDb('reporting a child’s progress to their school', () => {
       await setMastery('c-1', 100);
       await db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, learnerId));
 
       expect(await report()).toEqual({ sent: false, reason: 'not_a_district_learner' });

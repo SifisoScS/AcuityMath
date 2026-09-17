@@ -243,7 +243,7 @@ describeWithDb('erasing a child', () => {
       await giveThemRecords(mine);
       await db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, mine));
 
       const dump = await exportLearner(db, mine);

@@ -205,7 +205,7 @@ describeWithDb('exporting everything recorded about a child', () => {
        */
       await db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, mine));
 
       const dump = await exportLearner(db, mine);

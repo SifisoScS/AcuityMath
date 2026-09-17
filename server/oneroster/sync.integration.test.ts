@@ -55,6 +55,8 @@ describeWithDb('synchronising a district from its SIS', () => {
   let data: Sis;
   let originalKey: string | undefined;
   let tokenCounter = 0;
+  let overstateTotals = false;
+  let omitTotals = false;
 
   beforeAll(async () => {
     harness = await createTestDatabase('onerostersync');
@@ -82,6 +84,16 @@ describeWithDb('synchronising a district from its SIS', () => {
 
       const limit = Number(url.searchParams.get('limit') ?? '100');
       const offset = Number(url.searchParams.get('offset') ?? '0');
+
+      /*
+       * `X-Total-Count`, which is how a provider says how big a collection is.
+       * `overstateTotals` makes it disagree with what actually arrives, which is
+       * what a collection changing underneath a paged read looks like from here;
+       * `omitTotals` is the provider that never sends it at all.
+       */
+      if (!omitTotals) {
+        res.setHeader('x-total-count', String(rows.length + (overstateTotals ? 1 : 0)));
+      }
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify({ [collection]: rows.slice(offset, offset + limit) }));
     });
@@ -101,6 +113,9 @@ describeWithDb('synchronising a district from its SIS', () => {
 
     originalKey = process.env.ONEROSTER_CREDENTIAL_KEY;
     process.env.ONEROSTER_CREDENTIAL_KEY = KEY;
+
+    overstateTotals = false;
+    omitTotals = false;
 
     lincoln = await createInstitution(db, 'Lincoln Unified');
 
@@ -497,10 +512,16 @@ describeWithDb('synchronising a district from its SIS', () => {
       ).toHaveLength(0);
     });
 
-    it('skips an archived pupil rather than restoring them', async () => {
+    it('skips a pupil a person archived, and never restores them', async () => {
       /*
-       * Somebody asked for those records to be removed. A roster listing them
-       * again is the SIS's opinion, not a withdrawal of that request.
+       * Somebody hid this child through a surface. A roster listing them again
+       * is the SIS's opinion, not a withdrawal of that decision — and D3 made
+       * this the *narrow* case rather than the general one: a sync may restore
+       * a child **it** archived, and may not touch one a person did.
+       *
+       * `archived_reason` is what separates them. Setting `archivedAt` alone now
+       * violates `learner_archival_has_a_reason`, which is how this test found
+       * out that it had been describing a state the database no longer allows.
        */
       await setUp();
       await syncDistrict(db, lincoln.id, NOW);
@@ -511,7 +532,7 @@ describeWithDb('synchronising a district from its SIS', () => {
         .where(eq(schema.learners.displayName, 'Bram S.'));
       await db
         .update(schema.learners)
-        .set({ archivedAt: NOW })
+        .set({ archivedAt: NOW, archivedReason: 'requested' })
         .where(eq(schema.learners.id, bram.id));
       await db
         .delete(schema.classroomLearners)
@@ -531,6 +552,296 @@ describeWithDb('synchronising a district from its SIS', () => {
           .from(schema.classroomLearners)
           .where(eq(schema.classroomLearners.learnerId, bram.id)),
       ).toHaveLength(0);
+    });
+  });
+
+  describe('a pupil the SIS says has left', () => {
+    it('is deactivated, which C4c forbade and E3 made correct', async () => {
+      /*
+       * **The rule D3 replaced.** C4c says a sync must never archive a child,
+       * because "archiving is what this product does when somebody asks for a
+       * child's records to be removed." That was true when written. E3 changed
+       * it: the schema now says archiving is for a child who has stopped —
+       * "they left the school, the family paused, **a roster no longer lists
+       * them**" — and that deletion is the other thing. The rule outlived its
+       * reason, and D2 carried it forward.
+       */
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+
+      data.users[1].status = 'tobedeleted';
+      const result = await syncDistrict(db, lincoln.id, NOW);
+
+      const [bram] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.displayName, 'Bram S.'));
+      expect(bram.archivedAt).not.toBeNull();
+      expect(bram.archivedReason).toBe('roster_departure');
+      expect(result.archived).toBe(1);
+    });
+
+    it('keeps every answer they ever gave', async () => {
+      // Deactivated, not deleted. That distinction is the whole of E3, and a
+      // roster is not a request to erase anybody.
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+
+      const [bram] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.displayName, 'Bram S.'));
+      await db.insert(schema.practiceSessions).values({ learnerId: bram.id, targetLength: 8 });
+
+      data.users[1].status = 'tobedeleted';
+      await syncDistrict(db, lincoln.id, NOW);
+
+      expect(
+        await db
+          .select()
+          .from(schema.practiceSessions)
+          .where(eq(schema.practiceSessions.learnerId, bram.id)),
+      ).toHaveLength(1);
+    });
+
+    it('comes off every class list as well', async () => {
+      /*
+       * A child hidden from surfaces who is still enrolled would appear in a
+       * teacher's count and nowhere else — the kind of discrepancy nobody can
+       * explain a term later.
+       */
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+
+      data.users[1].status = 'tobedeleted';
+      await syncDistrict(db, lincoln.id, NOW);
+
+      const [bram] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.displayName, 'Bram S.'));
+      expect(
+        await db
+          .select()
+          .from(schema.classroomLearners)
+          .where(eq(schema.classroomLearners.learnerId, bram.id)),
+      ).toHaveLength(0);
+    });
+
+    it('comes off a class the SIS has also stopped listing', async () => {
+      /*
+       * **Found by mutation, and the reason the archival does its own
+       * unenrolment.** Deleting that line changed nothing in any other test,
+       * because the class loop had already unenrolled the leaver — a pupil
+       * whose status is not current never reaches `shouldBeEnrolled`.
+       *
+       * It is not dead code, though. The class loop only visits classes the SIS
+       * still lists. When a term ends both the class and the pupil disappear
+       * together, nothing walks that classroom, and without this delete the
+       * child would stay enrolled in it while being hidden from every surface —
+       * counted in a teacher's class size and visible nowhere.
+       *
+       * So a second class is needed to reach it: one that survives, keeping the
+       * roster non-empty, and one that goes.
+       */
+      data.classes.push({
+        sourcedId: 'cls-5b',
+        title: 'Grade 5 Mathematics',
+        school: { sourcedId: 'org-elm' },
+      });
+      data.enrollments.push({
+        sourcedId: 'enr-4',
+        role: 'teacher',
+        class: { sourcedId: 'cls-5b' },
+        user: { sourcedId: 'usr-teacher' },
+      });
+      data.enrollments.push({
+        sourcedId: 'enr-5',
+        role: 'student',
+        class: { sourcedId: 'cls-5b' },
+        user: { sourcedId: 'usr-cleo' },
+      });
+
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+      expect(await db.select().from(schema.classrooms)).toHaveLength(2);
+
+      const [cleo] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.displayName, 'Cleo N.'));
+      const enrolledIn = await db
+        .select()
+        .from(schema.classroomLearners)
+        .where(eq(schema.classroomLearners.learnerId, cleo.id));
+      expect(enrolledIn).toHaveLength(2);
+
+      // The term ends: the class and the pupil both stop being listed.
+      data.classes = data.classes.filter(row => row.sourcedId !== 'cls-5b');
+      data.enrollments = data.enrollments.filter(
+        row => row.sourcedId !== 'enr-4' && row.sourcedId !== 'enr-5',
+      );
+      data.users[2].status = 'tobedeleted';
+
+      const result = await syncDistrict(db, lincoln.id, NOW);
+
+      expect(result.archived).toBe(1);
+      expect(
+        await db
+          .select()
+          .from(schema.classroomLearners)
+          .where(eq(schema.classroomLearners.learnerId, cleo.id)),
+      ).toHaveLength(0);
+    });
+
+    it('comes back in one run when the SIS lists them again', async () => {
+      /*
+       * **And in one run, not two.** The restoration block was written after
+       * the enrolment loop, which worked and meant a returning child rejoined
+       * their class the *following* night — correct, and a day of a child's
+       * week. It now runs before the pupil loop.
+       */
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+      data.users[1].status = 'tobedeleted';
+      await syncDistrict(db, lincoln.id, NOW);
+
+      delete data.users[1].status;
+      const result = await syncDistrict(db, lincoln.id, NOW);
+
+      const [bram] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.displayName, 'Bram S.'));
+      expect(bram.archivedAt).toBeNull();
+      expect(bram.archivedReason).toBeNull();
+      expect(result.restored).toBe(1);
+      expect(
+        await db
+          .select()
+          .from(schema.classroomLearners)
+          .where(eq(schema.classroomLearners.learnerId, bram.id)),
+      ).toHaveLength(1);
+    });
+
+    it('does not create a second record for them', async () => {
+      // The identity link survives the archival, so a returner is the same
+      // child rather than a new one with an empty history.
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+      data.users[1].status = 'tobedeleted';
+      await syncDistrict(db, lincoln.id, NOW);
+      delete data.users[1].status;
+      await syncDistrict(db, lincoln.id, NOW);
+
+      expect(await db.select().from(schema.learners)).toHaveLength(2);
+    });
+  });
+
+  describe('a read that might be incomplete', () => {
+    it('performs no departure when fewer rows arrived than were promised', async () => {
+      /*
+       * **The question D1 left open on purpose.** OneRoster pages by `limit`
+       * and `offset`, so a collection changing under a minute-long read skips
+       * records — a pupil created on page three shifts everyone after them back
+       * across a boundary already passed. A skipped child and a departed child
+       * look identical.
+       *
+       * So a short read still creates and enrols, which is additive and costs a
+       * child who arrives a day late, and performs no departure at all.
+       */
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+
+      data.users[1].status = 'tobedeleted';
+      overstateTotals = true;
+
+      const result = await syncDistrict(db, lincoln.id, NOW);
+
+      expect(result.partial).toBe(true);
+      expect(result.archived).toBe(0);
+
+      const [bram] = await db
+        .select()
+        .from(schema.learners)
+        .where(eq(schema.learners.displayName, 'Bram S.'));
+      expect(bram.archivedAt).toBeNull();
+    });
+
+    it('unenrols nobody on a short read either', async () => {
+      // Same reasoning one step down. An enrolment missing from a skipped page
+      // is not a child who left the class.
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+
+      data.enrollments = data.enrollments.filter(row => row.sourcedId !== 'enr-3');
+      overstateTotals = true;
+
+      const result = await syncDistrict(db, lincoln.id, NOW);
+
+      expect(result.partial).toBe(true);
+      expect(result.unenrolled).toBe(0);
+      expect(await db.select().from(schema.classroomLearners)).toHaveLength(2);
+    });
+
+    it('believes a provider that reports no total at all', async () => {
+      /*
+       * Advisory, not authoritative. Refusing every sync against a provider
+       * that omits `X-Total-Count` would refuse a great many of them, so its
+       * absence is believed and only a *contradiction* is treated as doubt.
+       */
+      await setUp();
+      omitTotals = true;
+
+      const result = await syncDistrict(db, lincoln.id, NOW);
+      expect(result.partial).toBe(false);
+      expect(result.pupilsCreated).toBe(2);
+    });
+  });
+
+  describe('the record of what a run did', () => {
+    it('writes a row for a completed run', async () => {
+      /*
+       * A sync runs with nobody watching. "Why is this child not in her class
+       * any more" cannot be answered from the current state, because the
+       * current state is the answer and not the reason.
+       */
+      await setUp();
+      const result = await syncDistrict(db, lincoln.id, NOW);
+
+      const [run] = await db.select().from(schema.onerosterSyncRuns);
+      expect(run.outcome).toBe('completed');
+      expect(run.refusedReason).toBeNull();
+      expect(run.partial).toBe(false);
+      expect(run.counts).toMatchObject({ pupilsCreated: result.pupilsCreated });
+    });
+
+    it('writes a row for a refusal, which is the more important half', async () => {
+      /*
+       * Three weeks of "nothing changed" is invisible in the data and obvious
+       * here. A sync that has been refusing every night since somebody rotated
+       * a credential leaves no other trace.
+       */
+      await setUp();
+      await syncDistrict(db, lincoln.id, NOW);
+      data.classes = [];
+
+      await expect(syncDistrict(db, lincoln.id, NOW)).rejects.toThrow(SyncRefused);
+
+      const runs = await db.select().from(schema.onerosterSyncRuns);
+      expect(runs).toHaveLength(2);
+      expect(runs[1].outcome).toBe('refused');
+      expect(runs[1].refusedReason).toBe('empty_roster');
+    });
+
+    it('records a partial run as partial', async () => {
+      await setUp();
+      overstateTotals = true;
+
+      await syncDistrict(db, lincoln.id, NOW);
+
+      const [run] = await db.select().from(schema.onerosterSyncRuns);
+      expect(run.partial).toBe(true);
     });
   });
 

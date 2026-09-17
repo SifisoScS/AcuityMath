@@ -398,7 +398,7 @@ describeWithDb('synchronising a class roster', () => {
        */
       members = [teacherRow, pupil('p-1')];
       await sync();
-      await db.update(schema.learners).set({ archivedAt: new Date() });
+      await db.update(schema.learners).set({ archivedAt: new Date(), archivedReason: 'requested' });
       await db.delete(schema.classroomLearners);
 
       const result = await sync();

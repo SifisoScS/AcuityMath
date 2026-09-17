@@ -310,7 +310,7 @@ describeWithDb('a child holding their own session', () => {
        */
       await db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, mine));
 
       await expect(asChild(mine).learners.screenTime({ learnerId: mine })).rejects.toThrow(
