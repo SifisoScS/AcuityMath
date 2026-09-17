@@ -605,6 +605,94 @@ export const ltiLaunchStates = mysqlTable(
 );
 
 // ---------------------------------------------------------------------------
+// OneRoster 1.2
+// ---------------------------------------------------------------------------
+
+/**
+ * A district's student information system, as a source of rosters.
+ *
+ * Separate from `lti_platforms` because the two are **not the same relationship
+ * wearing different clothes**. An LTI platform authenticates *us* by fetching
+ * our public keyset and verifying a JWT we signed with a private key that never
+ * leaves this server. A OneRoster provider issues us a **shared secret** and
+ * expects it back. The direction of trust is reversed, and so is the exposure:
+ * a database dump containing LTI rows gives an attacker nothing, while one
+ * containing a OneRoster secret gives them a district's whole SIS — which holds
+ * far more about its pupils than this product ever will.
+ *
+ * `client_secret_sealed` is therefore ciphertext, never the secret, and
+ * `server/oneroster/credentials.ts` refuses to store one at all unless a key is
+ * configured to seal it with.
+ *
+ * Hung off `institutions` rather than `schools`: the contract, the credential
+ * and the administrator all sit at district level, the same reasoning that
+ * separated those two tables in the first place.
+ */
+export const onerosterProviders = mysqlTable(
+  'oneroster_providers',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    institutionId: int('institution_id')
+      .notNull()
+      /*
+       * `cascade`, unlike `schools`. A credential is not a record of anything —
+       * it is a key to somebody else's building, and a district that leaves
+       * should not have one lying here. The rows this reaches are ours, not a
+       * child's.
+       */
+      .references(() => institutions.id, { onDelete: 'cascade' }),
+    /** What an administrator calls it. "PowerSchool", "Infinite Campus". */
+    name: varchar('name', { length: 200 }).notNull(),
+    /** The v1p2 root, without a trailing slash. Every path is built from it. */
+    baseUrl: varchar('base_url', { length: 500 }).notNull(),
+    tokenUrl: varchar('token_url', { length: 500 }).notNull(),
+    clientId: varchar('client_id', { length: 255 }).notNull(),
+    /**
+     * AES-256-GCM ciphertext. **Never the secret**, never logged, and never
+     * returned by anything that serves a request — `providers.ts` selects
+     * columns explicitly so that reaching it has to be deliberate.
+     */
+    clientSecretSealed: text('client_secret_sealed').notNull(),
+    /** Space-separated, as the grant sends them. */
+    scopes: varchar('scopes', { length: 500 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    // One SIS per district. A second would make "which roster is authoritative"
+    // a question with no answer, which is the failure D3 exists to prevent.
+    uniqueIndex('oneroster_provider_institution_idx').on(table.institutionId),
+  ],
+);
+
+/**
+ * Cached bearer tokens, keyed the same way `lti_access_tokens` is.
+ *
+ * The pattern is deliberately identical — the expiry is a deadline rather than
+ * a countdown, and the scope is part of the key — because the failure it
+ * prevents is identical: a multi-page roster fetch that begins with a
+ * credential expiring halfway through it.
+ */
+export const onerosterAccessTokens = mysqlTable(
+  'oneroster_access_tokens',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    providerId: int('provider_id')
+      .notNull()
+      .references(() => onerosterProviders.id, { onDelete: 'cascade' }),
+    scope: varchar('scope', { length: 500 }).notNull(),
+    accessToken: text('access_token').notNull(),
+    /** As told by the provider. Treated as a deadline, never as a countdown. */
+    expiresAt: timestamp('expires_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex('oneroster_access_token_idx').on(table.providerId, table.scope),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------------
 

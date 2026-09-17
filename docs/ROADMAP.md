@@ -57,7 +57,7 @@ missing is the institutional layer and the content to fill the tiers.
 | §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Served, C1–C6.** Keys, registry, initiation, token validation, staff and pupil launch, NRPS roster sync, AGS score posting, Deep Linking with a teacher-facing picker. Only C7 conformance remains, and it is blocked on Track A |
 | §7 A pupil launching from an LMS | **Works.** The child is provisioned, consented under their district's agreement, and holds a learner session — refused clearly if the district has not agreed or the placement names no year group |
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
-| §7 OneRoster 1.2 (`/api/oneroster/v1p2`) | Nothing exists |
+| §7 OneRoster 1.2 | **The client exists** (D1): credential storage, the client-credentials grant, and paged collection reads. Turning those rows into schools and classes is D2. Note the direction — this product **consumes** a district's OneRoster API; it does not serve one at `/api/oneroster/v1p2`, and the wizard no longer says it does |
 | §7 Self-serve wizard with handshake testing | **Rebuilt in E5.** Endpoints come from the same constants `routes.ts` mounts, and the checks are real reads that can fail. It still cannot prove a *platform* can reach this instance — no local read can — and it says so rather than implying it |
 | §8 District console, CSV, CCSS audit, PDF brief | **The console is real and routed** at `/district/<id>` (E1), and **a full per-child export exists** (E2), which is what the family policy and the institutional agreement both promise, and **real deletion** (E3), which is what the agreement's "removes rather than hides" clause requires — **both reachable** from the console (E4), with step-up and a typed-name confirmation. CCSS audit and PDF brief do not exist; neither does a bulk district-wide CSV |
 | §8 "COPPA Safe Harbor Compliant" | Consent is real; the **certification is not held** |
@@ -241,12 +241,30 @@ gate the way a family that withdrew does.
 
 Depends on B1. Independent of Track C.
 
-- **D1** — REST client with OAuth 2 client credentials, against a sandbox first.
+- ~~**D1**~~ — **Done.** REST client with OAuth 2 client credentials: the
+  credential sealed at rest, the grant, paged collection reads, and the refusals
+  around all three.
+
+  **The trust direction is the opposite of LTI's, and that shapes the code.**
+  An LTI platform verifies a JWT we signed against our published keyset, so
+  nothing secret ever crosses the wire and a dump of `lti_platforms` authorises
+  nothing. A OneRoster provider issues us a **shared secret** for a system
+  holding far more about their pupils than this one ever will. So
+  `ONEROSTER_CREDENTIAL_KEY` seals it and its absence **refuses the
+  registration** — a deployment that cannot protect a district's credential does
+  not get to hold one.
 - **D2** — Sync orgs, academic sessions, courses, classes, enrollments, users.
+  Not started. The client hands back rows; this is where they acquire meaning.
 - **D3** — Idempotent reconciliation. **This project already knows how to do
   this**: Graft D's offline queue solved the same problem with a `client_id`
   unique per learner and an "only leaves the queue when the server has it" rule.
   A nightly roster sync is that pattern with a different source.
+
+  One thing D1 leaves for D3 deliberately: OneRoster pages by `limit`/`offset`
+  rather than by a `rel="next"` link, so a collection that changes underneath a
+  minute-long read **can skip a record**. Following a provider's own link
+  cannot. The client reports what it actually saw rather than smoothing it
+  over, which is the input D3 needs.
 
 **Done when:** running the sync twice changes nothing the second time, and a
 pupil removed at the SIS is deactivated rather than deleted.
