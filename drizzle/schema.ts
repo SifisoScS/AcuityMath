@@ -747,6 +747,49 @@ export const onerosterIdentities = mysqlTable(
 );
 
 /**
+ * What one sync run did, kept because a sync runs with nobody watching.
+ *
+ * Every other act in this product has a person behind it who can say what they
+ * meant. A nightly job has only its own record, and the questions asked
+ * afterwards — *why is this child not in her class any more*, *when did we stop
+ * seeing Elm Street* — cannot be answered from the current state alone, because
+ * the current state is the answer and not the reason.
+ *
+ * `partial` is the field worth reading. A run that could not see the whole
+ * roster is recorded as such **and refuses to infer any departure**, because
+ * OneRoster pages by offset and a collection that changes underneath a
+ * minute-long read can skip a record. A skipped child looks exactly like a
+ * departed one.
+ */
+export const onerosterSyncRuns = mysqlTable(
+  'oneroster_sync_runs',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    providerId: int('provider_id')
+      .notNull()
+      .references(() => onerosterProviders.id, { onDelete: 'cascade' }),
+    startedAt: timestamp('started_at').notNull(),
+    finishedAt: timestamp('finished_at'),
+    /** `refused` covers every case where nothing was written. */
+    outcome: mysqlEnum('outcome', ['completed', 'refused']).notNull(),
+    /** Why, when it was refused. Null on a completed run. */
+    refusedReason: varchar('refused_reason', { length: 80 }),
+    /**
+     * Whether the read was believed complete.
+     *
+     * A partial run still creates and enrols — those are additive and a skipped
+     * page costs only a child who arrives a day late. It performs no departure,
+     * because that is the irreversible-feeling direction and the evidence for it
+     * was incomplete.
+     */
+    partial: boolean('partial').notNull().default(false),
+    /** The counts the run returned, as reported to whoever asked for it. */
+    counts: json('counts'),
+  },
+  table => [index('oneroster_sync_run_provider_idx').on(table.providerId, table.startedAt)],
+);
+
+/**
  * Which campus a SIS `org` became.
  *
  * Kept beside the row rather than inside `schools`, because a campus may exist
@@ -923,10 +966,43 @@ export const learners = mysqlTable(
      * it removes the row so every cascade below it fires.
      */
     archivedAt: timestamp('archived_at'),
+    /**
+     * **Who decided**, which `archived_at` alone cannot say.
+     *
+     * Added in D3, when a roster sync was first allowed to archive. Without it
+     * the two cases are indistinguishable, and a returning pupil would restore
+     * both: the child a SIS deactivated last term *and* the child a person
+     * deliberately hid. The second is somebody's decision being overturned by a
+     * nightly job.
+     *
+     * `roster_departure` means a SIS said the child had gone, and the same SIS
+     * saying they are back is allowed to undo it. `requested` means anything
+     * else, and no sync may touch it.
+     *
+     * **Nothing in this product writes `requested` yet**, which is worth saying
+     * rather than implying otherwise: no surface archives a learner, so the only
+     * rows carrying it are the ones migration `0030` backfilled — every archival
+     * predating D3, all of which were made by hand. The value exists so that
+     * those rows, and whatever surface eventually archives a child on request,
+     * are out of a nightly job's reach by default.
+     */
+    archivedReason: mysqlEnum('archived_reason', ['requested', 'roster_departure']),
   },
   table => [
     index('learners_guardian_idx').on(table.guardianId),
     index('learners_institution_idx').on(table.institutionId),
+    /**
+     * A reason exactly when there is an archival.
+     *
+     * Both halves matter. An `archived_at` with no reason is a child nothing can
+     * decide about — a sync cannot tell whether restoring them would overturn a
+     * person's decision, so it would have to refuse forever. A reason with no
+     * `archived_at` is a claim about an event that did not happen.
+     */
+    check(
+      'learner_archival_has_a_reason',
+      sql`(\`archived_at\` is null) = (\`archived_reason\` is null)`,
+    ),
     /**
      * Exactly one owner. Never both, never neither.
      *

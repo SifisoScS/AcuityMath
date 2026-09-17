@@ -243,7 +243,7 @@ describeWithDb('practice loop API', () => {
     it('treats an archived child as gone', async () => {
       await harness.db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, maya));
 
       await expect(callerFor(sarah).learners.snapshot({ learnerId: maya })).rejects.toThrow(/No such learner/);

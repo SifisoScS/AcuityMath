@@ -125,7 +125,7 @@ describeWithDb('what a district overview reports', () => {
       });
       await db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, learner.id));
 
       expect((await as(head).institutions.overview({ institutionId: lincoln.id })).pupils).toBe(0);
@@ -198,7 +198,7 @@ describeWithDb('what a district overview reports', () => {
       });
       await db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, pupil.id));
 
       const pupils = await as(head).institutions.pupils({ institutionId: lincoln.id });

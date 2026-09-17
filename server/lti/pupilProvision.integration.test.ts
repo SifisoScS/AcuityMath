@@ -317,7 +317,7 @@ describeWithDb('a pupil arriving from an LMS', () => {
       const pupil = await provisionPupil(db, launch());
       await db
         .update(schema.learners)
-        .set({ archivedAt: new Date() })
+        .set({ archivedAt: new Date(), archivedReason: 'requested' })
         .where(eq(schema.learners.id, pupil.learnerId));
 
       expect(await reasonFor(provisionPupil(db, launch()))).toBe('archived');

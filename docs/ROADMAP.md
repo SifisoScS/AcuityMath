@@ -57,7 +57,7 @@ missing is the institutional layer and the content to fill the tiers.
 | §7 LTI 1.3 Advantage — OIDC, Deep Linking 2.0, AGS v2.0 | **Served, C1–C6.** Keys, registry, initiation, token validation, staff and pupil launch, NRPS roster sync, AGS score posting, Deep Linking with a teacher-facing picker. Only C7 conformance remains, and it is blocked on Track A |
 | §7 A pupil launching from an LMS | **Works.** The child is provisioned, consented under their district's agreement, and holds a learner session — refused clearly if the district has not agreed or the placement names no year group |
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
-| §7 OneRoster 1.2 | **Consumed** (D1–D2): credential storage, the client-credentials grant, paged collection reads, and a district sync that produces campuses, classrooms, pupils and class lists. Reconciliation hardening is D3. Note the direction — this product **consumes** a district's OneRoster API; it does not serve one at `/api/oneroster/v1p2`, and the wizard no longer says it does |
+| §7 OneRoster 1.2 | **Consumed** (D1–D2): credential storage, the client-credentials grant, paged collection reads, a district sync that produces campuses, classrooms, pupils and class lists, and reconciliation that deactivates a leaver without ever inferring one from an incomplete read. Track D's engineering is complete. Note the direction — this product **consumes** a district's OneRoster API; it does not serve one at `/api/oneroster/v1p2`, and the wizard no longer says it does |
 | §7 Self-serve wizard with handshake testing | **Rebuilt in E5.** Endpoints come from the same constants `routes.ts` mounts, and the checks are real reads that can fail. It still cannot prove a *platform* can reach this instance — no local read can — and it says so rather than implying it |
 | §8 District console, CSV, CCSS audit, PDF brief | **The console is real and routed** at `/district/<id>` (E1), and **a full per-child export exists** (E2), which is what the family policy and the institutional agreement both promise, and **real deletion** (E3), which is what the agreement's "removes rather than hides" clause requires — **both reachable** from the console (E4), with step-up and a typed-name confirmation. CCSS audit and PDF brief do not exist; neither does a bulk district-wide CSV |
 | §8 "COPPA Safe Harbor Compliant" | Consent is real; the **certification is not held** |
@@ -276,16 +276,32 @@ Depends on B1. Independent of Track C.
   tables to hold data nothing reads is how a model acquires columns that are
   always null. When something needs them — a report scoped to a term, most
   likely — they arrive with the thing that needs them.
-- **D3** — Idempotent reconciliation. **This project already knows how to do
-  this**: Graft D's offline queue solved the same problem with a `client_id`
-  unique per learner and an "only leaves the queue when the server has it" rule.
-  A nightly roster sync is that pattern with a different source.
+- ~~**D3**~~ — **Done.** Reconciliation, and the correction of a rule that had
+  gone stale.
 
-  One thing D1 leaves for D3 deliberately: OneRoster pages by `limit`/`offset`
-  rather than by a `rel="next"` link, so a collection that changes underneath a
-  minute-long read **can skip a record**. Following a provider's own link
-  cannot. The client reports what it actually saw rather than smoothing it
-  over, which is the input D3 needs.
+  **C4c said a sync must never archive a child**, on the grounds that archiving
+  was what this product did when somebody asked for records to be removed. That
+  was true when written. **E3 changed it** — after E3 the schema says archiving
+  is for a child who has stopped, *"they left the school, the family paused, a
+  roster no longer lists them"*, and that deletion is the other thing. The rule
+  outlived its reason, D2 carried it forward, and D3 replaces it with a narrower
+  one: **a sync archives only on a positive statement of departure, never on
+  absence.**
+
+  That is also the answer to the question D1 left open. OneRoster pages by
+  `limit`/`offset`, so a collection changing underneath a minute-long read skips
+  records, and a skipped child looks exactly like a departed one. A run whose row
+  count contradicts the provider's `X-Total-Count` is marked **partial**: it
+  still creates and enrols, which is additive and costs a child who arrives a day
+  late, and it performs **no** departure at all.
+
+  `learners.archived_reason` is what makes restoration safe. Without it, a
+  returning pupil would un-archive two different children: the one a SIS
+  deactivated last term, and the one a person deliberately hid. The second is
+  somebody's decision being overturned by a nightly job.
+
+  `oneroster_sync_runs` records what each run did, including refusals — three
+  weeks of "nothing changed" is invisible in the data and obvious in that table.
 
 **Done when:** running the sync twice changes nothing the second time, and a
 pupil removed at the SIS is deactivated rather than deleted.

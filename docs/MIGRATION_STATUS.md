@@ -1211,6 +1211,50 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A rule can outlive its reason, and the code keeps obeying it.** C4c forbade a
+sync from archiving a child *because archiving meant a deletion request*. E3
+changed what archiving means — the schema now says it is for a child who has
+stopped, "a roster no longer lists them" — and nothing went back to C4c. The
+prohibition stayed, its justification gone, and D2 inherited it a step later
+without noticing. **This is the same defect as two documents contradicting each
+other, except both halves were in the code**, which is why no document review
+would have caught it. What found it was writing D3's "done when" against the
+schema and discovering the two could not both be satisfied.
+
+**The replacement is narrower than the rule it replaced, and says what evidence
+it needs.** A sync archives on a *positive statement* of departure and never on
+absence. That distinction is not fussiness: OneRoster pages by `limit`/`offset`,
+so a collection changing underneath a minute-long read skips records, and a
+skipped child is indistinguishable from a departed one. Additive work proceeds on
+a doubtful read because it costs a child who arrives a day late; departures do
+not, because they cost a child who vanishes from their class for no reason.
+
+**`archived_at` could not say who decided, so restoration was unsafe.** Adding
+`archived_reason` is what separates the child a SIS deactivated from the child a
+person deliberately hid — and only the first may be brought back by a nightly
+job. The column carries a CHECK making a reasonless archival unrepresentable,
+which immediately failed a D2 test that had been setting `archivedAt` alone.
+
+**The migration Drizzle generated would have failed on any database with data.**
+It emits the new column and its CHECK as two adjacent statements; every existing
+archived row then has a null reason, which is exactly what the constraint
+forbids. Correct on an empty database, and this project's databases are all
+empty today, which is precisely why it would have been found by a customer
+rather than by a test. A backfill now sits between the two statements.
+
+**An unreachable-looking guard was reachable in a case no test covered.** The
+archival's own unenrolment looked dead — the class loop had already removed the
+leaver, so deleting the line changed nothing. But the class loop only visits
+classes the SIS still lists, and when a term ends the class and the pupil
+disappear together: nothing walks that classroom, and the child stays enrolled in
+it while hidden from every surface. Unlike `rosterIsSilent`, which really was
+dead and was deleted, this one needed a test with **two** classes to reach it.
+
+**An ordering that worked and cost a child a day.** Restoration sat after the
+enrolment loop, so a returning pupil was un-archived at the end of a run and
+rejoined their class the *following* night. Every assertion passed. Moving the
+block before the pupil loop makes it one run.
+
 **A mutation harness that is killed leaves its mutation in the source.** The
 restore lives in a `finally`, which does not run when the process is stopped
 rather than raised. The symptom was a grades test failing in the full suite and

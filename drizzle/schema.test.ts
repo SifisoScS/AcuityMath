@@ -170,6 +170,12 @@ const NOT_LEARNER_SCOPED = [
   'oneroster_school_links',
   'oneroster_class_links',
   /*
+   * What one sync run did. A record of this product's own behaviour, not of any
+   * child — the counts it holds are numbers, and the reason a run refused names
+   * a configuration rather than a person.
+   */
+  'oneroster_sync_runs',
+  /*
    * A bearer token a platform issued to us, cached until it expires. It is a
    * credential for calling somebody else's API and names no person on either
    * side — the scope says what we may ask for, never whom we may ask about. A
