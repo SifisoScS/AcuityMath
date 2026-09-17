@@ -692,6 +692,107 @@ export const onerosterAccessTokens = mysqlTable(
   ],
 );
 
+/**
+ * Who a `sourcedId` is, in this product.
+ *
+ * The same shape as `lti_identities` and for the same reason: a roster arrives
+ * naming people by an identifier that means nothing here, and the alternative
+ * to recording the mapping is guessing it again on every sync — which is how a
+ * second sync creates a second copy of every child.
+ *
+ * **A OneRoster `sourcedId` is not an LTI `sub`.** They identify the same human
+ * through different systems and neither can be derived from the other, so a
+ * pupil known from an LMS launch and the same pupil arriving from the SIS have
+ * a row here *and* a row in `lti_identities`, both pointing at one learner.
+ */
+export const onerosterIdentities = mysqlTable(
+  'oneroster_identities',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    providerId: int('provider_id')
+      .notNull()
+      .references(() => onerosterProviders.id, { onDelete: 'cascade' }),
+    /** The SIS's own identifier. Opaque; not an email and not a name. */
+    sourcedId: varchar('sourced_id', { length: 255 }).notNull(),
+    /**
+     * The adult, when this `sourcedId` is a member of staff.
+     *
+     * Only ever **linked**, never created — see `sync.ts`. A roster arriving
+     * overnight that mints adult accounts is a SIS deciding who may read
+     * children's data here, with nobody deciding anything.
+     */
+    userId: int('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    /** The child, when this `sourcedId` is a pupil. */
+    learnerId: int('learner_id').references(() => learners.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    lastSeenAt: timestamp('last_seen_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('oneroster_identity_idx').on(table.providerId, table.sourcedId),
+    index('oneroster_identity_user_idx').on(table.userId),
+    index('oneroster_identity_learner_idx').on(table.learnerId),
+    /**
+     * Exactly one person. Never both, never neither.
+     *
+     * `lti_identity_is_one_person`, restated for this table rather than assumed
+     * from it. A link to neither resolves to nobody, which reads as "not seen
+     * before" and provisions a second record on every run; a link to both would
+     * let one identifier be an adult for one question and a child for the next.
+     */
+    check(
+      'oneroster_identity_is_one_person',
+      sql`(\`user_id\` is null) <> (\`learner_id\` is null)`,
+    ),
+  ],
+);
+
+/**
+ * Which campus a SIS `org` became.
+ *
+ * Kept beside the row rather than inside `schools`, because a campus may exist
+ * for reasons that have nothing to do with a SIS — a district that types in one
+ * school and syncs the other three is an ordinary state, and a column on
+ * `schools` would have to be nullable and would say nothing about *which*
+ * provider it came from.
+ */
+export const onerosterSchoolLinks = mysqlTable(
+  'oneroster_school_links',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    providerId: int('provider_id')
+      .notNull()
+      .references(() => onerosterProviders.id, { onDelete: 'cascade' }),
+    sourcedId: varchar('sourced_id', { length: 255 }).notNull(),
+    schoolId: int('school_id')
+      .notNull()
+      .references(() => schools.id, { onDelete: 'cascade' }),
+  },
+  table => [
+    // The idempotency guarantee D3 rests on: one `sourcedId` is one campus.
+    uniqueIndex('oneroster_school_link_idx').on(table.providerId, table.sourcedId),
+    uniqueIndex('oneroster_school_link_school_idx').on(table.schoolId),
+  ],
+);
+
+/** Which classroom a SIS `class` became. Same reasoning as the campus links. */
+export const onerosterClassLinks = mysqlTable(
+  'oneroster_class_links',
+  {
+    id: int('id').autoincrement().primaryKey(),
+    providerId: int('provider_id')
+      .notNull()
+      .references(() => onerosterProviders.id, { onDelete: 'cascade' }),
+    sourcedId: varchar('sourced_id', { length: 255 }).notNull(),
+    classroomId: int('classroom_id')
+      .notNull()
+      .references(() => classrooms.id, { onDelete: 'cascade' }),
+  },
+  table => [
+    uniqueIndex('oneroster_class_link_idx').on(table.providerId, table.sourcedId),
+    uniqueIndex('oneroster_class_link_classroom_idx').on(table.classroomId),
+  ],
+);
+
 // ---------------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------------
