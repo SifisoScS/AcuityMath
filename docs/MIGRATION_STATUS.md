@@ -1211,6 +1211,65 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A schema gate made the dangerous classification impossible to skip.** Adding
+two tables failed `schema.test.ts` — every table must be declared learner-scoped
+or not — and the refusal forced the question that matters: what would happen if
+`oneroster_providers` were learner-scoped? It would sit inside the deletion
+cascade, and erasing **one** child would take a district's SIS credential with
+them. Every other pupil's roster stops syncing because one family asked to be
+forgotten. Nothing about the table suggests that on its face; the gate is what
+turned an unexamined default into a decision. It is also the only failure in
+1,359 tests that this step produced.
+
+**Two protocols that look alike can have opposite trust directions.** LTI and
+OneRoster both say `grant_type=client_credentials`, and the resemblance ends
+there. LTI proves us by a JWT signed with a key that never leaves this server;
+OneRoster hands us a district's shared secret and expects it back. Reusing
+`lti/accessToken.ts` would have been the obvious move and the wrong one — what
+is worth reusing is the *caching*, where the failures (expiry as a deadline,
+scope in the key, a margin before a multi-page read) are protocol-agnostic.
+
+**Refusing to hold a credential beats holding it badly.** Without
+`ONEROSTER_CREDENTIAL_KEY` the registration fails whole — no row, no partial
+state. A deployment that cannot seal a district's SIS secret is loud about it
+instead of storing their password in a table, which is silent until it is a
+breach notification. This is not a claim of at-rest encryption for the product;
+that gap stays open and the roadmap still says so.
+
+**A guard is only as real as the fake it is tested against.** Redacting the
+secret from a thrown message read as dead code, because the fake SIS answered
+refusals with a bare `invalid_client`. Real providers echo the credential —
+`invalid client_secret 'xyz'` — and once the fake did too, the guard bit. When
+a mutation goes silent, the fixture is a suspect alongside the test and the
+code.
+
+**A test can be testing the standard library.** "Does not say which of the two
+went wrong" claimed this code hid whether a decryption failed on the key or on a
+tampered row. It does not — Node reports both identically, so the property was
+never ours. Re-aimed at what is: the crypto library's wording never reaches an
+administrator, who needs "re-enter the secret from your SIS" rather than
+"Unsupported state or unable to authenticate data".
+
+**Some mutations are equivalent, and saying so is the finding.** Skipping
+`setAuthTag` on the way out changes nothing — Node refuses to finalise a GCM
+decryption without a tag either way. Storing a *constant* tag is the mutation
+that shows the tag is load-bearing. A silent mutation has a fourth explanation
+beside "weak test", "dead guard" and "wrong filter": **it did not change the
+program's behaviour**.
+
+**A single boolean hid a design question.** The 401 retry was `retried`, and
+removing it was invisible: a second refusal on the same page throws regardless.
+It only mattered *across* pages, and there it was wrong in both directions — too
+strict for a provider with short-lived tokens, and no real bound for one
+refusing everything. The mutation did not find a missing test; it found that
+the rule had never been thought through. It is now a budget.
+
+**A check belongs beside the request, not beside the form.** The https rule was
+tested by calling `mayFetch` directly, so deleting its call site inside the read
+loop was invisible. Registration validates an address once; a path is appended
+on every call afterwards and the column can be edited by anything with database
+access.
+
 **A second copy of a URL is how the first one becomes wrong.** The wizard
 advertised `/api/lti/login_init`, `/api/lti/deep_link` and a OneRoster base;
 the routes are `/login`, `/launch`, and nothing. Nobody mistyped them — they

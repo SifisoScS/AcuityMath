@@ -139,6 +139,20 @@ const NOT_LEARNER_SCOPED = [
   'lti_platforms',
   'lti_deployments',
   /*
+   * A district's student information system, and the tokens we hold for it.
+   * Both are about a **relationship with an organisation** rather than about a
+   * person: a base URL, a sealed credential, a cached bearer token.
+   *
+   * This classification is the load-bearing one for `oneroster_providers`. If
+   * that row ever held a learner id it would sit inside the deletion cascade,
+   * and erasing one child would take a district's SIS credential with them —
+   * every other pupil's roster stops syncing because one family asked to be
+   * forgotten. The rows OneRoster *produces* are learners and classrooms, which
+   * are already classified; the connection that fetched them is not.
+   */
+  'oneroster_providers',
+  'oneroster_access_tokens',
+  /*
    * A bearer token a platform issued to us, cached until it expires. It is a
    * credential for calling somebody else's API and names no person on either
    * side — the scope says what we may ask for, never whom we may ask about. A
