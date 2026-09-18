@@ -25,6 +25,7 @@ import { AdaptiveEngine } from '../../src/services/adaptiveEngine';
 import { ProblemGenerator, type GeneratedMathProblem } from '../../src/services/problemGenerator';
 import { approximateAge, tierForAge, type AgeTier } from '../../src/services/tiers';
 import * as schema from '../../drizzle/schema';
+import { shuffleChoices } from './choiceOrder';
 import type { Database } from '../db/client';
 import { conceptRow, GENERATOR_CONCEPTS } from './generatorConcepts';
 
@@ -182,16 +183,46 @@ async function takeAuthoredProblem(
 
   if (!candidate) return null;
 
+  /*
+   * The options are varied on the way out.
+   *
+   * The corpus gate found `conceptual` with its answer first in 48 of 48 — a
+   * child who always taps the first option scoring full marks without doing any
+   * mathematics, and the engine reading that as ability. F0b balanced the stored
+   * positions; this stops any future authoring slip handing out the same free
+   * heuristic before the gate catches it.
+   *
+   * The pictures travel with their options: 160 authored problems carry a
+   * `visual.choices` array parallel to `choices`, and permuting one without the
+   * other would show a child a circle labelled "star".
+   *
+   * Seeded on the learner and the problem, so a child meeting the same question
+   * twice sees the same arrangement, and two children see different ones.
+   */
+  const visual = (candidate.visual as Record<string, unknown> | null) ?? null;
+  const visualChoices = Array.isArray(visual?.choices)
+    ? (visual.choices as unknown[])
+    : null;
+
+  const shuffled = shuffleChoices(
+    `${learnerId}:${candidate.id}`,
+    (candidate.choices as string[] | null) ?? [],
+    visualChoices,
+  );
+
   return {
     problemId: candidate.id,
     conceptId: candidate.conceptId,
     prompt: candidate.prompt,
     // A numeric problem has no choices; the client renders an input instead.
-    choices: (candidate.choices as string[] | null) ?? [],
+    choices: shuffled.choices,
     hint: candidate.hint,
     difficulty: candidate.difficulty,
     answerType: candidate.answerType,
-    visual: (candidate.visual as Record<string, unknown> | null) ?? null,
+    visual:
+      visual === null || shuffled.visualChoices === null
+        ? visual
+        : { ...visual, choices: shuffled.visualChoices },
     manipulativeHint: null,
     standardCode: null,
     source: 'authored',

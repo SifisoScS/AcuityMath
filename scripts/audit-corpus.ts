@@ -22,27 +22,17 @@ import path from 'node:path';
 
 import { loadAllStrands } from '../server/curriculum/sources';
 import {
+  POSITION_LIMIT,
   crossCheck,
+  lopsidedTypes,
   modeOf,
   verifyFigure,
-  worstPositionShare,
   type VerificationInput,
   type VerificationResult,
 } from '../server/curriculum/corpusVerification';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const REPORT_PATH = path.join(ROOT, 'data', 'corpus-verification.json');
-
-/**
- * How lopsided one problem type's answer positions may be.
- *
- * Three choices land at 33% by chance and cluster well above it in a small
- * group, so this is not a statistical threshold — it is a "somebody never
- * varied it" threshold. `conceptual` sits at 100%, which no amount of chance
- * produces across 48 problems.
- */
-const POSITION_LIMIT = 0.9;
-const POSITION_MIN_GROUP = 12;
 
 function resolvePython(): string {
   // Spelled three ways across the platforms this runs on, as audit-generator
@@ -155,19 +145,7 @@ function main(): void {
   }
 
   // --- answer position ------------------------------------------------------
-  const byType = new Map<string, VerificationInput[]>();
-  for (const problem of problems) {
-    if (!problem.choices || problem.choices.length < 2) continue;
-    const group = byType.get(problem.problemType) ?? [];
-    group.push(problem);
-    byType.set(problem.problemType, group);
-  }
-
-  const lopsided = [...byType.entries()]
-    .filter(([, group]) => group.length >= POSITION_MIN_GROUP)
-    .map(([type, group]) => ({ type, size: group.length, share: worstPositionShare(group) }))
-    .filter(entry => entry.share >= POSITION_LIMIT)
-    .sort((a, b) => b.share - a.share);
+  const lopsided = lopsidedTypes(problems);
 
   console.log('\nAnswer position');
   if (lopsided.length === 0) {
@@ -177,7 +155,7 @@ function main(): void {
     console.error(`  FAIL ${lopsided.length} problem type(s) barely vary the answer's position:`);
     for (const entry of lopsided) {
       console.error(
-        `    - ${entry.type}: ${Math.round(entry.share * 100)}% of ${entry.size} in one position ` +
+        `    - ${entry.type}: ${Math.round(entry.share * 100)}% of ${entry.problems} in one position ` +
           '— a child who always taps that option scores without doing the mathematics',
       );
     }
@@ -216,7 +194,7 @@ function main(): void {
       .sort((a, b) => a.id.localeCompare(b.id)),
     lopsided_problem_types: lopsided.map(entry => ({
       type: entry.type,
-      problems: entry.size,
+      problems: entry.problems,
       share_in_one_position: Number(entry.share.toFixed(4)),
     })),
   };
