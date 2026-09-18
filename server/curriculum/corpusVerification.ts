@@ -363,6 +363,60 @@ export function positionCounts(problems: VerificationInput[]): number[] {
   return counts;
 }
 
+/**
+ * How lopsided one problem type's answer positions may be before it is a defect.
+ *
+ * Not a statistical threshold. Three choices land near 33% by chance and cluster
+ * well above that in a small group, so this is a *"somebody never varied it"*
+ * line: `conceptual` sat at 100% across 48 problems, which no amount of chance
+ * produces.
+ */
+export const POSITION_LIMIT = 0.9;
+
+/** Below this, a run of one position says nothing. Four problems in four is luck. */
+export const POSITION_MIN_GROUP = 12;
+
+export interface LopsidedGroup {
+  type: string;
+  problems: number;
+  share: number;
+}
+
+/**
+ * Problem types that barely vary where the answer sits.
+ *
+ * **Lives here rather than in the script, because the script cannot be tested.**
+ * The corpus is clean now, so this returns nothing — and a check that returns
+ * nothing is one whose every weakening is invisible. Raise the minimum group
+ * size to 999, or the limit above 1, and `audit:corpus` still prints OK.
+ *
+ * The test for it takes the real corpus, collapses one type's positions, and
+ * asserts this reports it — a positive control against the actual shape of the
+ * data rather than against a four-element array.
+ */
+export function lopsidedTypes(
+  problems: VerificationInput[],
+  options: { limit?: number; minGroup?: number } = {},
+): LopsidedGroup[] {
+  const limit = options.limit ?? POSITION_LIMIT;
+  const minGroup = options.minGroup ?? POSITION_MIN_GROUP;
+
+  const byType = new Map<string, VerificationInput[]>();
+  for (const problem of problems) {
+    // Fewer than two options cannot have a position worth measuring.
+    if (!problem.choices || problem.choices.length < 2) continue;
+    const group = byType.get(problem.problemType) ?? [];
+    group.push(problem);
+    byType.set(problem.problemType, group);
+  }
+
+  return [...byType.entries()]
+    .filter(([, group]) => group.length >= minGroup)
+    .map(([type, group]) => ({ type, problems: group.length, share: worstPositionShare(group) }))
+    .filter(entry => entry.share >= limit)
+    .sort((a, b) => b.share - a.share);
+}
+
 /** The share of a group whose answer sits in its most common position. */
 export function worstPositionShare(problems: VerificationInput[]): number {
   const counts = positionCounts(problems);

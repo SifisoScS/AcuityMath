@@ -19,16 +19,20 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  POSITION_LIMIT,
+  POSITION_MIN_GROUP,
   answerAsNumber,
   closeEnough,
   crossCheck,
   figureAnswerIndex,
+  lopsidedTypes,
   modeOf,
   positionCounts,
   verifyFigure,
   worstPositionShare,
   type VerificationInput,
 } from './corpusVerification';
+import { loadAllStrands } from './sources';
 
 function problem(overrides: Partial<VerificationInput> = {}): VerificationInput {
   return {
@@ -262,5 +266,87 @@ describe('where the answers sit', () => {
 
   it('says nothing about an empty group rather than dividing by zero', () => {
     expect(worstPositionShare([])).toBe(0);
+  });
+});
+
+describe('the position invariant, against the real corpus', () => {
+  /*
+   * **A check that reports nothing is a check whose every weakening is
+   * invisible.** The corpus is balanced now, so `lopsidedTypes` returns an
+   * empty list — and it would return an empty list just as happily if the
+   * minimum group size were 999, or the limit above 1, or the grouping keyed on
+   * a field that does not exist. `audit:corpus` would print OK for all of them.
+   *
+   * So these run against the actual corpus, with one type deliberately
+   * collapsed. That exercises the real grouping and the real thresholds rather
+   * than a four-element array, which is where the earlier synthetic controls
+   * stopped.
+   */
+  const corpus: VerificationInput[] = loadAllStrands()
+    .flatMap(strand => strand.curriculum.problems ?? [])
+    .map(problem => {
+      const raw = problem as unknown as Record<string, unknown>;
+      return {
+        externalId: String(raw.id),
+        conceptId: String(raw.concept_id),
+        problemType: String(raw.problem_type ?? 'unknown'),
+        prompt: String(raw.prompt ?? ''),
+        answer: String(raw.answer ?? ''),
+        choices: Array.isArray(raw.choices) ? (raw.choices as string[]) : null,
+        verification: (raw.verification ?? {}) as Record<string, unknown>,
+        promptFigures: null,
+      };
+    });
+
+  it('reads a corpus large enough to be worth checking', () => {
+    // If the loader ever returns nothing, every assertion below passes while
+    // testing nothing at all — the failure mode this whole file guards against.
+    expect(corpus.length).toBeGreaterThan(1000);
+    expect(corpus.filter(p => p.choices && p.choices.length >= 2).length).toBeGreaterThan(300);
+  });
+
+  it('finds nothing lopsided today', () => {
+    expect(lopsidedTypes(corpus)).toEqual([]);
+  });
+
+  it('still catches a type that stops varying', () => {
+    /*
+     * **The positive control against real data.** `conceptual` is the type that
+     * was 48 of 48 before F0b; collapsing it back is the defect this invariant
+     * was built for, reproduced against the corpus's own shape.
+     */
+    const collapsed = corpus.map(problem =>
+      problem.problemType === 'conceptual' && problem.choices
+        ? { ...problem, answer: problem.choices[0] }
+        : problem,
+    );
+
+    const found = lopsidedTypes(collapsed);
+    expect(found.map(entry => entry.type)).toContain('conceptual');
+    expect(found.find(entry => entry.type === 'conceptual')?.share).toBe(1);
+  });
+
+  it('does not fire on a group too small to mean anything', () => {
+    // Four problems landing in the same place is luck, not a pattern. Without
+    // the floor, every small type would be reported and the signal would be
+    // buried in noise nobody could act on.
+    const tiny: VerificationInput[] = Array.from({ length: POSITION_MIN_GROUP - 1 }, (_, i) => ({
+      externalId: `tiny-${i}`,
+      conceptId: 'tiny',
+      problemType: 'tiny-type',
+      prompt: '',
+      answer: 'a',
+      choices: ['a', 'b', 'c'],
+      verification: {},
+      promptFigures: null,
+    }));
+
+    expect(lopsidedTypes(tiny)).toEqual([]);
+    expect(lopsidedTypes(tiny, { minGroup: 3 }).map(e => e.type)).toEqual(['tiny-type']);
+  });
+
+  it('uses a limit that a balanced group clears and a fixed one does not', () => {
+    expect(POSITION_LIMIT).toBeGreaterThan(0.5);
+    expect(POSITION_LIMIT).toBeLessThan(1);
   });
 });
