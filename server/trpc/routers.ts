@@ -21,6 +21,7 @@ import { consumeChoice, pendingChoice } from '../lti/deepLinkRequests';
 import { activeAgreement, agreementHistory } from '../learning/institutionAgreements';
 import { buildDeepLinkingResponse, CannotReturnChoice } from '../lti/deepLinking';
 import { ltiEndpoints, toolConfiguration } from '../lti/toolConfiguration';
+import { districtCsvFilename, districtPupilCsv } from '../learning/districtCsv';
 import { approximateAge, tierForAge } from '../../src/services/tiers';
 import { analyticsForLearners, learnerAnalytics } from '../learning/analytics';
 import { learnerSummaries } from '../learning/learnerSummary';
@@ -990,6 +991,31 @@ const institutionsRouter = router({
         .orderBy(schema.learners.displayName);
 
       return rows;
+    }),
+
+  /**
+   * Every pupil in a district, as a spreadsheet.
+   *
+   * `elevatedProcedure` rather than `protectedProcedure`, which the two reads
+   * above are. Those answer a question about a district — how many pupils, which
+   * campuses. This hands over a file with **every child's name in it at once**,
+   * which is the largest disclosure this surface can make, and asking for a PIN
+   * is the cheapest thing that makes it deliberate.
+   *
+   * Returned as a string rather than served from an endpoint, the same shape E4
+   * used for the per-child export: there is no URL to protect, nothing lands on
+   * disk on the server, and the data never exists anywhere it was not already
+   * allowed to be.
+   */
+  pupilCsv: elevatedProcedure
+    .input(z.object({ institutionId: z.number().int().positive() }).strict())
+    .query(async ({ ctx, input }) => {
+      await assertMayAdminister(ctx, input.institutionId);
+
+      return {
+        filename: await districtCsvFilename(ctx.db, input.institutionId),
+        csv: await districtPupilCsv(ctx.db, input.institutionId),
+      };
     }),
 
   members: adminProcedure

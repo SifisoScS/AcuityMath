@@ -24,6 +24,7 @@ import { signAgreement, withdrawAgreement } from './institutionAgreements';
 import { INSTITUTIONAL_AGREEMENT_VERSION } from '../../src/data/institutionalAgreement';
 import { appRouter } from '../trpc/routers';
 import type { Context } from '../trpc';
+import { ELEVATION_COOKIE, issueElevation } from '../auth/session';
 import type { AuthenticatedUser } from '../auth/session';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -55,6 +56,9 @@ describeWithDb('what a district overview reports', () => {
   };
 
   beforeEach(async () => {
+    // `issueElevation` signs with it, and `session.ts` fails closed without
+    // one rather than inventing a key nothing else can verify.
+    process.env.JWT_SECRET = 'a-test-secret-that-is-comfortably-long-enough-to-pass';
     await harness.reset();
     db = harness.db;
 
@@ -70,12 +74,12 @@ describeWithDb('what a district overview reports', () => {
     teacher = await userFor('teacher@lincoln.test');
   });
 
-  const as = (user: AuthenticatedUser | null) =>
+  const as = (user: AuthenticatedUser | null, elevation?: string) =>
     appRouter.createCaller({
       db,
       user,
       learnerSession: null,
-      headers: {},
+      headers: elevation ? { cookie: `${ELEVATION_COOKIE}=${elevation}` } : {},
       setCookie: () => {},
     } satisfies Context);
 
@@ -260,6 +264,52 @@ describeWithDb('what a district overview reports', () => {
       await expect(
         as(head).institutions.overview({ institutionId: lincoln.id }),
       ).rejects.toThrow(/Administrators of this institution/);
+    });
+  });
+  describe('the district-wide spreadsheet', () => {
+    it('refuses an administrator who has not stepped up', async () => {
+      /*
+       * **`elevatedProcedure`, where `overview` and `pupils` are only
+       * protected.** Those answer a question about a district — how many
+       * pupils, which campuses. This hands over a file with every child's name
+       * in it at once, which is the largest disclosure this surface can make,
+       * and a PIN is the cheapest thing that makes it deliberate.
+       */
+      await expect(as(head).institutions.pupilCsv({ institutionId: lincoln.id })).rejects.toThrow(
+        /STEP_UP_REQUIRED/,
+      );
+    });
+
+    it('gives it to one who has', async () => {
+      await createDistrictLearner(db, {
+        institutionId: lincoln.id,
+        displayName: 'Ada',
+        birthYear: 2016,
+      });
+
+      const elevated = as(head, await issueElevation(head.id));
+      const { csv, filename } = await elevated.institutions.pupilCsv({
+        institutionId: lincoln.id,
+      });
+
+      expect(csv).toContain('Ada');
+      expect(filename).toMatch(/^acuitymath-.*-pupils-\d{4}-\d{2}-\d{2}\.csv$/);
+    });
+
+    it('will not hand one district the spreadsheet of another', async () => {
+      /*
+       * Step-up proves who is asking; it says nothing about what they may
+       * reach. `assertMayAdminister` is still what decides that, and it reads
+       * the institution from the database rather than the session — a
+       * thirty-day cookie would otherwise outlive somebody's removal from a
+       * district by a month.
+       */
+      const madison = await createInstitution(db, 'Madison Unified');
+      const elevated = as(head, await issueElevation(head.id));
+
+      await expect(
+        elevated.institutions.pupilCsv({ institutionId: madison.id }),
+      ).rejects.toThrow();
     });
   });
 });

@@ -339,7 +339,21 @@ Live". E1 deleted it and re-derived the console from real queries, which is what
   `setTimeout` that reported success unconditionally. The paths now live once, in
   `server/lti/toolConfiguration.ts`, and `routes.ts` mounts from the same
   constants the wizard reads.
-- **E6** — RFC 4180 CSV export from the console's queries. Not started.
+- ~~**E6**~~ — **Done.** RFC 4180 CSV of a district's pupils, behind step-up.
+
+  The format was never the decision. **What belongs in one file containing every
+  child in a district** was. E2's export is one child and everything about them —
+  every answer, session and message — which is right for a record request about a
+  named pupil and wrong for a thousand of them: nobody reads it, and it would be
+  the largest disclosure this product can make, assembled by a click. So this is
+  one row per pupil and eleven columns, enough for the questions a district
+  actually asks and not a copy of anyone's work.
+
+  **Formula injection is the part RFC 4180 says nothing about.** A field
+  beginning `=`, `+`, `-`, `@`, tab or CR is *evaluated* by Excel, LibreOffice
+  and Sheets — and these names arrive from a district's SIS, a system this
+  product does not control and cannot vet. `server/learning/csv.ts` prefixes
+  them, before quoting rather than after, and that ordering is load-bearing.
 - **E7** — CCSS coverage from the authored corpus, which means it will honestly
   show the gap in §9 rather than a full matrix. Not started; `contentCoverage.ts`
   from F1 is the input.
