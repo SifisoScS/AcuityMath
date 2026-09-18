@@ -101,6 +101,23 @@ jobs:
       - name: Generator integrity gate
         run: pnpm audit:generator
 
+      # The other half, and until now the missing one. `audit:generator` samples
+      # ProblemGenerator, so the SymPy pass has only ever covered *generated*
+      # problems — while the README claimed every authored answer was checked
+      # symbolically. The authored corpus had structural checks and nothing
+      # mathematical.
+      #
+      # It was built to be checked: every one of the 1,132 problems carries a
+      # `verification` object with the expression and the value its author
+      # computed. The fields were written, imported, and never evaluated.
+      #
+      # Its own name, for the reason above: a content failure should be legible
+      # from the checks list. The first run found twelve problems in
+      # `foundations-match-numeral-to-5` — ages 4 to 6 — where the correct
+      # numeral is not among the options offered.
+      - name: Authored corpus integrity gate
+        run: pnpm audit:corpus
+
       - name: Typecheck
         run: pnpm lint
 
