@@ -59,7 +59,7 @@ missing is the institutional layer and the content to fill the tiers.
 | §7 Endpoint URLs (`/api/lti/launch`, `/api/lti/login`, `/api/lti/jwks.json`) | Served. `acuitymath.org` is still not registered to this project, and a launch needs https because the session cookie must be `SameSite=None; Secure` |
 | §7 OneRoster 1.2 | **Consumed** (D1–D2): credential storage, the client-credentials grant, paged collection reads, a district sync that produces campuses, classrooms, pupils and class lists, and reconciliation that deactivates a leaver without ever inferring one from an incomplete read. Track D's engineering is complete. Note the direction — this product **consumes** a district's OneRoster API; it does not serve one at `/api/oneroster/v1p2`, and the wizard no longer says it does |
 | §7 Self-serve wizard with handshake testing | **Rebuilt in E5.** Endpoints come from the same constants `routes.ts` mounts, and the checks are real reads that can fail. It still cannot prove a *platform* can reach this instance — no local read can — and it says so rather than implying it |
-| §8 District console, CSV, CCSS audit, PDF brief | **The console is real and routed** at `/district/<id>` (E1), and **a full per-child export exists** (E2), which is what the family policy and the institutional agreement both promise, and **real deletion** (E3), which is what the agreement's "removes rather than hides" clause requires — **both reachable** from the console (E4), with step-up and a typed-name confirmation. CCSS audit and PDF brief do not exist; neither does a bulk district-wide CSV |
+| §8 District console, CSV, CCSS audit, PDF brief | **The console is real and routed** at `/district/<id>` (E1), and **a full per-child export exists** (E2), which is what the family policy and the institutional agreement both promise, and **real deletion** (E3), which is what the agreement's "removes rather than hides" clause requires — **both reachable** from the console (E4), with step-up and a typed-name confirmation. the **bulk district CSV** exists (E6), behind step-up and hardened against spreadsheet formula injection. The **CCSS audit reports the gap rather than a matrix** (E7), because no authored concept carries a standard code — the mapping is authoring work and is now F3. The PDF brief does not exist and has not been argued for |
 | §8 "COPPA Safe Harbor Compliant" | Consent is real; the **certification is not held** |
 | §8 "FERPA aligned… encrypted in transit and at rest" | No TLS config, no at-rest encryption in this repo |
 | §4 `ELO = 1000 + 250θ` | Code uses `1200 + 300θ`, range 600–2400. **The document and the code disagree** |
@@ -354,9 +354,19 @@ Live". E1 deleted it and re-derived the console from real queries, which is what
   and Sheets — and these names arrive from a district's SIS, a system this
   product does not control and cannot vet. `server/learning/csv.ts` prefixes
   them, before quoting rather than after, and that ordering is load-bearing.
-- **E7** — CCSS coverage from the authored corpus, which means it will honestly
-  show the gap in §9 rather than a full matrix. Not started; `contentCoverage.ts`
-  from F1 is the input.
+- ~~**E7**~~ — **Moved to Track F as F3.** This was listed here as though it were
+  a reporting step waiting on a query. It is not.
+
+  E7 went looking for the audit and found that **the authored corpus carries no
+  standard codes at all** — fifty-one concepts across four strands, none of them
+  mapped, and `SourceConcept` has no field to put one in. The twelve concepts
+  that *do* carry a code are the generator's, and they are exactly the concepts
+  with no authored problems. The only part of this product aligned to a standard
+  is the part nobody wrote questions for.
+
+  Nothing in that is fixable by engineering. `server/curriculum/standardsCoverage.ts`
+  now reports the real position and a test fails the day it changes, so the claim
+  cannot drift; the mapping itself is curriculum work and is **F3** below.
 
 The PDF brief named in `ARCHITECTURE.md` §8 is **deliberately not listed**. A
 console plus a CSV covers what it was for, and a generated PDF is a dependency
@@ -407,6 +417,28 @@ development database says age 7 has three. Those rows are `source = 'generated'`
 — generator output persisted while somebody used the app. `takeAuthoredProblem`
 filters on that column, and any measurement that does not is counting the
 generator's work as somebody's authoring.
+
+### F3 — the standards mapping
+
+**Moved here from Track E, where it had been listed as a reporting step.** There
+is nothing to report from: no authored concept carries a standard code, and
+`SourceConcept` has no field for one. What exists is twelve codes on the
+generator's concepts — the twelve with no authored problems.
+
+| | Concepts | With a standard code |
+| --- | --- | --- |
+| Authored corpus | 51 | **0** |
+| Generator concepts | 12 | 12 |
+
+**Computed, not copied**, the same way the table above is:
+`server/curriculum/standardsCoverage.ts` derives these and
+`standardsCoverage.test.ts` asserts them **in both directions** — the suite goes
+red if the gap widens *and* on the day somebody authors a mapping, because at
+that point this section says something untrue.
+
+Done when: every authored concept names the standard it satisfies, decided by
+somebody willing to stand behind each one. A fabricated alignment is worse than
+an absent one — a district reads it, believes it, and buys on it.
 
 This is authoring work, not engineering, and it can proceed in parallel with
 everything above. It is also the work that most directly serves the §2 vision:
