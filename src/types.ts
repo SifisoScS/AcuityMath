@@ -196,32 +196,9 @@ export interface NotificationItem {
  * console shows those, and shows nothing it cannot answer.
  */
 
-export interface LMSConnection {
-  id: string;
-  provider: 'google_classroom' | 'canvas' | 'clever' | 'schoology' | 'lti_advantage';
-  name: string;
-  status: 'connected' | 'syncing' | 'error' | 'disconnected';
-  lastSyncTimestamp: string;
-  syncedCoursesCount: number;
-  syncedStudentsCount: number;
-  pendingGradePassbacks: number;
-  autoSyncEnabled: boolean;
-  oauthScope: string[];
-}
-
-export interface StandardAuditRecord {
-  code: string;
-  domain: string;
-  framework: 'CCSS' | 'TEKS';
-  title: string;
-  gradeLevel: string;
-  lessonsAlignedCount: number;
-  districtMasteryPercent: number;
-  coverageStatus: 'fully_covered' | 'in_progress' | 'deficiency_flag';
-}
-
 /*
- * `DistrictSummary` and `DistrictAssignmentPayload` were here, and are gone.
+ * Four interfaces were here, and are gone: `DistrictSummary`,
+ * `DistrictAssignmentPayload`, `LMSConnection` and `StandardAuditRecord`.
  *
  * They were the *shape* of the dashboard E1 deleted — an interface of numbers
  * nothing produced: `ccssCoveragePercent`, `lmsSyncHealthPercent`,
@@ -235,6 +212,25 @@ export interface StandardAuditRecord {
  * same class of claim as the handshake that always succeeded: not a lie
  * anybody told, but a shape that invites one.
  *
- * `server/curriculum/standardsCoverage.ts` reports the real position, and
- * `SchoolEntity` was removed in E1 for the same reason.
+ * `LMSConnection` promised the same about integrations that do not exist:
+ * `google_classroom` and `clever` among its providers, and a queue of
+ * `pendingGradePassbacks` — AGS posts a score synchronously and there is no
+ * queue. It was the deleted dashboard's "Google Classroom & Canvas Live" banner
+ * in type form.
+ *
+ * `StandardAuditRecord` was the worse of the two: `lessonsAlignedCount`,
+ * `districtMasteryPercent`, `coverageStatus: 'fully_covered' | 'deficiency_flag'`
+ * — the return type of the report E7 had just proved cannot be built. E7 deleted
+ * its immediate neighbours and left it, which is how a fourth hand-deletion
+ * became necessary.
+ *
+ * **An orphaned type is not dead weight; it is a design somebody will
+ * implement.** The next person wiring up a district screen finds a ready-made
+ * interface promising a CCSS coverage percentage and fills it in, because the
+ * type says the number exists.
+ *
+ * `test/typeInventory.test.ts` now fails on any exported type nothing refers to,
+ * so there is no fifth time. `server/curriculum/standardsCoverage.ts` reports the
+ * real standards position, and `SchoolEntity` was removed in E1 for the same
+ * reason as all of these.
  */

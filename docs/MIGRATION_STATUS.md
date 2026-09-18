@@ -1211,6 +1211,42 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**Deleting a component does not make its types fail a build**, and four
+interfaces proved it. `DistrictAdminDashboard.tsx` went in E1; its shape stayed
+in `src/types.ts`, unreferenced and compiling cleanly, through E4, E6 and E7.
+E7 deleted two of them while looking for something else and **left two more** —
+one of which, `StandardAuditRecord`, was the return type of the very report E7
+had just finished proving cannot be built.
+
+**An orphaned type is not dead weight; it is a design somebody will implement.**
+The next person wiring a district screen finds a ready-made interface promising
+a CCSS coverage percentage and fills it in, because the type says the number
+exists. `LMSConnection` promised the same about Google Classroom and Clever —
+integrations that have never existed here — and about a queue of
+`pendingGradePassbacks`, where AGS posts synchronously and there is no queue.
+
+**The sweep that found them was wrong about three of five.** `VisualType`,
+`MasteryDomain` and `WeeklyActivity` are referenced only from *inside*
+`types.ts`, by types that are used everywhere. A grep that excludes the file
+cannot see that, and acting on it would have broken the build — the expensive
+direction. The check is a reachability closure for that reason, and the closure
+must not depend on declaration order: capping it at one pass passes a
+forward-declared chain and fails a backwards one.
+
+**A test that asserts an empty list cannot prove its own detector works.** Once
+no orphans remain, every weakening — drop the closure, widen the match, return
+`[]` — is silent. So the logic sits in its own module and is exercised against
+sources with known orphans in them. **A guard with no positive control is a
+claim**, and that rule had been applied to everything in this codebase except a
+repository invariant.
+
+**And the detector's first version was wrong in a way its own subject exposed.**
+Restoring a deleted interface to `types.ts` went undetected, because the note
+explaining the deletion *names it* — and that note sits inside the body of the
+declaration above. A type mentioned only in prose read as alive. Comments are
+stripped now: "X was here and is gone" is evidence of the opposite of a
+reference.
+
 **A step can turn out to be the wrong kind of work.** E7 was listed as a
 reporting feature — count the standards, draw the matrix. The counting found
 that **no authored concept carries a standard code**, and that `SourceConcept`
