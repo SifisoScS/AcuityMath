@@ -150,8 +150,29 @@ export function figureAnswerIndex(
     }
 
     case 'match': {
-      const first = promptFigures?.[0];
-      const target = typeof first?.count === 'number' ? first.count : null;
+      /*
+       * **Two sources, and they are not interchangeable.**
+       *
+       * `verification.target` is what the author said the problem is about.
+       * `figures[0].count` is how many shapes the picture actually draws. The
+       * first is intent; the second is what a child sees.
+       *
+       * The first version of this read only the picture, and so reported the
+       * twelve defective problems as *"the correct option is not among the
+       * choices"* — which sent the repair at the answer key. The answer key was
+       * right. Four fields agreed with it, including a label reading "A group of
+       * four shapes", and the picture drew two. Reading intent from the drawing
+       * named the wrong culprit, and very nearly corrected a correct problem.
+       *
+       * So the target is the authored one where it exists, and the picture is
+       * checked *against* it rather than mistaken for it.
+       */
+      const authored = typeof verification.target === 'number' ? verification.target : null;
+      const drawn = typeof promptFigures?.[0]?.count === 'number'
+        ? (promptFigures[0].count as number)
+        : null;
+
+      const target = authored ?? drawn;
       if (target === null) return null;
       return measures.includes(target) ? measures.indexOf(target) : 'unresolvable';
     }
@@ -175,6 +196,33 @@ export function verifyFigure(input: VerificationInput): VerificationResult {
     conceptId: input.conceptId,
     tier: 'figure' as const,
   };
+
+  /*
+   * Checked before the answer, because it is the defect that hides behind a
+   * correct answer. A `match` problem whose picture draws a different number
+   * from the one it is about is unanswerable even though its answer, choices,
+   * distractors and label all agree — the child counts what is in front of them
+   * and no option says that.
+   *
+   * This is what the twelve actually were, and naming it precisely is the
+   * difference between repairing a picture and corrupting an answer key.
+   */
+  const authoredTarget = typeof input.verification.target === 'number'
+    ? input.verification.target
+    : null;
+  const drawnCount = typeof input.promptFigures?.[0]?.count === 'number'
+    ? (input.promptFigures[0].count as number)
+    : null;
+
+  if (authoredTarget !== null && drawnCount !== null && authoredTarget !== drawnCount) {
+    return {
+      ...base,
+      outcome: 'failed',
+      reason:
+        `the picture draws ${drawnCount} but the problem is about ${authoredTarget} — ` +
+        'a child counting what they can see has no correct option',
+    };
+  }
 
   const expected = figureAnswerIndex(input.verification, input.promptFigures);
 

@@ -1,7 +1,7 @@
 {
   "problems": 1132,
-  "verified": 932,
-  "failed": 12,
+  "verified": 944,
+  "failed": 0,
   "unverifiable": 188,
   "by_tier": {
     "sympy": {
@@ -10,8 +10,8 @@
       "unverifiable": 0
     },
     "figure": {
-      "verified": 148,
-      "failed": 12,
+      "verified": 160,
+      "failed": 0,
       "unverifiable": 20
     },
     "structural": {
@@ -20,73 +20,6 @@
       "unverifiable": 168
     }
   },
-  "failures": [
-    {
-      "id": "foundations-match-numeral-to-5-02",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-03",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-04",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-07",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-08",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-09",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-12",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-13",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-14",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-17",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-18",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    },
-    {
-      "id": "foundations-match-numeral-to-5-19",
-      "concept": "foundations-match-numeral-to-5",
-      "reason": "the correct option is not among the choices — the measurements name an answer this problem does not offer"
-    }
-  ],
-  "lopsided_problem_types": [
-    {
-      "type": "conceptual",
-      "problems": 48,
-      "share_in_one_position": 1
-    }
-  ]
+  "failures": [],
+  "lopsided_problem_types": []
 }
