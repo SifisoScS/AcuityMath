@@ -65,12 +65,25 @@ flowchart TB
         TRPC["tRPC Router — the application API"]
         Auth["Magic-link sessions, step-up PIN elevation"]
         Gate["Consent gate & server-measured screen time"]
+        LTI["/api/lti — OIDC initiation, launch, JWKS"]
         REST["Small REST surface (/api): health, consent 410, AI proxy"]
+    end
+
+    subgraph Institutional ["Institutional Layer"]
+        NRPS["Names & Roles — roster sync"]
+        AGS["Assignment & Grade Services — score posting"]
+        DL["Deep Linking — teacher picks content"]
+        OR["OneRoster 1.2 client — consumed, not served"]
     end
 
     subgraph Data ["Data & AI"]
         Gemini["Google Gemini Socratic AI API"]
         MySQL["MySQL 8.4 via Drizzle ORM"]
+    end
+
+    subgraph Outside ["Somebody else's systems"]
+        Platform["LMS platform (LTI 1.3)"]
+        SIS["Student information system"]
     end
 
     UI <-->|Offloads IRT Math| Worker
@@ -82,6 +95,16 @@ flowchart TB
     TRPC --> Gate
     TRPC <-->|Learners, attempts, mastery, consent| MySQL
     REST <-->|Socratic hints & scaffolding| Gemini
+
+    Platform -->|Signed launch, RS256| LTI
+    LTI -->|Verifies against| Platform
+    TRPC --> NRPS
+    TRPC --> AGS
+    TRPC --> DL
+    TRPC --> OR
+    NRPS -->|Bearer token from a signed assertion| Platform
+    AGS -->|Posts one score per placement| Platform
+    OR -->|Client credentials, sealed secret| SIS
 ```
 
 ---
@@ -139,8 +162,10 @@ graph LR
     end
 ```
 
-A district administrator role exists in the data model, but **the district and LMS
-surfaces are not reachable** — see *Not built* below.
+A fourth role, **institution administrator**, reaches one district and no
+further. Scope is read from the database on every check rather than carried in
+the session, because a session lasts thirty days and somebody removed from a
+district must stop reaching it that afternoon.
 
 ---
 
@@ -158,9 +183,48 @@ surfaces are not reachable** — see *Not built* below.
 - **Integrated Bilingual Glossary:** Searchable compendium of mathematical vocabulary terms categorized across arithmetic, geometry, algebra, and calculus.
 
 ### 3. Verified Content, and a Generator for the Gaps
-- **63 concepts, 1,132 authored problems, 572 hints** in the database. Every authored answer is checked by a two-part integrity gate — a structural pass and a symbolic pass using SymPy — which runs in CI and fails the build.
+- **63 concepts, 1,132 authored problems, 572 hints** in the authored corpus — computed from `data/curriculum/` by `server/curriculum/contentCoverage.ts`, not copied here by hand. Counting rows in a development database gives a different and wrong answer, because generator output is persisted as it is served. Every authored answer is checked by a two-part integrity gate — a structural pass and a symbolic pass using SymPy — which runs in CI and fails the build.
 - **The generator covers what the corpus does not**, at runtime, for ages the authored set does not reach.
 - **Known gap:** ages 6–10 are thin and **age 7 has no authored problems at all**. See `docs/MIGRATION_STATUS.md`.
+
+### 4. Institutional Integration — LTI 1.3 Advantage and OneRoster
+
+- **LTI 1.3 Advantage, implemented end to end.** OIDC third-party initiation
+  (both verbs, because platforms disagree), RS256 launch validation against the
+  platform's keyset, a published JWKS with rotation, Names and Roles roster
+  sync, Assignment and Grade Services score posting, and Deep Linking with a
+  picker a teacher actually chooses from.
+- **A pupil launching from an LMS is provisioned and consented in one act**, under
+  their district's agreement — or refused with a reason, if the district has not
+  signed or the placement names no year group. A child is never created without
+  consent recorded in the same transaction.
+- **OneRoster 1.2 is *consumed*, not served.** This product reads a district's
+  student information system — orgs become campuses, classes become classrooms,
+  enrolments become class lists — and reconciles them idempotently. It does not
+  expose a OneRoster API of its own, and nothing is served at
+  `/api/oneroster/v1p2`.
+- **A roster sync never deletes a child, never creates an adult account, and
+  never infers a departure from an incomplete read.** It deactivates a pupil the
+  source explicitly marks as gone, and restores them if it was the sync that
+  deactivated them — never one a person hid deliberately.
+
+**What has not happened:** no conformance suite has been run, because that
+requires 1EdTech membership; and no real LMS or SIS has ever been connected,
+because there are no deployments. Every test above runs against a purpose-built
+platform that checks signatures, refuses bad tokens and paginates — which proves
+the implementation, not the interoperability.
+
+### 5. District Surfaces That Are Reachable
+
+- **A district console** at `/district/<id>`, derived from real attempts by the
+  same code that serves parents.
+- **A full per-child export and real deletion** — removing a child's practice
+  history rather than hiding it — both reachable from the console behind a PIN,
+  with removal requiring the child's name to be typed.
+- **A district-wide CSV**, RFC 4180, hardened against the spreadsheet formula
+  injection that a name arriving from somebody else's SIS can otherwise carry.
+- **A standards audit that reports the gap rather than a matrix**, because no
+  authored concept carries a curriculum standard code yet. See *Not built*.
 
 ### 4. Child-Safety Controls That Are Enforced
 - **Parental consent is recorded and enforced.** Consent is a row in `consent_events` with a server-computed hash of the exact disclosure text shown. For under-13s **without** consent, practice still works — questions are generated in the browser and nothing leaves the device — and the child is told so.
@@ -171,24 +235,39 @@ surfaces are not reachable** — see *Not built* below.
 
 ## 🚧 Not built
 
-Stated plainly, because an earlier version of this README claimed these as
-shipped features.
+Stated plainly, because two earlier versions of this README were wrong in
+opposite directions — one claimed integrations that did not exist, and the one
+that corrected it went on denying them after they were built.
 
-- **No LTI 1.3, OIDC or OneRoster integration.** There is no such code in the
-  repository. The onboarding wizard renders a configuration form; it is not
-  connected to anything.
-- **No LMS grade passback or roster sync** — not to Canvas, Schoology, Google
-  Classroom, Clever, Blackboard, D2L, PowerSchool, Infinite Campus or Skyward.
-- **No district analytics, CSV efficacy export or compliance briefings.** Those
-  surfaces exist as unrouted code and are unreachable from the application.
-- **No compliance certification of any kind.** The product implements parental
-  consent and role-based access control; it has not been certified under COPPA
-  Safe Harbor, and no FERPA attestation has been made.
-- **No at-rest encryption, and TLS is not configured here** — it is expected to
-  terminate at whatever fronts the app in a real deployment.
+- **No certification of any kind.** The product implements parental consent,
+  institutional agreements and server-side access control. It has **not** been
+  certified under COPPA Safe Harbor, no FERPA attestation has been made, and
+  **1EdTech's LTI conformance suite has never been run** — that requires paid
+  membership, which is deliberately deferred until the product stops changing
+  shape. Implementing a specification is not the same as being certified
+  against it, and this document will not blur the two.
+- **No real LMS or SIS has ever been connected.** There are no deployments and
+  no public instance. The LTI and OneRoster code is exercised against
+  purpose-built platforms that verify signatures, reject bad tokens and
+  paginate — which demonstrates the implementation and says nothing about any
+  named product.
+- **No curriculum standards mapping.** Fifty-one authored concepts carry **no**
+  standard code; the twelve that do are the generator's, and they are precisely
+  the twelve with no authored problems. `standardsCoverage.ts` reports that
+  position rather than drawing a matrix of zeros, and the mapping itself is
+  authoring work tracked as F3.
+- **No PDF compliance briefing.** A console and a CSV cover what it was for; it
+  should be argued for before it is built.
+- **Age 7 has no authored problems at all** — the only year between 3 and 18.
+  It is served by three generator concepts, which is correct mathematics and a
+  much narrower year. Tracked as F2.
+- **No TLS configuration and, with one exception, no at-rest encryption.** TLS
+  is expected to terminate at whatever fronts the application. The exception is
+  `oneroster_providers.client_secret_sealed`, which is AES-256-GCM and which
+  the application **refuses to write at all** without a key configured to seal
+  it — a district's SIS credential is not something to hold badly.
 
-Whether the institutional direction is taken at all is an open decision, recorded
-in `docs/MIGRATION_STATUS.md`.
+The institutional direction is **chosen**, not open: see `docs/ROADMAP.md` §1.
 
 ---
 
@@ -204,16 +283,22 @@ acuitymath/
 ├── server/
 │   ├── trpc/routers.ts           # The application API
 │   ├── auth/                     # Magic links, sessions, step-up PIN (scrypt)
-│   ├── learning/                 # Attempts, mastery, rewards, consent, screen time
-│   ├── curriculum/               # Corpus import and age banding
+│   ├── learning/                 # Attempts, mastery, rewards, consent, screen time,
+│   │                             #   per-child export, deletion, district CSV
+│   ├── curriculum/               # Corpus import, age banding, content & standards coverage
+│   ├── lti/                      # LTI 1.3: keys, launch, NRPS, AGS, Deep Linking
+│   ├── oneroster/                # OneRoster 1.2 client, sync, sealed credentials
 │   ├── api.ts                    # Small REST surface: health, consent 410, AI proxy
 │   └── gemini.ts                 # Socratic coach proxy
 ├── scripts/
 │   ├── audit-generator.ts        # Content integrity gate (structural + SymPy)
 │   └── seed-curriculum.ts        # Corpus import
+├── test/
+│   ├── suiteInventory.test.ts    # Asserts the suite still runs what it should
+│   └── typeInventory.test.ts     # Asserts no exported type outlives its screen
 └── src/
     ├── App.tsx                   # Main orchestrator component
-    ├── components/               # Views and modals
+    ├── components/               # Views and modals, incl. district/ and lti/
     ├── hooks/                    # Typed tRPC-backed state (practice, consent, screen time)
     ├── offline/                  # IndexedDB queue and reconciler
     ├── services/
@@ -292,8 +377,18 @@ integration suites skip themselves. See *Getting running again* in
   plaintext.
 - **Screen-time limits** are measured and enforced by the server.
 
+- **LTI launches are verified, not trusted.** Every launch token is checked for
+  signature, audience, nonce replay, deployment binding and target URI against
+  the platform's own published keyset before anybody is admitted.
+- **A district's SIS credential is sealed at rest** with AES-256-GCM, and the
+  application **refuses to store one at all** when no sealing key is configured.
+  A deployment that cannot protect that credential does not get to hold it,
+  which is loud — storing it in a readable column is silent until it is a breach
+  notification.
+
 Transport security is a deployment concern and is **not configured in this
-repository**. No at-rest encryption is implemented.
+repository**. Apart from the sealed credential above, no at-rest encryption is
+implemented.
 
 ---
 
