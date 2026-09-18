@@ -16,6 +16,7 @@ import { PupilRecords } from './PupilRecords';
 
 const pupilsQuery = vi.fn();
 const exportFetch = vi.fn();
+const csvFetch = vi.fn();
 const deleteMutate = vi.fn();
 const elevateMutate = vi.fn();
 const setPinMutate = vi.fn();
@@ -24,7 +25,10 @@ vi.mock('../../lib/trpc', () => ({
   trpc: {
     useUtils: () => ({
       learners: { export: { fetch: exportFetch } },
-      institutions: { overview: { invalidate: vi.fn() } },
+      institutions: {
+        overview: { invalidate: vi.fn() },
+        pupilCsv: { fetch: csvFetch },
+      },
     }),
     institutions: { pupils: { useQuery: () => pupilsQuery() } },
     learners: {
@@ -123,6 +127,67 @@ describe('a district acting on a pupil’s records', () => {
 
       click.mockRestore();
       vi.unstubAllGlobals();
+    });
+  });
+
+  describe('the whole district as a spreadsheet', () => {
+    it('downloads it under the name the server chose', async () => {
+      /*
+       * **The filename comes from the server**, which is not fussiness: it
+       * carries the district's slug, and the client does not have one.
+       * Inventing something close enough here is how a file ends up named for
+       * the wrong district in a folder of twenty.
+       */
+      csvFetch.mockResolvedValue({
+        csv: 'Pupil ID,Name\r\n1,Ada\r\n',
+        filename: 'acuitymath-lincoln-unified-pupils-2026-03-01.csv',
+      });
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+      vi.stubGlobal('URL', {
+        ...URL,
+        createObjectURL: () => 'blob:x',
+        revokeObjectURL: () => {},
+      });
+
+      render(<PupilRecords institutionId={1} />);
+      await userEvent.click(screen.getByRole('button', { name: /download all pupils/i }));
+
+      await waitFor(() => expect(click).toHaveBeenCalled());
+      expect(csvFetch).toHaveBeenCalledWith({ institutionId: 1 });
+
+      const anchor = click.mock.instances[0] as unknown as HTMLAnchorElement;
+      expect(anchor.download).toBe('acuitymath-lincoln-unified-pupils-2026-03-01.csv');
+      expect(anchor.download).not.toContain('Ada');
+
+      click.mockRestore();
+      vi.unstubAllGlobals();
+    });
+
+    it('asks for a PIN through the same prompt the per-child export uses', async () => {
+      /*
+       * One step-up state for both. An administrator who has proved they are
+       * there can do either; one who has not gets a single PIN box rather than
+       * two identical ones a click apart — and a second copy of a
+       * security-relevant flow is how the two quietly stop matching.
+       */
+      csvFetch.mockRejectedValue({ message: 'STEP_UP_REQUIRED' });
+
+      render(<PupilRecords institutionId={1} />);
+      await userEvent.click(screen.getByRole('button', { name: /download all pupils/i }));
+
+      expect(await screen.findByLabelText(/^pin$/i)).toBeInTheDocument();
+      expect(screen.queryByText(/STEP_UP_REQUIRED/)).toBeNull();
+    });
+
+    it('says the spreadsheet is a summary rather than a copy of their work', async () => {
+      /*
+       * The scope decision, in front of the person clicking. E2's export is one
+       * child and everything about them; this is every child and a summary, and
+       * somebody who expects the first from a button labelled "all pupils" has
+       * been misled about what they just distributed.
+       */
+      render(<PupilRecords institutionId={1} />);
+      expect(screen.getByText(/holds no answers, sessions or messages/i)).toBeInTheDocument();
     });
   });
 
