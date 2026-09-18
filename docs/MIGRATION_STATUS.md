@@ -1211,6 +1211,38 @@ anywhere: develop against a tunnel. The switch reads `APP_BASE_URL` rather than
 scheme it was served over, and the ordinary way to develop an LTI tool is a
 tunnel giving https to a server that still thinks it is in development.
 
+**A step can turn out to be the wrong kind of work.** E7 was listed as a
+reporting feature — count the standards, draw the matrix. The counting found
+that **no authored concept carries a standard code**, and that `SourceConcept`
+has no field to hold one, so there was never anything to count. The twelve codes
+that exist belong to the generator's concepts, which are precisely the twelve
+with no authored problems: the only part of this product aligned to a standard
+is the part nobody wrote questions for.
+
+Neither available option was acceptable. A matrix of zeros reads as *"this
+product covers no standards"* when the truth is *"nothing has been mapped"*, and
+a district acts differently on those two sentences. Inventing fifty-one
+alignments would have been the same act as the invented campus dashboard, the
+handshake that always succeeded and the endpoints that were never routes —
+except harder to detect, because a plausible CCSS code is unfalsifiable to
+anybody who is not a curriculum specialist.
+
+**So the deliverable became the measurement of the gap, and the reclassification
+of the step.** The audit reports the real position, its test fails in *both*
+directions — if the gap widens, and on the day somebody authors a mapping,
+because the roadmap then says something untrue — and the mapping itself moved to
+Track F, beside the age-7 authoring, where work that needs a curriculum
+judgement belongs.
+
+**The type outlived the screen by two steps.** `DistrictSummary` declared
+`ccssCoveragePercent`, `lmsSyncHealthPercent`, `activeInterventionsCount` and a
+district mean theta; `DistrictAssignmentPayload` sat beside it. Both were the
+*shape* of the dashboard E1 deleted, referenced by nothing, and they survived E1,
+E4 and E6 because deleting a component does not make its types fail a build. A
+type declaring a percentage of standards covered, in a product that has mapped
+none, is not a lie anybody told — it is a shape that invites one, which is why
+it is gone rather than left for whoever wires up the next district screen.
+
 **A file format is a place where somebody else's software runs your data.** A
 CSV field beginning `=`, `+`, `-`, `@`, tab or carriage return is evaluated as a
 formula by Excel, LibreOffice and Google Sheets. The display names in this

@@ -220,25 +220,21 @@ export interface StandardAuditRecord {
   coverageStatus: 'fully_covered' | 'in_progress' | 'deficiency_flag';
 }
 
-export interface DistrictSummary {
-  districtName: string;
-  districtId: string;
-  totalSchools: number;
-  totalStudents: number;
-  totalTeachers: number;
-  averageMasteryPercent: number;
-  districtMeanTheta: number;
-  districtMeanElo: number;
-  ccssCoveragePercent: number;
-  lmsSyncHealthPercent: number;
-  activeInterventionsCount: number;
-  lastRosterSync: string;
-}
-
-export interface DistrictAssignmentPayload {
-  title: string;
-  targetTier: 'all' | AgeTier;
-  targetSchoolId: string;
-  dueDate: string;
-  lmsSync: boolean;
-}
+/*
+ * `DistrictSummary` and `DistrictAssignmentPayload` were here, and are gone.
+ *
+ * They were the *shape* of the dashboard E1 deleted — an interface of numbers
+ * nothing produced: `ccssCoveragePercent`, `lmsSyncHealthPercent`,
+ * `activeInterventionsCount`, a district mean theta. Neither type was
+ * referenced anywhere outside this file.
+ *
+ * `ccssCoveragePercent` is the one worth naming. E7 went looking for the audit
+ * that would fill it and found that **no authored concept carries a standard
+ * code at all** — `SourceConcept` has no field for one. A type declaring a
+ * percentage of standards covered, in a product that has mapped none, is the
+ * same class of claim as the handshake that always succeeded: not a lie
+ * anybody told, but a shape that invites one.
+ *
+ * `server/curriculum/standardsCoverage.ts` reports the real position, and
+ * `SchoolEntity` was removed in E1 for the same reason.
+ */
