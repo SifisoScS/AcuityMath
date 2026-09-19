@@ -283,7 +283,7 @@ sequenceDiagram
 
 ---
 
-## 7. Institutional LMS & SIS Interoperability (LTI 1.3 & OneRoster) 🎯
+## 7. Institutional LMS & SIS Interoperability (LTI 1.3 & OneRoster) 🟡
 
 > **Status: partly built.** LTI Core is served: a platform can fetch
 > `/api/lti/jwks.json`, be registered with its deployments, start a launch at
@@ -307,13 +307,27 @@ sequenceDiagram
 > coverage in their school's gradebook; and a teacher adding this product to a
 > course chooses what the link opens and gets a signed content item back.
 >
-> Not built: OneRoster, and 1EdTech conformance — the latter is not engineering
-> but membership, and is deferred with Track A.
-> `LtiOnboardingWizardModal.tsx` still renders a configuration form and makes no
-> network calls. `acuitymath.org` is not yet registered to this project, so the
-> host name in the endpoints below is still aspirational — and because an LTI
-> session cookie must be `SameSite=None; Secure`, **a launch cannot work over
-> plain http at all.**
+> **OneRoster 1.2 is built too, and in one direction only.** This product
+> *consumes* a district's student information system — `orgs` become campuses,
+> `classes` become classrooms, `users` become children, `enrollments` become
+> class lists — and reconciles them idempotently. It does **not** serve a
+> OneRoster API of its own, and nothing answers at `/api/oneroster/v1p2`.
+>
+> The setup wizard reads its endpoints from the same constants `routes.ts`
+> mounts, and its checks are real reads of this instance that can fail. It
+> advertised three addresses that were not routes until E5 corrected it.
+>
+> **Not built: 1EdTech conformance**, which is not engineering but membership,
+> and is deferred with Track A. No conformance suite has ever been run and no
+> real LMS or SIS has ever been connected — every test runs against a
+> purpose-built platform that verifies signatures, refuses bad tokens and
+> paginates. That demonstrates the implementation and says nothing about
+> interoperability with any named product.
+>
+> `acuitymath.org` is not yet registered to this project, so the host name in
+> the endpoints below is still aspirational — and because an LTI session cookie
+> must be `SameSite=None; Secure`, **a launch cannot work over plain http at
+> all.**
 >
 > The work is sequenced as **Track C** and **Track D** in `docs/ROADMAP.md`.
 > Certification is **Track A** and is not engineering: LTI Advantage conformance
@@ -367,12 +381,12 @@ graph TD
     RoleCheck -->|student| StuView[Student Dashboard]
     RoleCheck -->|teacher| TeachView[Teacher Operations Dashboard]
     RoleCheck -->|parent| ParView[Parent Oversight Cockpit]
-    RoleCheck -->|admin| DistView[District Console - target]
+    RoleCheck -->|institution_admin| DistView[District Console]
 
     StuView --> StuFeat[Manipulatives, Quests, Adaptive Practice, Coins, Rewards]
     TeachView --> TeachFeat[Roster Mastery, Assignments with entitlement checks]
     ParView --> ParFeat[PIN-Gated Controls, Enforced Screen Time, COPPA Consent, QR Badges]
-    DistView --> DistFeat[Multi-Campus Analytics, CCSS Audits, CSV Export]
+    DistView --> DistFeat[Multi-Campus Analytics, Per-child Export and Deletion, District CSV]
 ```
 
 ### The Stakeholder Views
@@ -384,7 +398,9 @@ graph TD
    - **Screen Time Governance** — daily allowances **measured and enforced by the server**. The heartbeat carries no duration, because a counter the client increments is one the restricted child can decline to increment.
    - **COPPA Consent Management** — an append-only ledger against the exact policy version and a server-computed hash of the text displayed.
    - **Student QR & Picture Cards** — printable login cards for young learners.
-4. **District Administrator Console** 🎯 — multi-campus comparison, CCSS alignment, and export suite. `DistrictAdminDashboard.tsx` exists but is **unrouted and unreachable**: it seeds invented campuses into its own state and was quarantined for that reason. It is a design reference; the data layer beneath it is **Track B1/E** in `docs/ROADMAP.md`.
+4. **District Administrator Console** ✅ — routed at `/district/<id>` and derived from real attempts by the same code that serves parents. A full per-child export and **real deletion** — removing a child's practice history rather than hiding it — are both reachable from it behind a PIN, with removal requiring the child's name to be typed. A district-wide CSV is there too, RFC 4180 and hardened against the spreadsheet formula injection a name arriving from somebody else's SIS can carry.
+
+   `DistrictAdminDashboard.tsx` — 1,353 lines that seeded invented campuses into their own state — was **deleted** in E1 rather than revived, and the types describing its shape were deleted in E8 after outliving it by three steps. **Standards alignment is the one part not built**: no authored concept carries a standard code, so `standardsCoverage.ts` reports that gap rather than drawing a matrix of zeros, and the mapping itself is authoring work tracked as **F3**.
 
 ### Legal Privacy Framework
 
@@ -458,21 +474,32 @@ graph TD
 │   ├── trpc/routers.ts           # The application API
 │   ├── trpc/index.ts             # protected / learner / elevated procedures
 │   ├── auth/                     # Magic links, sessions, step-up PIN (scrypt)
-│   ├── learning/                 # Attempts, mastery, rewards, consent, consent gate, screen time
-│   ├── curriculum/               # Corpus import, age banding
+│   ├── learning/                 # Attempts, mastery, rewards, consent, screen time,
+│   │                             #   per-child export, deletion, district CSV, choice order
+│   ├── curriculum/               # Corpus import, age banding, content and standards
+│   │                             #   coverage, answer verification, seed fingerprint
+│   ├── lti/                      # LTI 1.3: keys, launch, NRPS, AGS, Deep Linking
+│   ├── oneroster/                # OneRoster 1.2 client, district sync, sealed credentials
 │   ├── test-support/             # Per-suite databases, consent fixtures
 │   ├── api.ts                    # Small REST surface: health, consent 410, AI proxy
 │   ├── gemini.ts                 # Socratic coach proxy
 │   └── legacyApi.test.ts         # Pins the REST surface at 3 routes
 │
 ├── scripts/
-│   ├── audit-generator.ts        # Content integrity gate (structural + SymPy)
+│   ├── audit-generator.ts        # Generator gate (structural + SymPy)
+│   ├── audit-corpus.ts           # Authored corpus gate (answers, positions, seed)
+│   ├── verify_generated.py       # SymPy, for generated problems
+│   ├── verify_authored.py        # SymPy, for the corpus's own expressions
 │   ├── seed-curriculum.ts        # Authored corpus import
 │   └── seed-demo-family.ts       # Demonstration family, with consent recorded
 │
+├── test/
+│   ├── suiteInventory.test.ts    # The suite still runs what it should
+│   └── typeInventory.test.ts     # No exported type outlives its screen
+│
 ├── src/
 │   ├── App.tsx                   # Application shell and modal routing
-│   ├── components/               # Views, modals, manipulatives/
+│   ├── components/               # Views, modals, manipulatives/, district/, lti/
 │   ├── hooks/                    # usePractice, useConsent, useScreenTime, useRecordingPermission, useStepUp
 │   ├── offline/                  # IndexedDB queue and reconciler
 │   ├── data/                     # Curriculum, bilingual glossary, consent policy, avatars
@@ -484,7 +511,9 @@ graph TD
     ├── MIGRATION_STATUS.md       # What landed, decisions settled, and the traps found
     ├── ROADMAP.md                # The plan from here to this document
     ├── AUDIT_REPORT.md           # Initial architectural audit
-    ├── GENERATOR_INTEGRITY.md    # How authored answers are verified
+    ├── GENERATOR_INTEGRITY.md    # How *generated* answers are verified — the
+    │                             #   corpus has its own gate, `pnpm audit:corpus`
+    ├── curriculum/               # Content drafts awaiting review (F2)
     ├── PHASE_1_PLAN.md           # Security, Persistence & Compliance
     ├── PHASE_2_PLAN.md           # Interactive Virtual Math Manipulatives
     ├── PHASE_3_PLAN.md           # Socratic AI Math Coach & Generator
