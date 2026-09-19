@@ -88,7 +88,17 @@ export function corpusFingerprint(): string {
 export type SeedState =
   | { state: 'current'; fingerprint: string }
   | { state: 'stale'; seeded: string; onDisk: string }
-  | { state: 'never-seeded'; onDisk: string };
+  | { state: 'never-seeded'; onDisk: string }
+  /**
+   * The database could not be asked.
+   *
+   * Its own answer, and **never reported as OK**. CI's base database has no
+   * schema at all — `test:integration` creates a database per suite and never
+   * migrates the one named in `DATABASE_URL` — so the first version of this
+   * check crashed there on a missing table. Crashing is the worst outcome; the
+   * second worst is printing "OK" for a question nobody answered.
+   */
+  | { state: 'unknown'; reason: string };
 
 /**
  * How a recorded fingerprint compares to the corpus on disk.
@@ -98,12 +108,15 @@ export type SeedState =
  * install that is quietly serving the wrong content. The first needs
  * `pnpm db:seed` and the second needs somebody to understand why it drifted.
  */
-export function compareSeed(recorded: string | null): SeedState {
+export function compareSeed(
+  recorded: { fingerprint: string | null } | { unavailable: string },
+): SeedState {
   const onDisk = corpusFingerprint();
 
-  if (recorded === null) return { state: 'never-seeded', onDisk };
-  if (recorded === onDisk) return { state: 'current', fingerprint: onDisk };
-  return { state: 'stale', seeded: recorded, onDisk };
+  if ('unavailable' in recorded) return { state: 'unknown', reason: recorded.unavailable };
+  if (recorded.fingerprint === null) return { state: 'never-seeded', onDisk };
+  if (recorded.fingerprint === onDisk) return { state: 'current', fingerprint: onDisk };
+  return { state: 'stale', seeded: recorded.fingerprint, onDisk };
 }
 
 /** What to tell somebody, in the words of the thing they have to do about it. */
@@ -116,6 +129,8 @@ export function describeSeedState(state: SeedState): string {
         'This database has no record of being seeded. Run `pnpm db:seed` — ' +
         'until then it is serving whatever content it happens to contain.'
       );
+    case 'unknown':
+      return `Could not check whether this database is current: ${state.reason}`;
     case 'stale':
       return (
         'The corpus on disk has changed since this database was seeded, so it is ' +

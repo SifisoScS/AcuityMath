@@ -128,12 +128,12 @@ describe('the digest, over entries a test can construct', () => {
 
 describe('comparing a recorded fingerprint', () => {
   it('calls a matching one current', () => {
-    const state = compareSeed(corpusFingerprint());
+    const state = compareSeed({ fingerprint: corpusFingerprint() });
     expect(state.state).toBe('current');
   });
 
   it('calls a different one stale, and says both', () => {
-    const state = compareSeed('0'.repeat(64));
+    const state = compareSeed({ fingerprint: '0'.repeat(64) });
     expect(state.state).toBe('stale');
     if (state.state !== 'stale') throw new Error('unreachable');
     expect(state.seeded).toBe('0'.repeat(64));
@@ -149,32 +149,45 @@ describe('comparing a recorded fingerprint', () => {
      * check. A *stale* database cannot happen by accident of environment: it
      * was seeded, from a corpus that no longer exists.
      */
-    expect(compareSeed(null).state).toBe('never-seeded');
-    expect(compareSeed('0'.repeat(64)).state).toBe('stale');
+    expect(compareSeed({ fingerprint: null }).state).toBe('never-seeded');
+    expect(compareSeed({ fingerprint: '0'.repeat(64) }).state).toBe('stale');
+  });
+
+  it('calls an unanswerable database unknown, never current', () => {
+    /*
+     * **CI's ordinary state, and the bug that broke the first run.** Its base
+     * database has no schema at all — `test:integration` creates one per suite
+     * — so the query throws. Crashing was the worst outcome; reporting "OK" for
+     * a question nobody answered would have been the second worst.
+     */
+    const state = compareSeed({ unavailable: 'no such table' });
+    expect(state.state).toBe('unknown');
+    expect(describeSeedState(state)).toMatch(/Could not check/);
+    expect(describeSeedState(state)).not.toMatch(/serving the corpus that is on disk/);
   });
 });
 
 describe('what it tells somebody', () => {
   it('names the command that fixes a stale database', () => {
     // A warning that does not say what to do is one people learn to scroll past.
-    expect(describeSeedState(compareSeed('0'.repeat(64)))).toContain('pnpm db:seed');
+    expect(describeSeedState(compareSeed({ fingerprint: '0'.repeat(64) }))).toContain('pnpm db:seed');
   });
 
   it('names the command for a database that was never seeded', () => {
-    expect(describeSeedState(compareSeed(null))).toContain('pnpm db:seed');
+    expect(describeSeedState(compareSeed({ fingerprint: null }))).toContain('pnpm db:seed');
   });
 
   it('says something different for each state', () => {
     const messages = new Set([
-      describeSeedState(compareSeed(corpusFingerprint())),
-      describeSeedState(compareSeed(null)),
-      describeSeedState(compareSeed('0'.repeat(64))),
+      describeSeedState(compareSeed({ fingerprint: corpusFingerprint() })),
+      describeSeedState(compareSeed({ fingerprint: null })),
+      describeSeedState(compareSeed({ fingerprint: '0'.repeat(64) })),
     ]);
     expect(messages.size).toBe(3);
   });
 
   it('shows enough of each fingerprint to tell them apart', () => {
-    const message = describeSeedState(compareSeed('0'.repeat(64)));
+    const message = describeSeedState(compareSeed({ fingerprint: '0'.repeat(64) }));
     expect(message).toContain('000000000000');
     expect(message).toContain(corpusFingerprint().slice(0, 12));
   });

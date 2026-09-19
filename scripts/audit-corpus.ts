@@ -243,10 +243,15 @@ async function main(): Promise<void> {
       if (state.state === 'stale') {
         console.error(`  FAIL ${describeSeedState(state)}`);
         seedStale = true;
-      } else if (state.state === 'never-seeded') {
-        console.log('  not seeded — nothing to compare. This is normal in CI and on a fresh clone.');
-      } else {
+      } else if (state.state === 'current') {
         console.log(`  OK ${describeSeedState(state)}`);
+      } else {
+        /*
+         * Never-seeded and unanswerable are both reported and neither fails.
+         * They are printed in their own words rather than as OK, because the
+         * one thing worse than not checking is claiming to have checked.
+         */
+        console.log(`  ${describeSeedState(state)}`);
       }
     } finally {
       await closeDatabase().catch(() => {});
