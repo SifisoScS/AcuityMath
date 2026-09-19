@@ -74,7 +74,46 @@ async function startServer() {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`[AcuityMath] Server running on http://localhost:${PORT}`);
     reportConfiguration();
+    void reportCorpusFreshness();
   });
+}
+
+/**
+ * Whether this server is about to serve content the repository no longer holds.
+ *
+ * `audit:corpus` checks the files on disk. It cannot see a database that was
+ * seeded from an older corpus, and such a database serves what it was seeded
+ * with — silently, while the gate reports every answer as verified. F0b
+ * repaired twelve pictures for four-to-six-year-olds and the local database
+ * went on drawing the old ones, because nobody had run the seed.
+ *
+ * **A warning rather than a refusal, deliberately.** The fix is one command and
+ * the condition is normal while somebody is authoring: edit a strand, look at
+ * the app, seed when ready. A server that refused to boot would make the F2
+ * workflow hostile, and the honest place for enforcement is the gate, which
+ * fails on exactly this.
+ *
+ * Asynchronous and swallowed: this is a diagnostic. A server that would not
+ * start because it could not *check* whether it was stale would be worse than
+ * one that is stale.
+ */
+async function reportCorpusFreshness(): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+
+  try {
+    const { getDatabase } = await import('./server/db/client');
+    const { seededFingerprint } = await import('./server/curriculum/seedCurriculum');
+    const { compareSeed, describeSeedState } = await import(
+      './server/curriculum/corpusFingerprint'
+    );
+
+    const state = compareSeed(await seededFingerprint(getDatabase()));
+    if (state.state !== 'current') {
+      console.warn(`[AcuityMath] ${describeSeedState(state)}`);
+    }
+  } catch {
+    // An unmigrated or unreachable database reports itself elsewhere, loudly.
+  }
 }
 
 /**

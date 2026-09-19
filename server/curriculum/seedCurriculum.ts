@@ -13,6 +13,7 @@
 import { eq, inArray, sql } from 'drizzle-orm';
 
 import * as schema from '../../drizzle/schema';
+import { corpusFingerprint } from './corpusFingerprint';
 import type { Database } from '../db/client';
 import {
   mapConcepts,
@@ -99,6 +100,34 @@ export async function seedCurriculum(db: Database): Promise<SeedReport> {
     hints: hintRows.length,
     hintErrorModes: hintErrorModeCount,
   };
+}
+
+/**
+ * Records which corpus this database is now serving.
+ *
+ * Written **after** the content, and separately, so that a seed which fails
+ * part way leaves no fingerprint at all. A fingerprint recorded first would
+ * claim a database was current while it held half a corpus — the one state
+ * worse than a stale database, because it looks checked.
+ */
+export async function recordCorpusFingerprint(db: Database): Promise<string> {
+  const fingerprint = corpusFingerprint();
+
+  await db
+    .insert(schema.corpusSeeds)
+    .values({ id: 1, fingerprint })
+    .onDuplicateKeyUpdate({ set: { fingerprint, seededAt: new Date() } });
+
+  return fingerprint;
+}
+
+/** What this database was last seeded from, or null if it never was. */
+export async function seededFingerprint(db: Database): Promise<string | null> {
+  const [row] = await db
+    .select({ fingerprint: schema.corpusSeeds.fingerprint })
+    .from(schema.corpusSeeds)
+    .limit(1);
+  return row?.fingerprint ?? null;
 }
 
 /**

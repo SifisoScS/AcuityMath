@@ -225,6 +225,13 @@
       "when": 1789668399276,
       "tag": "0031_clumsy_phalanx",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1789819828328,
+      "tag": "0032_serious_lightspeed",
+      "breakpoints": true
     }
   ]
 }
