@@ -16,6 +16,8 @@
  * wrong would vanish with it.
  */
 
+import 'dotenv/config';
+
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -67,7 +69,7 @@ function toInput(problem: Record<string, unknown>): VerificationInput {
   };
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const problems = loadAllStrands()
     .flatMap(strand => strand.curriculum.problems ?? [])
     .map(problem => toInput(problem as unknown as Record<string, unknown>));
@@ -203,7 +205,65 @@ function main(): void {
   writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + '\n', 'utf-8');
   console.log(`\nReport written to ${path.relative(ROOT, REPORT_PATH)}`);
 
-  if (failed.length > 0 || lopsided.length > 0) process.exit(1);
+  // --- is the database serving this corpus? ---------------------------------
+
+  /*
+   * **The gate's guarantee used to stop at the file.** Everything above reads
+   * `data/curriculum/*.json`; none of it looks at a database. So a database
+   * seeded from an older corpus serves whatever it was seeded with and this
+   * script stays green — which is exactly what happened after F0b repaired
+   * twelve pictures and nobody re-seeded.
+   *
+   * Checked only when `DATABASE_URL` is set, and **only `stale` fails.**
+   *
+   * That split is the whole design. CI sets `DATABASE_URL` for the integration
+   * suites and never seeds, so a never-seeded database is its ordinary state —
+   * failing on it would turn a content check into an infrastructure
+   * requirement, and the usual outcome of that is somebody deleting the check.
+   *
+   * `stale` is a different statement: this database *was* seeded, from a corpus
+   * that no longer exists. That is the defect F0b left behind — twelve repaired
+   * pictures on disk and the old ones still being served — and it cannot happen
+   * by accident of environment.
+   *
+   * An unseeded *deployment* is a real problem, and it is caught where it
+   * matters: `server.ts` says so at boot.
+   */
+  let seedStale = false;
+  if (process.env.DATABASE_URL) {
+    const { getDatabase, closeDatabase } = await import('../server/db/client');
+    const { seededFingerprint } = await import('../server/curriculum/seedCurriculum');
+    const { compareSeed, describeSeedState } = await import(
+      '../server/curriculum/corpusFingerprint'
+    );
+
+    console.log('\nDatabase');
+    try {
+      const state = compareSeed(await seededFingerprint(getDatabase()));
+      if (state.state === 'stale') {
+        console.error(`  FAIL ${describeSeedState(state)}`);
+        seedStale = true;
+      } else if (state.state === 'current') {
+        console.log(`  OK ${describeSeedState(state)}`);
+      } else {
+        /*
+         * Never-seeded and unanswerable are both reported and neither fails.
+         * They are printed in their own words rather than as OK, because the
+         * one thing worse than not checking is claiming to have checked.
+         */
+        console.log(`  ${describeSeedState(state)}`);
+      }
+    } finally {
+      await closeDatabase().catch(() => {});
+    }
+  } else {
+    console.log('\nDatabase\n  skipped — DATABASE_URL is unset, so there is nothing to compare against');
+  }
+
+  if (failed.length > 0 || lopsided.length > 0 || seedStale) process.exit(1);
 }
 
-main();
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});

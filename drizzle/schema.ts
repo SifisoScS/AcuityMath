@@ -836,6 +836,35 @@ export const onerosterClassLinks = mysqlTable(
   ],
 );
 
+/**
+ * Which corpus this database was seeded from.
+ *
+ * `audit:corpus` reads the files on disk and checks every answer in them. It
+ * never looks here, so a database seeded from an older corpus serves whatever
+ * it was seeded with while the gate stays green — the guarantee stops at the
+ * file.
+ *
+ * F0b repaired twelve pictures and the local database went on drawing the old
+ * ones, because nobody re-seeded. A developer opening the app that afternoon
+ * would have served a four-year-old the exact defect the gate had just
+ * certified as fixed.
+ *
+ * **One row, replaced on every seed.** History is not the point — "when did
+ * this drift" is answered by the repository, and a growing table would invite
+ * somebody to read the newest row as current when it is only the newest.
+ */
+export const corpusSeeds = mysqlTable('corpus_seeds', {
+  /*
+   * Fixed at 1. The check asks "what is this database serving" and there is
+   * exactly one answer; an autoincrement id would make it possible to hold two
+   * and force every reader to decide which counts.
+   */
+  id: int('id').primaryKey(),
+  /** sha256 of every curriculum and hint-pool file the seed read. */
+  fingerprint: varchar('fingerprint', { length: 64 }).notNull(),
+  seededAt: timestamp('seeded_at').defaultNow().notNull(),
+});
+
 // ---------------------------------------------------------------------------
 // Identity
 // ---------------------------------------------------------------------------

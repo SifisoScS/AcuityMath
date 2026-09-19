@@ -176,6 +176,12 @@ const NOT_LEARNER_SCOPED = [
    */
   'oneroster_sync_runs',
   /*
+   * Which corpus this database was seeded from. A fact about the *install* —
+   * one hash and a timestamp — and the only table here that describes the
+   * repository rather than anybody in it.
+   */
+  'corpus_seeds',
+  /*
    * A bearer token a platform issued to us, cached until it expires. It is a
    * credential for calling somebody else's API and names no person on either
    * side — the scope says what we may ask for, never whom we may ask about. A

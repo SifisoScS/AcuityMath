@@ -13,6 +13,7 @@
 import { eq, inArray, sql } from 'drizzle-orm';
 
 import * as schema from '../../drizzle/schema';
+import { corpusFingerprint } from './corpusFingerprint';
 import type { Database } from '../db/client';
 import {
   mapConcepts,
@@ -99,6 +100,76 @@ export async function seedCurriculum(db: Database): Promise<SeedReport> {
     hints: hintRows.length,
     hintErrorModes: hintErrorModeCount,
   };
+}
+
+/**
+ * Records which corpus this database is now serving.
+ *
+ * Written **after** the content, and separately, so that a seed which fails
+ * part way leaves no fingerprint at all. A fingerprint recorded first would
+ * claim a database was current while it held half a corpus — the one state
+ * worse than a stale database, because it looks checked.
+ */
+export async function recordCorpusFingerprint(db: Database): Promise<string> {
+  const fingerprint = corpusFingerprint();
+
+  await db
+    .insert(schema.corpusSeeds)
+    .values({ id: 1, fingerprint })
+    .onDuplicateKeyUpdate({ set: { fingerprint, seededAt: new Date() } });
+
+  return fingerprint;
+}
+
+/**
+ * What this database was last seeded from.
+ *
+ * **Three answers, not two.** `fingerprint: null` means the table is there and
+ * empty — seeding never happened. `unavailable` means the question could not be
+ * put at all, which is a different thing and must never be reported as healthy.
+ *
+ * CI is exactly the second case: `test:integration` creates a database per
+ * suite and never migrates the one named in `DATABASE_URL`, so the base
+ * database has no tables. The first version of this threw there and failed a
+ * content gate for a reason that had nothing to do with content.
+ */
+export async function seededFingerprint(
+  db: Database,
+): Promise<{ fingerprint: string | null } | { unavailable: string }> {
+  try {
+    const [row] = await db
+      .select({ fingerprint: schema.corpusSeeds.fingerprint })
+      .from(schema.corpusSeeds)
+      .limit(1);
+    return { fingerprint: row?.fingerprint ?? null };
+  } catch (error) {
+    /*
+     * A missing table is the ordinary case on an unmigrated database and is
+     * named as such. Anything else is passed through in its own words, because
+     * "could not check" is only useful if it says why.
+     */
+    /*
+     * The useful text is in the cause, not the wrapper. Drizzle reports
+     * `Failed query: select ... limit ?` and hangs the driver's own
+     * `ER_NO_SUCH_TABLE` underneath it, so reading `error.message` alone loses
+     * the one detail worth telling somebody.
+     */
+    const parts: string[] = [];
+    for (let current: unknown = error; current instanceof Error; current = current.cause) {
+      parts.push(current.message);
+      const code = (current as { code?: unknown }).code;
+      if (typeof code === 'string') parts.push(code);
+    }
+
+    const joined = parts.join(' | ');
+    const missingTable = /ER_NO_SUCH_TABLE|doesn't exist|no such table/i.test(joined);
+
+    return {
+      unavailable: missingTable
+        ? 'this database has no `corpus_seeds` table, so it has never been migrated'
+        : (parts[0]?.split(/\r?\n/)[0] ?? 'the database could not be queried'),
+    };
+  }
 }
 
 /**
