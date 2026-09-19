@@ -94,6 +94,9 @@ it is the same act at a larger number.
 `count-by-spread` — all three already exist in the corpus.
 **New:** `teen-digits-reversed` (reading 14 as 41).
 
+**Drafted:** [`counting-to-20.md`](counting-to-20.md) — 22 problems, awaiting
+review. No JSON written.
+
 ### 3.2 `number-bonds-to-10`
 
 | | |
@@ -335,6 +338,9 @@ Each is a test written so somebody is told:
 1. **The nineteen new error types.** Named from the errors two non-educators
    would expect. A teacher will know which ones children actually make, and
    which have been invented. This is the part most worth a real reviewer.
+   **All nineteen are provisional and unreviewed by an educator: they were
+   drafted from pedagogical literature and the corpus's patterns, not from
+   observation.**
 2. **Scope.** Time, money and simple data handling are deliberately absent:
    nothing downstream needs them. Age 8 opens with `unit-fractions` and
    `polygon-perimeter`, so time and money would be leaves — real for a child,
