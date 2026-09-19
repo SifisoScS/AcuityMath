@@ -12646,7 +12646,7 @@
             {
               "shape": "square",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 9
             },
             {
@@ -12657,7 +12657,7 @@
             }
           ],
           "frame": {
-            "width": 111,
+            "width": 122,
             "height": 36
           }
         }
@@ -12714,7 +12714,7 @@
             {
               "shape": "star",
               "size": 16,
-              "count": 5,
+              "count": 3,
               "spacing": 5
             },
             {
@@ -12725,7 +12725,7 @@
             }
           ],
           "frame": {
-            "width": 120,
+            "width": 156,
             "height": 36
           }
         }
@@ -12782,7 +12782,7 @@
             {
               "shape": "circle",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 6
             },
             {
@@ -12793,7 +12793,7 @@
             }
           ],
           "frame": {
-            "width": 102,
+            "width": 116,
             "height": 36
           }
         }
@@ -12974,7 +12974,7 @@
             {
               "shape": "circle",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 4
             },
             {
@@ -12985,7 +12985,7 @@
             }
           ],
           "frame": {
-            "width": 96,
+            "width": 112,
             "height": 36
           }
         }
@@ -13042,7 +13042,7 @@
             {
               "shape": "square",
               "size": 16,
-              "count": 5,
+              "count": 3,
               "spacing": 5
             },
             {
@@ -13053,7 +13053,7 @@
             }
           ],
           "frame": {
-            "width": 120,
+            "width": 156,
             "height": 36
           }
         }
@@ -13110,7 +13110,7 @@
             {
               "shape": "star",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 11
             },
             {
@@ -13121,7 +13121,7 @@
             }
           ],
           "frame": {
-            "width": 117,
+            "width": 126,
             "height": 36
           }
         }
@@ -13302,7 +13302,7 @@
             {
               "shape": "star",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 4
             },
             {
@@ -13313,7 +13313,7 @@
             }
           ],
           "frame": {
-            "width": 96,
+            "width": 112,
             "height": 36
           }
         }
@@ -13370,7 +13370,7 @@
             {
               "shape": "circle",
               "size": 16,
-              "count": 5,
+              "count": 3,
               "spacing": 10
             },
             {
@@ -13381,7 +13381,7 @@
             }
           ],
           "frame": {
-            "width": 140,
+            "width": 176,
             "height": 36
           }
         }
@@ -13438,7 +13438,7 @@
             {
               "shape": "square",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 11
             },
             {
@@ -13449,7 +13449,7 @@
             }
           ],
           "frame": {
-            "width": 117,
+            "width": 126,
             "height": 36
           }
         }
@@ -13630,7 +13630,7 @@
             {
               "shape": "square",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 9
             },
             {
@@ -13641,7 +13641,7 @@
             }
           ],
           "frame": {
-            "width": 111,
+            "width": 122,
             "height": 36
           }
         }
@@ -13698,7 +13698,7 @@
             {
               "shape": "star",
               "size": 16,
-              "count": 5,
+              "count": 3,
               "spacing": 10
             },
             {
@@ -13709,7 +13709,7 @@
             }
           ],
           "frame": {
-            "width": 140,
+            "width": 176,
             "height": 36
           }
         }
@@ -13766,7 +13766,7 @@
             {
               "shape": "circle",
               "size": 16,
-              "count": 4,
+              "count": 2,
               "spacing": 6
             },
             {
@@ -13777,7 +13777,7 @@
             }
           ],
           "frame": {
-            "width": 102,
+            "width": 116,
             "height": 36
           }
         }

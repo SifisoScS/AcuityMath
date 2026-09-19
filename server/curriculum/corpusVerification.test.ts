@@ -24,6 +24,7 @@ import {
   answerAsNumber,
   closeEnough,
   crossCheck,
+  drawnCount,
   figureAnswerIndex,
   lopsidedTypes,
   modeOf,
@@ -131,13 +132,17 @@ describe('a picture problem, checked against its own measurements', () => {
 
   it('fails when the correct option is not on offer at all', () => {
     /*
-     * **The twelve.** A child is shown two squares and asked which number says
-     * how many; the numerals offered are 5, 4 and 3. There is no right answer
-     * to pick, and the marked one is 4.
+     * A child is shown two squares and asked which number says how many; the
+     * numerals offered are 5, 4 and 3. There is no right answer to pick, and
+     * the marked one is 4.
      *
      * The structural check in `importCurriculum.test.ts` passes on this,
      * because the *marked* answer is among the choices. It checks the
      * container, not the content.
+     *
+     * This case is constructed, not quoted. `foundations-match-numeral-to-5`
+     * looked exactly like it to the first version of the gate and was never in
+     * this state — see `drawnCount`.
      */
     const result = verifyFigure(
       problem({
@@ -153,8 +158,8 @@ describe('a picture problem, checked against its own measurements', () => {
 
   it('separates "cannot resolve" from "nothing to check"', () => {
     /*
-     * The distinction the first scan collapsed, and the reason it reported zero
-     * failures while the twelve sat in front of it.
+     * The distinction the first scan collapsed, which is why it could report
+     * zero failures without having decided anything.
      *
      * `match` with an absent target is **unresolvable** — a rule applies and
      * the data fails it. `odd` is **unverifiable** — no rule applies at all.
@@ -180,6 +185,82 @@ describe('a picture problem, checked against its own measurements', () => {
   it('fails a one-hot vector that names two answers or none', () => {
     expect(figureAnswerIndex({ direction: 'same', measures: [1, 1, 0] }, null)).toBe('unresolvable');
     expect(figureAnswerIndex({ direction: 'same', measures: [0, 0, 0] }, null)).toBe('unresolvable');
+  });
+});
+
+describe('how many shapes a picture draws', () => {
+  /*
+   * **Every one of these is red against the version that shipped in F0b**,
+   * which read `figures[0].count` and so believed a picture was its first row.
+   *
+   * That belief is what condemned `foundations-match-numeral-to-5`. Its twelve
+   * problems drew four as two rows of two, the gate saw `2`, called them
+   * unanswerable, and the repair set row zero to `4` — leaving six shapes
+   * against an answer of four, shipped and seeded. F0e reverted the pictures
+   * and rewrote the rule; these hold the rule down.
+   */
+
+  it('adds every row up', () => {
+    expect(drawnCount([{ count: 2 }, { count: 2 }])).toBe(4);
+    expect(drawnCount([{ count: 10 }, { count: 4 }])).toBe(14);
+    expect(drawnCount([{ count: 3 }, { count: 3 }, { count: 3 }])).toBe(9);
+  });
+
+  it('agrees with reading the first row when there is only one', () => {
+    // Summing is not a loosening. For a single-row picture the two rules are
+    // the same number, which is why the mistake survived 48 match prompts.
+    expect(drawnCount([{ count: 7 }])).toBe(7);
+  });
+
+  it('says nothing rather than zero when there is nothing to count', () => {
+    expect(drawnCount(null)).toBeNull();
+    expect(drawnCount([])).toBeNull();
+    expect(drawnCount([{ shape: 'square' }])).toBeNull();
+  });
+
+  it('ignores a row with no count but still counts the rest', () => {
+    expect(drawnCount([{ count: 4 }, { shape: 'square' }])).toBe(4);
+  });
+
+  it('passes a two-row picture that draws what the problem is about', () => {
+    /*
+     * The exact shape of the twelve, restored: `[2, 2]` is four shapes, the
+     * target is four, and the numeral 4 is on offer. The old rule failed this
+     * and named the answer key as the culprit.
+     */
+    const result = verifyFigure(
+      problem({
+        verification: { mode: 'figure', direction: 'match', measures: [5, 4, 3], target: 4 },
+        promptFigures: [
+          { shape: 'square', count: 2 },
+          { shape: 'square', count: 2 },
+        ],
+        answer: '4',
+        choices: ['5', '4', '3'],
+      }),
+    );
+    expect(result.outcome).toBe('verified');
+  });
+
+  it('still catches a two-row picture that draws the wrong number', () => {
+    /*
+     * The positive control, and the state F0b actually left the corpus in:
+     * `[4, 2]` is six shapes against a target of four. Summing must not be so
+     * accommodating that a genuinely wrong picture slips through it.
+     */
+    const result = verifyFigure(
+      problem({
+        verification: { mode: 'figure', direction: 'match', measures: [5, 4, 3], target: 4 },
+        promptFigures: [
+          { shape: 'square', count: 4 },
+          { shape: 'square', count: 2 },
+        ],
+        answer: '4',
+        choices: ['5', '4', '3'],
+      }),
+    );
+    expect(result.outcome).toBe('failed');
+    expect(result.reason).toMatch(/the picture draws 6 but the problem is about 4/);
   });
 });
 

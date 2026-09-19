@@ -844,10 +844,11 @@ export const onerosterClassLinks = mysqlTable(
  * it was seeded with while the gate stays green — the guarantee stops at the
  * file.
  *
- * F0b repaired twelve pictures and the local database went on drawing the old
- * ones, because nobody re-seeded. A developer opening the app that afternoon
- * would have served a four-year-old the exact defect the gate had just
- * certified as fixed.
+ * F0b rewrote twelve pictures and the local database went on drawing the old
+ * ones, because nobody re-seeded: two versions of the same twelve problems,
+ * disagreeing, with nothing able to say so. Which of them was correct is not
+ * the point and was not knowable from here — as it turned out the database's
+ * were, and the gate was certifying the new ones.
  *
  * **One row, replaced on every seed.** History is not the point — "when did
  * this drift" is answered by the repository, and a growing table would invite

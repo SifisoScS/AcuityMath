@@ -211,7 +211,7 @@ async function main(): Promise<void> {
    * **The gate's guarantee used to stop at the file.** Everything above reads
    * `data/curriculum/*.json`; none of it looks at a database. So a database
    * seeded from an older corpus serves whatever it was seeded with and this
-   * script stays green — which is exactly what happened after F0b repaired
+   * script stays green — which is exactly what happened after F0b rewrote
    * twelve pictures and nobody re-seeded.
    *
    * Checked only when `DATABASE_URL` is set, and **only `stale` fails.**
@@ -222,7 +222,7 @@ async function main(): Promise<void> {
    * requirement, and the usual outcome of that is somebody deleting the check.
    *
    * `stale` is a different statement: this database *was* seeded, from a corpus
-   * that no longer exists. That is the defect F0b left behind — twelve repaired
+   * that no longer exists. That is the defect F0b left behind — twelve rewritten
    * pictures on disk and the old ones still being served — and it cannot happen
    * by accident of environment.
    *
