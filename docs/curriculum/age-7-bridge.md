@@ -1,277 +1,342 @@
-# F2 draft — the age-7 bridge
+# F2 — the age-7 bridge
 
-> **Status: a draft for review, not content.** Nothing here is in the corpus and
-> nothing should be until somebody who teaches seven-year-olds has marked it up.
-> The concept ids, bands and prerequisites are derived from what the corpus
-> already contains; the *pedagogy* is a proposal, and it is the part that needs a
-> reader rather than a test.
+> **Status: a reviewed draft. No content exists yet.** The concept set below is
+> settled; the problems are not written. Nothing here is in the corpus.
 >
-> Mark it up in place. The JSON is generated from whatever this file ends up
-> saying, so the argument happens here, once, in prose.
+> **Reviewer: the product owner, on the record. Not an educator.** That is
+> recorded rather than glossed, because the error types in §3 are the part most
+> in need of somebody who teaches seven-year-olds, and neither person who has
+> read this draft is one.
+>
+> Pedagogical frame: a bridge band drawn from Singapore's concrete–pictorial–
+> abstract progression, the Russian emphasis on mental arithmetic and place
+> value, Japanese lesson-study problem variation, and the UK mastery approach's
+> focus on verbal reasoning about quantity. **Age 7 is not "more of age 6" — it
+> is the year a child stops counting and starts structuring.**
 
 ---
 
-## 1. The gap is not a hole in a continuum
+## 1. The gap, measured
 
-`ageBands.ts` already says *"Foundations stops at 6 and the fractions strand
-starts at 8"*, and the roadmap calls age 7 the only year between 3 and 18 with no
+`ageBands.ts` says *"Foundations stops at 6 and the fractions strand starts at
+8"*, and `docs/ROADMAP.md` calls age 7 the only year between 3 and 18 with no
 authored problems. Both are true and both understate it.
 
-**The two halves of the corpus are not connected to each other at all.**
+**The two halves of the corpus are not connected at all**, and the near side is
+thinner than either draft of this document first assumed.
 
 | | |
 | --- | --- |
-| Where `foundations` ends (age 6) | counting to five, numerals to five, comparing size/length/quantity, ABAB patterns, odd-one-out |
-| Where the far side begins (age 8) | `unit-fractions` — `prerequisites: []`<br>`polygon-perimeter` — `prerequisites: []` |
+| Everything `foundations` contains | `compare-size`, `compare-length`, `compare-quantity`, `subitise-to-3`, `count-to-5`, `match-numeral-to-5`, `match-identical`, `odd-one-out`, `pattern-abab` |
+| Where it tops out | **counting to five**, and naming the numeral for it |
+| Where age 8 begins | `unit-fractions` — `prerequisites: []`<br>`polygon-perimeter` — `prerequisites: []` |
 
-Both age-8 strand roots declare **no prerequisites**. A child who completes every
-authored `foundations` concept has done nothing the corpus records as preparing
-them for either. There is no addition, no subtraction, no place value, no
-partitioning and no measurement anywhere in the authored content.
+Both age-8 strand roots declare **no prerequisites**. There is no addition, no
+subtraction, no place value, no partitioning and no measurement anywhere in the
+authored corpus.
 
-So age 7 is not a missing year in a sequence. It is **the missing bridge between
-two corpora that were never joined** — and the test of whether this work
-succeeded is not "age 7 has problems now" but "a child can walk from counting to
-five all the way to unit fractions without stepping over a gap."
+The first version of this draft assumed age 6 ended with counting to twenty and
+addition to ten, and chained the band to `foundations-count-to-20` and
+`foundations-add-to-10`. **Neither exists.** That is why the set below is seven
+concepts and not five: the bridge is longer than it looked.
 
-**That changes one thing about the deliverable.** The last step of F2 is adding
-`prerequisites` to `unit-fractions` and `polygon-perimeter`, pointing back into
-this band. Without that the new concepts are a third island.
+> The test of this work is not "age 7 has problems now". It is that a child can
+> walk from counting to five all the way to unit fractions without stepping over
+> a gap.
 
 ---
 
-## 2. Six proposed concepts
+## 2. The two decisions, recorded
 
-Ordered by dependency. Bands are proposed, not derived — `ageBands.ts` is
-hand-written by design, *"one person's reading of where each idea sits"*, and
-these rows are exactly that.
+**Seven concepts, not five.** `counting-to-20` and `number-bonds-to-10` join the
+band as its first two, chained from `foundations-count-to-5`. They could instead
+have been added to `foundations`, and were not: putting them here says *the
+foundations band was built thin and the bridge band corrects it*, which is what
+happened. It also leaves a verified corpus closed rather than reopening it.
 
-### 2.1 `foundations-count-to-20`
+**`half-of-odd-not-possible` is dropped.** "Half of nine doesn't exist" is
+**correct** for a seven-year-old working in whole numbers. As a distractor it
+would have marked a right answer wrong — the same defect as the twelve pictures
+F0b repaired, arrived at from the other direction. If the idea is wanted later it
+returns as `half-of-odd-rounded-down` ("half of 9 is 4"), which is an error
+rather than a truth.
+
+---
+
+## 3. The seven concepts
+
+Ordered by dependency. Every prerequisite below names a concept that exists, or
+one defined earlier in this list.
+
+**Bands are ranges, never a single year.** No concept in the corpus uses one, and
+a single-year band would make these reachable at exactly 7 and nowhere else.
+Every pair below satisfies the rule `importCurriculum.test.ts` enforces — a
+prerequisite never *starts* later than the thing that needs it.
+
+### 3.1 `counting-to-20`
 
 | | |
 | --- | --- |
-| **Title** | Counting to twenty |
 | **Band** | 6–7 |
 | **Prerequisites** | `foundations-count-to-5`, `foundations-match-numeral-to-5` |
-| **Problem types** | `match-set`, `count-set`, `match-set-interleaved`, `count-set-interleaved` |
-| **Verification** | `figure` — same shape as the existing counting concepts |
+| **Feeds** | `number-bonds-to-10`, `place-value-to-100`, `measurement-compare-and-iterate` |
 
-Counting past five, and reading the numeral that names the count. Reuses the
-foundations problem-type vocabulary unchanged, because it is the same act at a
-larger number.
+Counting past five, and reading the numeral that names the count. The teen
+numbers are the reason this is a concept rather than an extension: *fourteen*
+says the four first, and that is the first time the spoken name and the written
+numeral disagree about order.
 
-**Proposed error types** — all three already exist in the corpus:
-`off-by-one-overcount`, `off-by-one-undercount`, `count-by-spread` (judging
-quantity by how much space the objects take up).
+**Problem types:** `count-set`, `match-set`, `count-set-interleaved`,
+`match-set-interleaved` — the existing foundations vocabulary unchanged, because
+it is the same act at a larger number.
 
-> **For review:** is twenty right, or should this stop at ten and a second
-> concept take ten-to-twenty? The argument for twenty is that teen numbers are
-> where the naming breaks ("fourteen" says the four first) and that is worth
-> meeting inside a counting concept rather than after it.
+**Error types:** `off-by-one-overcount`, `off-by-one-undercount`,
+`count-by-spread` — all three already exist in the corpus.
+**New:** `teen-digits-reversed` (reading 14 as 41).
 
-### 2.2 `number-bonds-to-10`
+### 3.2 `number-bonds-to-10`
 
 | | |
 | --- | --- |
-| **Title** | Pairs that make ten |
 | **Band** | 6–8 |
-| **Prerequisites** | `foundations-count-to-20` |
-| **Problem types** | `match-set`, `count-set` — see §3 before adding anything symbolic |
-| **Verification** | `figure` for the pictured items, `sympy` for the written ones |
+| **Prerequisites** | `counting-to-20` |
+| **Feeds** | `add-subtract-within-100` |
 
 The pairs that make ten, met as a fact to know rather than a sum to compute.
 This is the concept that makes everything after it cheap, and the one most worth
 over-resourcing.
 
-**Proposed error types:** `bond-off-by-one`, `bond-counts-one-part-twice`,
-`bond-ignores-total` (giving any pair rather than one summing to ten). **All
-three are new** — no existing foundations code describes them.
+**Problem types:** `bond-complete` (7 + __ = 10), `bond-pick` (which pair makes
+ten), `bond-from-picture`, `bond-decompose` (10 is __ and __).
 
-### 2.3 `add-subtract-within-20`
+**Error types — all new:** `bond-off-by-one`, `bond-counts-one-part-twice`,
+`bond-ignores-total` (any pair rather than one summing to ten).
 
-| | |
-| --- | --- |
-| **Title** | Adding and taking away |
-| **Band** | 7–8 |
-| **Prerequisites** | `number-bonds-to-10` |
-| **Problem types** | `word-problem` + one symbolic type — see §3 |
-| **Verification** | `sympy` — `"7 + 5"`, expected `12` |
-
-The first concept in the corpus whose answers are **machine-checkable
-arithmetic**, which matters: the gate can verify every one of them, where the
-counting concepts can only be checked against their own pictures.
-
-**Proposed error types:** `counts-the-start-number` (counting on from 7 by
-saying "7, 8, 9…" and landing one short), `subtracts-smaller-from-larger`
-regardless of order, `ignores-the-ten-boundary`. **All three new.**
-
-> **For review:** the crossing-ten cases (8 + 5) are materially harder than the
-> within-ten ones (3 + 4). One concept or two?
-
-### 2.4 `place-value-tens-ones`
+### 3.3 `place-value-to-100`
 
 | | |
 | --- | --- |
-| **Title** | Tens and ones |
 | **Band** | 7–8 |
-| **Prerequisites** | `foundations-count-to-20` |
-| **Problem types** | `word-problem` + one visual type — see §3 |
-| **Verification** | `sympy` for the numeric answers, `figure` for the grouped pictures |
+| **Prerequisites** | `counting-to-20`, `foundations-compare-size` |
+| **Feeds** | `add-subtract-within-100`, `equal-sharing-and-halves` |
 
-A two-digit number as a count of tens and a count of ones. Independent of
-addition, so it can be authored in parallel.
+The single biggest conceptual jump of the year. A child who can recite to a
+hundred is not the same as a child who knows 47 is four tens and seven ones.
 
-**Proposed error types:** `digits-as-separate-numbers` (reading 24 as "two and
-four"), `tens-and-ones-swapped`, `place-value-by-position-only`. **All new.**
+**Problem types:** `bundle-and-name` (loose units and bundled tens, child names
+the number), `decompose` ("47 is __ tens and __ ones"), `compare-by-place`,
+`build` (given "3 tens and 8 ones", pick the numeral).
 
-### 2.5 `equal-sharing` — *the on-ramp to fractions*
+**Error types — all new:** `digits-as-units` (47 read as "four and seven"),
+`reverse-digits` (47 as 74), `place-swap` (writing 407 for four tens and seven
+ones), `compare-by-first-digit-only`.
+
+> **An authoring constraint on that last one.** Comparing by the first digit is
+> *correct* for 62 against 59 and wrong for 45 against 54. It may only be
+> attached to items where it actually misleads. The gate will not catch a
+> misuse: it checks that a distractor is reachable and is not the answer, not
+> that the error type applies to this particular pair of numbers.
+
+### 3.4 `add-subtract-within-100`
 
 | | |
 | --- | --- |
-| **Title** | Sharing equally |
 | **Band** | 7–8 |
-| **Prerequisites** | `add-subtract-within-20` |
-| **Problem types** | `word-problem` + one visual type — see §3 |
-| **Verification** | `figure` for the partitioned shapes, `sympy` for "how many each" |
+| **Prerequisites** | `place-value-to-100`, `number-bonds-to-10` |
+| **Feeds** | `simple-multiplication-as-equal-groups` |
 
-Splitting a set or a shape into equal parts, and naming what one part is. This
-is the concept `unit-fractions` has been assuming since it was written.
+Where place value stops being a fact and becomes a tool. Regrouping is what
+proves a child holds ten as a unit rather than as a word.
 
-**Proposed error types:** `parts-not-equal` (accepting any split into the right
-*number* of pieces), `shares-by-count-not-size`, `names-the-parts-not-the-whole`.
-**All new**, and the first is the one that matters — it is the misconception
-that survives all the way into `compare-fractions` at 9.
+**Problem types:** `no-regroup` (23 + 45 by place), `regroup-add` (28 + 35),
+`regroup-subtract` (52 − 27), `missing-addend` (34 + __ = 51), `word-context`
+(two sentences at most).
 
-### 2.6 `measure-with-units` — *the on-ramp to perimeter*
+**Error types — all new:** `ones-first-no-regroup` (28 + 35 = 53),
+`subtract-smaller-from-larger` (52 − 27 taken as 57), `off-by-ten` (a borrow
+that loses or gains a ten), `add-all-digits` (23 + 45 = 68).
+
+### 3.5 `equal-sharing-and-halves` — *the on-ramp to fractions*
 
 | | |
 | --- | --- |
-| **Title** | Measuring with a unit |
 | **Band** | 7–8 |
-| **Prerequisites** | `foundations-compare-length`, `foundations-count-to-20` |
-| **Problem types** | `word-problem` + one visual type — see §3 |
-| **Verification** | `figure` for the laid-out units, `sympy` for the totals |
+| **Prerequisites** | `place-value-to-100`, `foundations-compare-size` |
+| **Feeds** | `unit-fractions` (age 8) |
 
-Repeating a unit along a length and counting the repeats. `polygon-perimeter` at
-8–9 assumes it.
+Sharing and halving are the concrete experiences that make *one half* mean
+something before it becomes notation. Partition before defining — the
+lesson-study move. This is the concept `unit-fractions` has assumed since it was
+written.
 
-**Proposed error types:** `counts-marks-not-gaps` (the fencepost error),
-`units-with-gaps`, `units-overlapping`. **All new.** `length-by-endpoint` already
-exists in `foundations-compare-length` and applies here too.
+**Problem types:** `share-equally` ("12 apples between 2 children"), `halve-a-set`
+("half of 8"), `halve-a-shape` (figure mode), `is-it-half` (an unequal partition;
+child picks the reason from a list — see §5), `double-and-halve`.
+
+**Error types — all new:** `parts-not-equal` (any split into the right *number*
+of pieces), `shares-by-count-not-size`, `half-as-subtract-one` ("half of 8 is
+7"), `double-as-add-one`.
+
+`parts-not-equal` is the one that matters: it survives all the way into
+`compare-fractions` at 9.
+
+### 3.6 `measurement-compare-and-iterate` — *the on-ramp to perimeter*
+
+| | |
+| --- | --- |
+| **Band** | 6–8 |
+| **Prerequisites** | `foundations-compare-size`, `foundations-compare-length`, `counting-to-20` |
+| **Feeds** | `polygon-perimeter` (age 8) |
+
+Comparing by attribute rather than by appearance, and the year comparison
+becomes transitive. **This is the second bridge**, and without it
+`polygon-perimeter` stays orphaned with no prerequisites at all.
+
+**Problem types:** `direct-compare`, `unit-iterate` ("this pencil is 4 paperclips
+long, that one is 6"), `transitive` ("Ravi is taller than Sam, Sam than Dee"),
+`estimate`, `attribute-match` (figure mode).
+
+**Error types — all new:** `compare-by-appearance` (a wide short object judged
+longer than a narrow tall one), `non-transitive`, `wrong-attribute` (length when
+asked for weight), `estimate-unreasoned` ("the door is 50 metres tall").
+
+### 3.7 `simple-multiplication-as-equal-groups` — *the bridge out*
+
+| | |
+| --- | --- |
+| **Band** | 7–8 |
+| **Prerequisites** | `equal-sharing-and-halves`, `add-subtract-within-100` |
+| **Feeds** | `unit-fractions` (age 8) |
+
+Multiplication as repeated equal groups, not as tables — so that when fractions
+arrive at 8, *3 × 4* already means *three groups of four*, which is the structure
+the fraction strand assumes.
+
+**Problem types:** `count-equal-groups` (three bags of four), `skip-count`
+(written or picked — see §5), `array` (a 4×3 grid), `multiply-as-repeated-add`,
+`word-context`.
+
+**Error types — all new:** `add-instead-of-multiply` ("3 groups of 4 is 7"),
+`count-groups-not-total` ("3 groups of 4 is 3"), `skip-count-slip`,
+`array-dimension-confusion` (4×3 read as 4+3).
+
+### The chain, end to end
+
+```
+foundations-count-to-5 ────┬──▶ counting-to-20 ──┬──▶ number-bonds-to-10 ─────────┐
+foundations-match-numeral-to-5 ─┘                │                                │
+                                                 ├──▶ place-value-to-100 ─────────┼──▶ add-subtract-within-100 ──┐
+foundations-compare-size ────────────────────────┤            │                   │                              │
+                                                 │            └──▶ equal-sharing-and-halves ──┬──▶ unit-fractions (8)
+foundations-compare-length ──────────────────────┴──▶ measurement-compare-and-iterate         │
+                                                              │                simple-multiplication ────────────┘
+                                                              └──▶ polygon-perimeter (8)
+```
+
+**Closing it means editing two existing concepts**: `unit-fractions` gains
+`equal-sharing-and-halves` and `simple-multiplication-as-equal-groups`;
+`polygon-perimeter` gains `measurement-compare-and-iterate`. Until then the new
+band is a third island.
 
 ---
 
-## 3. There is no single problem-type vocabulary to reuse
+## 4. Which problem-type vocabulary this follows
 
-Found while checking this draft's own claims, and it is the reason five rows
-above say "see §3" instead of naming types.
+A concept declares `problem_types`; a problem carries a `problem_type`. **In
+three strands of four these are different vocabularies** — 20 declared terms are
+carried by no problem, 4 carried terms are declared by no concept, and 388 of
+1,132 problems (34%) carry a type their own concept never mentions.
 
-**A concept declares `problem_types`. A problem carries a `problem_type`. In
-three strands of four these are different vocabularies.**
+`foundations` is the only coherent strand: 0 of 180.
 
-| | |
-| --- | --- |
-| Declared on concepts but carried by no problem | 20 terms — `classification`, `decomposition`, `equation-solving`, `modeling`, `percent`, `rate`, `scaling`, `symbolic-translation`, … |
-| Carried by problems but declared by no concept | 4 terms — `conceptual`, `procedural`, `symbolic`, `visual-model` |
+**This band follows `foundations`.** Every type named in §3 is declared by its
+concept and carried by its problems, and nothing else. That is the coherent
+half, it is the half age 7 sits against, and choosing the incoherent convention
+for consistency's sake is how incoherence becomes the standard.
 
-| strand | problems | carrying a type their own concept never declares |
-| --- | ---: | ---: |
-| `foundations` | 180 | **0** |
-| `algebra-1` | 252 | 108 (43%) |
-| `fractions-to-algebra` | 500 | 200 (40%) |
-| `geometry` | 200 | 80 (40%) |
-| **all** | **1,132** | **388 (34%)** |
-
-`foundations` is the only internally consistent strand — its concepts declare
-exactly what its problems carry. The three imported strands declare a rich
-taxonomy that nothing implements, and label their problems with four generic
-terms no concept mentions.
-
-**This is not the same severity as the twelve**, and saying so matters.
-`problemType` is imported, stored, and used by nothing that reaches a child —
-the schema notes it is kept for a retrieval-practice scheduler that does not
-exist yet. Today it is read by exactly one thing: the position invariant, which
-groups by it. So this is a taxonomy that was designed and never made coherent,
-not a defect a seven-year-old can feel.
-
-It still has to be decided before authoring, because **new content cannot "use
-the existing convention" when there are two of them.**
-
-> **For review — which does age 7 follow?**
->
-> **(a) The `foundations` convention.** Concepts declare precisely the types
-> their problems carry. Internally consistent, matches the neighbour this band
-> extends, and leaves the three imported strands alone.
->
-> **(b) The imported convention.** Generic labels — `procedural`, `visual-model`,
-> `conceptual` — matching what 388 problems already do in practice.
->
-> I lean to **(a)**: it is the half of the corpus that is coherent, it is the
-> half age 7 sits against, and picking the incoherent convention to be consistent
-> with incoherence is how the incoherence becomes the standard.
-
-**One consequence either way.** The position invariant only examines groups of
-twelve or more problems sharing a type. Spreading 120–150 new problems across
-many narrow types would put some groups under that floor, where nobody is
-watching the answer positions. Fewer, larger types are safer.
+One consequence: the position invariant only examines groups of twelve or more
+problems sharing a type. Spreading 140–175 problems across thirty narrow types
+would put most groups under that floor, where nobody is watching where the
+answer sits. **Four or five types per concept, each with enough problems to be
+measurable.**
 
 ---
 
-## 4. What this costs
+## 5. Three things that cannot be marked as written
 
-At the corpus's own density — 20 to 25 problems per concept, never fewer:
+Each was in the reviewed draft and each is a rewrite, not engineering.
 
-| | |
-| --- | --- |
-| Concepts | 6 |
-| Problems | **120–150** |
-| Of which machine-verifiable | roughly two thirds (`sympy`), the rest `figure` |
-| New misconception codes | 16 |
+| as drafted | why it cannot be marked | as it lands |
+| --- | --- | --- |
+| *"count by 2s, 5s, 10s, **aloud**"* | there is no audio input | a written or selected answer |
+| *"compare, **with a follow-up rationale**"*<br>*"yes/no **with reasoning**"* | **0 of 1,132** problems have multiple parts or a follow-up; one prompt, one answer | the rationale becomes the choice — *"Which is larger, and why?"* with the reasons as options |
+| a free-text answer | `text` exists in the enum and is used by **zero** problems; nothing grades one | not used |
 
-Every problem needs a prompt, an answer, a `verification` object, an
-explanation, a hint, distractors mapped to named error types, and — for the
-pictured ones — a `visual` block. The corpus gate will check every answer that
-carries an expression, which is the reason for doing the gate first.
+The middle one is the interesting rewrite: picking among rationales is a better
+item than writing one, because the distractors become named misconceptions the
+engine can diagnose.
 
 ---
 
-## 5. What the build will break, on purpose
+## 6. How each answer will be verified
 
-Adding this content makes several asserted figures wrong, and each one is a test
-written so that somebody is told:
+The corpus carries three independent statements of every numeric answer, and the
+gate cross-checks all three. New content must do the same.
 
-- `importCurriculum.test.ts` → `it('leaves age 7 with nothing at all')`. **This
-  test failing is the deliverable.** It exists to make the gap impossible to
-  close silently.
+| | |
+| --- | --- |
+| `answer` | what a child is marked against |
+| `expression` | the mathematics, e.g. `"28 + 35"` |
+| `expected` | the computed value |
+
+Figure problems carry `measures` and a `direction` that determine which option is
+correct, plus a `target` where one applies — **and the picture must agree with
+the target.** That is exactly what the twelve repaired problems got wrong: five
+fields agreed and the drawing did not.
+
+Roughly: `place-value-to-100`, `add-subtract-within-100`, parts of
+`equal-sharing-and-halves`, `measurement-compare-and-iterate` and
+`simple-multiplication-as-equal-groups` are SymPy-verifiable; `counting-to-20`,
+`number-bonds-to-10` and the partition pictures are figure mode.
+
+---
+
+## 7. What the build will break, on purpose
+
+Each is a test written so somebody is told:
+
+- `importCurriculum.test.ts` → **`it('leaves age 7 with nothing at all')`**. This
+  test failing is the deliverable.
 - the concept and problem counts (51 / 1,132) and the coverage-by-age map
-- `contentCoverage.test.ts`'s age table, and the table in `ROADMAP.md` §9, which
-  is computed from it
-- `standardsCoverage.test.ts` — six more concepts carrying no standard, which
-  widens the F3 gap and should be stated rather than absorbed
+- `contentCoverage.test.ts`'s age table, and `ROADMAP.md` §9, which is computed
+  from it
+- `standardsCoverage.test.ts` — seven more concepts carrying no standard, which
+  widens the **F3** gap and should be stated rather than absorbed
+- `pnpm audit:corpus` will check every new answer, and `corpus_seeds` means the
+  database must be re-seeded before the app serves any of it
 
 ---
 
-## 6. Open questions for the reviewer
+## 8. Still open
 
-1. **Is the six-concept shape right**, or is this two passes — number first
-   (2.1–2.4), then the two on-ramps (2.5–2.6) once the number work is in?
-2. **Twenty or ten** for the counting ceiling (§2.1).
-3. **One concept or two** for adding across the ten boundary (§2.3).
-4. **The sixteen new misconception codes** are the part I am least able to judge.
-   They are named from the errors I would expect; a teacher will know which ones
-   children actually make, and which three I have invented that nobody makes.
-5. **Which problem-type convention** (§3) — the coherent `foundations` one, or
-   the one 388 problems already follow.
-6. **Should `unit-fractions` and `polygon-perimeter` gain prerequisites** pointing
-   here? I think yes and §1 argues why, but it changes two existing concepts and
-   that deserves a second opinion.
+1. **The nineteen new error types.** Named from the errors two non-educators
+   would expect. A teacher will know which ones children actually make, and
+   which have been invented. This is the part most worth a real reviewer.
+2. **Scope.** Time, money and simple data handling are deliberately absent:
+   nothing downstream needs them. Age 8 opens with `unit-fractions` and
+   `polygon-perimeter`, so time and money would be leaves — real for a child,
+   but they do not unblock anything, and this band's job is to connect two
+   disconnected halves. Worth revisiting once it does.
+3. **Whether `counting-to-20` should instead extend `foundations`.** Decided
+   against in §2, and the decision is reversible until problems are written.
 
 ---
 
-## 7. What is not in this draft
+## 9. What is not in this document
 
-No problems. Deliberately: 120 to 150 items is a great deal of work to redo if
-the concept shape is wrong, and the concept shape is the part a reviewer can
-judge quickly. Once §2 is agreed, the problems follow — as markdown here first,
-then generated into the strand JSON, then checked by `pnpm audit:corpus` before
-any of it reaches a child.
+Problems. 140–175 items is a great deal of work to redo if the concept shape is
+wrong, and the shape is what a reviewer can judge quickly.
+
+Next: problems per concept at corpus density (20–25), as markdown here first,
+then reviewed, then converted to JSON with the three-way answer structure, then
+`pnpm audit:corpus` before any of it reaches a child.
