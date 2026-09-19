@@ -56,8 +56,8 @@ happened. It also leaves a verified corpus closed rather than reopening it.
 
 **`half-of-odd-not-possible` is dropped.** "Half of nine doesn't exist" is
 **correct** for a seven-year-old working in whole numbers. As a distractor it
-would have marked a right answer wrong — the same defect as the twelve pictures
-F0b repaired, arrived at from the other direction. If the idea is wanted later it
+would have marked a right answer wrong — which is precisely what F0b did to
+twelve pictures that were already right (see §6). If the idea is wanted later it
 returns as `half-of-odd-rounded-down` ("half of 9 is 4"), which is an error
 rather than a truth.
 
@@ -291,8 +291,21 @@ gate cross-checks all three. New content must do the same.
 
 Figure problems carry `measures` and a `direction` that determine which option is
 correct, plus a `target` where one applies — **and the picture must agree with
-the target.** That is exactly what the twelve repaired problems got wrong: five
-fields agreed and the drawing did not.
+the target.**
+
+A picture is a *list of figure rows*, and "how many it draws" is the sum of them.
+112 of the corpus's prompts have more than one row. This is not a detail: F0b
+read only `figures[0].count`, and so believed the twelve
+`foundations-match-numeral-to-5` problems drew two shapes when they drew four as
+`[2, 2]`. It reported them as unanswerable, and the repair that followed set the
+first row to `4`, leaving `[4, 2]` — six shapes against an answer of four. **The
+gate manufactured the defect it reported and then verified the corruption**,
+because with row zero at 4 the first-row rule agreed with the target.
+
+F0e reverted all twelve pictures and made the rule sum every row. Authoring here
+inherits the corrected rule, which is what lets `counting-to-20` draw fourteen as
+a full ten and a remainder — the shape the teen numbers are taught in — rather
+than as one long line of fourteen.
 
 Roughly: `place-value-to-100`, `add-subtract-within-100`, parts of
 `equal-sharing-and-halves`, `measurement-compare-and-iterate` and

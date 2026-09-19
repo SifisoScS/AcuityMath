@@ -84,7 +84,7 @@ async function startServer() {
  * `audit:corpus` checks the files on disk. It cannot see a database that was
  * seeded from an older corpus, and such a database serves what it was seeded
  * with — silently, while the gate reports every answer as verified. F0b
- * repaired twelve pictures for four-to-six-year-olds and the local database
+ * rewrote twelve pictures for four-to-six-year-olds and the local database
  * went on drawing the old ones, because nobody had run the seed.
  *
  * **A warning rather than a refusal, deliberately.** The fix is one command and

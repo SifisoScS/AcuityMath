@@ -8,11 +8,16 @@
  * serves whatever it was seeded with, **and the gate stays green the whole
  * time** — the guarantee stops at the file.
  *
- * That is not hypothetical. F0b repaired twelve pictures in
+ * That is not hypothetical. F0b rewrote twelve pictures in
  * `foundations-match-numeral-to-5`; running the app afterwards found the local
- * database still drawing two squares against an answer of four, because nobody
- * had re-seeded. A developer opening the app that day would have served a
- * four-year-old the exact defect the gate had just certified as fixed.
+ * database still drawing the old ones, because nobody had re-seeded.
+ *
+ * The direction that drift ran is worth keeping, because it is not the
+ * flattering one. F0e established that the *old* pictures were the correct
+ * ones and F0b's rewrite had corrupted them — so for a few days the database
+ * was right, the files were wrong, and the gate was green on the files. A
+ * check that only knows the two disagree is the right check precisely because
+ * it does not need to know which is which.
  *
  * It is the same shape as the writerless tables and the `verification` objects
  * nothing evaluated: **two representations of one truth, and nothing checking
