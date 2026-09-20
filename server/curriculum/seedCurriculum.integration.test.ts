@@ -71,22 +71,22 @@ describeWithDb('curriculum seed', () => {
   }
 
   describe('what it wrote', () => {
-    it('writes all 51 concepts and 1,132 problems', async () => {
+    it('writes all 52 concepts and 1,154 problems', async () => {
       const counts = await curriculumCounts(db);
-      expect(counts.authoredProblems).toBe(1_132);
-      // 51 imported plus the 12 the generator needs, created on the serve path.
-      expect(counts.concepts).toBeGreaterThanOrEqual(51);
+      expect(counts.authoredProblems).toBe(1_154);
+      // 52 imported plus the 12 the generator needs, created on the serve path.
+      expect(counts.concepts).toBeGreaterThanOrEqual(52);
     });
 
-    it('writes the 572-item hint library with its retrieval dimensions', async () => {
+    it('writes the 584-item hint library with its retrieval dimensions', async () => {
       const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(schema.hints);
-      expect(Number(n)).toBe(572);
+      expect(Number(n)).toBe(584);
 
       const [{ withState }] = await db
         .select({ withState: sql<number>`count(*)` })
         .from(schema.hints)
         .where(sql`${schema.hints.cognitiveState} is not null`);
-      expect(Number(withState)).toBe(572);
+      expect(Number(withState)).toBe(584);
 
       // A hint commonly targets two error modes; the join table is what keeps
       // the second one.
@@ -186,14 +186,51 @@ describeWithDb('curriculum seed', () => {
       expect(problem.visual).toBeTruthy();
     });
 
-    it('falls back to the generator for a seven-year-old, who has no written content', async () => {
-      // The gap the age banding exposed: foundations stops at 6 and the
-      // fractions strand starts at 8. A seven-year-old must still get a session.
+    it('serves a written question to a seven-year-old, who used to have none', async () => {
+      /*
+       * **This test is the age-7 gap, measured through the serve path.**
+       *
+       * It read `expect(problem.source).toBe('generated')` and was named
+       * *falls back to the generator for a seven-year-old, who has no written
+       * content*. Foundations stopped at 6, the fractions strand started at 8,
+       * and the comment recorded that a seven-year-old "must still get a
+       * session" — from the generator, because nothing had been written.
+       *
+       * `counting-to-20` is written, so the preference for authored content
+       * now finds some. Everything upstream said this would happen; this is
+       * the one that says a child actually receives it.
+       */
       const learner = await learnerAged(7);
       const problem = await serveNextProblem(db, learner);
 
-      expect(problem.source).toBe('generated');
-      expect(problem.choices.length).toBe(4);
+      expect(problem.source).toBe('authored');
+      expect(problem.conceptId).toBe('counting-to-20');
+      // Three options, not the generator's four, and a picture like the rest of
+      // the early corpus — a six-year-old cannot read a prompt either.
+      expect(problem.choices.length).toBe(3);
+      expect(problem.visual).toBeTruthy();
+    });
+
+    it('leaves no age at all without something written', async () => {
+      /*
+       * **What replaced the age-seven fallback test, after a wrong guess.**
+       *
+       * The first attempt at a replacement asserted that *some other* age still
+       * falls back on banding alone, and picked seventeen. Seventeen has 63
+       * authored problems. The premise was invented rather than checked, and
+       * the test failed for the right reason.
+       *
+       * Age seven was the last year with nothing, so there is no such age left
+       * and this asserts that directly. The generator fallback has not stopped
+       * mattering and is not untested — it is covered by *keeps working after a
+       * concept's written problems are exhausted*, one describe below, which
+       * exercises the path that actually still occurs.
+       */
+      for (const age of [3, 7, 11, 17]) {
+        const learner = await learnerAged(age);
+        const problem = await serveNextProblem(db, learner);
+        expect(problem.source, `age ${age}`).toBe('authored');
+      }
     });
 
     it('never offers a three-year-old a fraction', async () => {
