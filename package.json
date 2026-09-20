@@ -19,7 +19,8 @@
     "db:migrate": "drizzle-kit migrate",
     "test:integration": "vitest run integration.test",
     "db:seed": "tsx scripts/seed-curriculum.ts",
-    "db:seed:demo": "tsx scripts/seed-demo-family.ts"
+    "db:seed:demo": "tsx scripts/seed-demo-family.ts",
+    "figures:baseline": "tsx scripts/figure-baseline.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

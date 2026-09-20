@@ -1,0 +1,1147 @@
+[
+  {
+    "id": "counting-to-20-01",
+    "conceptId": "counting-to-20",
+    "prompt": "Count them. Which one has the same number?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 141,
+          "height": 36
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 31,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 52,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 73,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 94,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 115,
+            "y": 10,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 165,
+          "height": 36
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 22,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 43,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 64,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 85,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 106,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 127,
+            "y": 10,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 165,
+          "height": 36
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 11.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 32.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 53.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 74.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 95.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 116.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 137.5,
+            "y": 10,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 165,
+          "height": 36
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 10,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 53,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 96,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 139,
+            "y": 10,
+            "size": 16
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-compare-length-01",
+    "conceptId": "foundations-compare-length",
+    "prompt": "Which stick is the longest?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 114,
+          "height": 114
+        },
+        "drawables": [
+          {
+            "kind": "bar",
+            "x": 17,
+            "y": 15,
+            "length": 72,
+            "thickness": 8
+          },
+          {
+            "kind": "bar",
+            "x": 53,
+            "y": 53,
+            "length": 44,
+            "thickness": 8
+          },
+          {
+            "kind": "bar",
+            "x": 17,
+            "y": 86,
+            "length": 26,
+            "thickness": 18
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 100,
+          "height": 38
+        },
+        "drawables": [
+          {
+            "kind": "bar",
+            "x": 14,
+            "y": 15,
+            "length": 72,
+            "thickness": 8
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 100,
+          "height": 38
+        },
+        "drawables": [
+          {
+            "kind": "bar",
+            "x": 46,
+            "y": 15,
+            "length": 44,
+            "thickness": 8
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 100,
+          "height": 38
+        },
+        "drawables": [
+          {
+            "kind": "bar",
+            "x": 37,
+            "y": 10,
+            "length": 26,
+            "thickness": 18
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-compare-quantity-01",
+    "conceptId": "foundations-compare-quantity",
+    "prompt": "Which row has more?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 151,
+          "height": 102
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 30,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 50,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 70,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 90,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 110,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 44,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 49,
+            "y": 44,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 88,
+            "y": 44,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 127,
+            "y": 44,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 78,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 66,
+            "y": 78,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 122,
+            "y": 78,
+            "size": 14
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 151,
+          "height": 34
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 18.5,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 38.5,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 58.5,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 78.5,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 98.5,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 118.5,
+            "y": 10,
+            "size": 14
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 151,
+          "height": 34
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 49,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 88,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 127,
+            "y": 10,
+            "size": 14
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 151,
+          "height": 34
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 12.5,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 68.5,
+            "y": 10,
+            "size": 14
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 124.5,
+            "y": 10,
+            "size": 14
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-compare-size-01",
+    "conceptId": "foundations-compare-size",
+    "prompt": "Which shape is the biggest?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 330,
+          "height": 110
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 90
+          },
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 140,
+            "y": 30,
+            "size": 50
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 261,
+            "y": 41,
+            "size": 28
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 110,
+          "height": 110
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 90
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 110,
+          "height": 110
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 30,
+            "y": 30,
+            "size": 50
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 110,
+          "height": 110
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 41,
+            "y": 41,
+            "size": 28
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-count-to-5-01",
+    "conceptId": "foundations-count-to-5",
+    "prompt": "Count them. Which one has the same number?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 102,
+          "height": 36
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 32,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 54,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 76,
+            "y": 10,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 108,
+          "height": 72
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 35.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 56.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 35.5,
+            "y": 46,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 56.5,
+            "y": 46,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 108,
+          "height": 72
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 35.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 56.5,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 35.5,
+            "y": 46,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 108,
+          "height": 72
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 10,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 46,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 82,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 10,
+            "y": 46,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 46,
+            "y": 46,
+            "size": 16
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-match-identical-01",
+    "conceptId": "foundations-match-identical",
+    "prompt": "Which one is the same?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 28.5,
+            "y": 28.5,
+            "size": 27
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-match-numeral-to-5-01",
+    "conceptId": "foundations-match-numeral-to-5",
+    "prompt": "How many are there?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 84,
+          "height": 36
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 34,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 58,
+            "y": 10,
+            "size": 16
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-odd-one-out-01",
+    "conceptId": "foundations-odd-one-out",
+    "prompt": "Which one is not like the others?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 336,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 94,
+            "y": 10,
+            "size": 64
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 196.5,
+            "y": 28.5,
+            "size": 27
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 262,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 28.5,
+            "y": 28.5,
+            "size": 27
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-pattern-abab-01",
+    "conceptId": "foundations-pattern-abab",
+    "prompt": "What comes next?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 336,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          },
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 94,
+            "y": 10,
+            "size": 64
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 178,
+            "y": 10,
+            "size": 64
+          },
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 262,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 84,
+          "height": 84
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "star",
+            "x": 10,
+            "y": 10,
+            "size": 64
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foundations-subitise-to-3-01",
+    "conceptId": "foundations-subitise-to-3",
+    "prompt": "Which one shows the same number?",
+    "pictures": [
+      {
+        "where": "prompt",
+        "frame": {
+          "width": 58,
+          "height": 36
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 10,
+            "y": 10,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "circle",
+            "x": 32,
+            "y": 10,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 1",
+        "frame": {
+          "width": 92,
+          "height": 52
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 27,
+            "y": 18,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 49,
+            "y": 18,
+            "size": 16
+          }
+        ]
+      },
+      {
+        "where": "choice 2",
+        "frame": {
+          "width": 92,
+          "height": 52
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 30,
+            "y": 10,
+            "size": 32
+          }
+        ]
+      },
+      {
+        "where": "choice 3",
+        "frame": {
+          "width": 92,
+          "height": 52
+        },
+        "drawables": [
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 10,
+            "y": 18,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 38,
+            "y": 18,
+            "size": 16
+          },
+          {
+            "kind": "glyph",
+            "shape": "square",
+            "x": 66,
+            "y": 18,
+            "size": 16
+          }
+        ]
+      }
+    ]
+  }
+]
