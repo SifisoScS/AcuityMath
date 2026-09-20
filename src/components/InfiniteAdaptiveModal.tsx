@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { UserProfile } from '../types';
 import { MathManipulatives } from './MathManipulatives';
+import { ProblemChoices } from './figures/ProblemChoices';
 import { ProblemFigure } from './figures/ProblemFigure';
 import { isPicture } from './figures/figureLayout';
 import { Scratchpad } from './Scratchpad';
@@ -131,6 +132,21 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
       options: served.choices,
       hint: served.hint,
       explanation: '',
+      /*
+       * **Deliberately undefined, and no longer load-bearing.**
+       *
+       * `visualType` selects one of `MathManipulatives`' five hand-built
+       * widgets — counters, shapes, a fraction bar, a coordinate plane, a
+       * tangent graph — and an authored problem is none of them. Setting it to
+       * anything would claim this question is a widget it is not.
+       *
+       * It used to mean that authored pictures were never drawn: the only
+       * renderer on this path was gated on this field, so every one of the 202
+       * picture problems fell through to a card repeating the prompt. That is
+       * no longer how the picture gets on screen — `ProblemFigure` reads the
+       * corpus schema below and is chosen by `isPicture`, not by this. The
+       * field stays undefined because it is honestly undefined.
+       */
       visualType: undefined,
       visualData: served.visual ?? undefined,
       manipulativeHint: served.manipulativeHint ?? undefined,
@@ -540,64 +556,23 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
             </div>
           )}
 
-          {/* Options Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentProblem.options.map((opt, i) => {
-              const isSelected = selectedOption === opt;
-              let btnStyle = 'bg-white border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 text-slate-800';
-
-              if (isAnswerSubmitted && awaitingMark) {
-                // Nothing is revealed: the client does not know the answer, and
-                // dimming everything but the child's choice would imply one.
-                btnStyle = isSelected
-                  ? 'bg-slate-100 border-slate-400 text-slate-900 ring-2 ring-slate-300 font-bold'
-                  : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60';
-              } else if (isAnswerSubmitted) {
-                if (opt === currentProblem.correctAnswer) {
-                  btnStyle = 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-400 font-bold';
-                } else if (isSelected && !isCorrect) {
-                  btnStyle = 'bg-rose-50 border-rose-500 text-rose-900 ring-2 ring-rose-400 font-bold';
-                } else {
-                  btnStyle = 'bg-slate-50 border-slate-200 text-slate-400 opacity-60';
-                }
-              } else if (isSelected) {
-                btnStyle = 'bg-indigo-50 border-indigo-600 text-indigo-900 ring-2 ring-indigo-500 font-bold';
-              }
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleSelectOption(opt)}
-                  disabled={isAnswerSubmitted}
-                  className={`min-h-[50px] p-4 rounded-xl border-2 text-left font-medium text-base transition flex items-center justify-between cursor-pointer ${btnStyle}`}
-                >
-                  {/* A candidate picture, where the problem has one. 171 of the
-                      202 offer three to choose between, and their labels read
-                      "the first one" / "the middle one" / "the last one" — words
-                      that name nothing at all unless what they point at is
-                      drawn. `visualData.choices` is permuted with `options` by
-                      the server, so index i belongs to this button. */}
-                  {isPicture(currentProblem.visualData?.choices?.[i]) ? (
-                    <span className="flex flex-col gap-2 w-full text-indigo-600">
-                      <ProblemFigure
-                        picture={currentProblem.visualData!.choices![i]}
-                        maxWidth={260}
-                      />
-                      <span className="text-xs font-semibold text-slate-600">{opt}</span>
-                    </span>
-                  ) : (
-                    <span className="font-mono">{opt}</span>
-                  )}
-                  {isAnswerSubmitted && !awaitingMark && opt === currentProblem.correctAnswer && (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                  )}
-                  {isAnswerSubmitted && !awaitingMark && isSelected && !isCorrect && (
-                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          {/* The options.
+              Lifted into `ProblemChoices` because the layout is judgement and
+              not measurement: for 111 of the 171 drawn problems the label is
+              *"the first one"* and the button's position is the answer, so how
+              these sit relative to each other is part of whether the question
+              can be answered at all. Keeping it separate means changing one's
+              mind about that does not touch the wiring above. */}
+          <ProblemChoices
+            options={currentProblem.options}
+            pictures={currentProblem.visualData?.choices}
+            selected={selectedOption}
+            submitted={isAnswerSubmitted}
+            awaitingMark={awaitingMark}
+            correctAnswer={currentProblem.correctAnswer}
+            isCorrect={isCorrect}
+            onSelect={handleSelectOption}
+          />
 
           {/* Practising without consent: nothing leaves this device. */}
           {blockedByConsent && (

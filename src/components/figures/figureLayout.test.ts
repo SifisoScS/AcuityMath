@@ -31,6 +31,7 @@ import {
   type Drawable,
   type PictureSpec,
 } from './figureLayout';
+import { buildBaseline } from '../../../scripts/figure-baseline';
 
 const CURRICULUM = path.resolve(__dirname, '../../../data/curriculum');
 
@@ -362,5 +363,33 @@ describe('telling a corpus picture from the generator"s visual data', () => {
     expect(isPicture({ figures: [{ shape: 'circle' }] })).toBe(false);
     expect(isPicture(null)).toBe(false);
     expect(isPicture(undefined)).toBe(false);
+  });
+});
+
+describe('the drawing that was reviewed', () => {
+  /*
+   * **The sheets are the baseline.** The only evidence that these pictures are
+   * pictures came from rasterising them and looking; that happened once, and the
+   * code did not stop moving afterwards. `reviewBaseline.json` holds the exact
+   * drawables behind what was looked at, one problem from each of the ten
+   * concepts that draw anything.
+   *
+   * This does not say the drawing is correct — a person said that. It says the
+   * drawing has not changed since they said it, which is the half a test can
+   * hold. Regenerate deliberately with `pnpm figures:baseline`; the diff is the
+   * record of what moved and belongs in the pull request that moved it.
+   */
+  const baseline = JSON.parse(
+    readFileSync(path.resolve(__dirname, 'reviewBaseline.json'), 'utf8'),
+  ) as ReturnType<typeof buildBaseline>;
+
+  it('covers every concept that draws anything', () => {
+    const drawing = new Set(withPictures.map(p => p.concept_id));
+    expect(new Set(baseline.map(entry => entry.conceptId))).toEqual(drawing);
+    expect(baseline.reduce((n, entry) => n + entry.pictures.length, 0)).toBe(37);
+  });
+
+  it('still draws what it drew when somebody looked at it', () => {
+    expect(buildBaseline()).toEqual(baseline);
   });
 });
