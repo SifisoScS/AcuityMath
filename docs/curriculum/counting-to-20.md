@@ -240,30 +240,44 @@ a **formulaic number**, which is what §6 now refuses to produce.
 
 ---
 
-## 8. What the review could not fix
+## 8. What the review could not fix, and what happened next
 
-**Nothing in the application draws these pictures.** The `visual` object is
-served to the client and handed to `MathManipulatives`, which reads
-`visualData.initialCount`, `.itemType`, `.shapeType` and `.formula` — none
-of which exist in this schema — and which only draws at all when
-`visualType` is set to one of five names. `InfiniteAdaptiveModal` hardcodes
-`visualType: undefined` for every served problem, so every branch is skipped
-and the default card renders, which prints the prompt text back under the
-heading *Math Expression*.
+**When this batch was reviewed, nothing in the application drew these
+pictures.** The `visual` object was served to the client and handed to
+`MathManipulatives`, which reads `visualData.initialCount`, `.itemType`,
+`.shapeType` and `.formula` — none of which exist in this schema — and
+which drew only when `visualType` was one of five names.
+`InfiniteAdaptiveModal` hardcoded `visualType: undefined` for every
+served problem, so every branch was skipped and the default card
+rendered, printing the prompt text back under the heading *Math
+Expression*.
 
-For a picture-choice item that means the child is shown a sentence, the same
-sentence again in monospace, and three buttons reading *the first one*, *the
-middle one*, *the last one*, with nothing drawn to tell them apart. The item
-is not hard; it is unanswerable, and guessing is the only available strategy.
+For a picture-choice item that meant a sentence, the same sentence again
+in monospace, and three buttons reading *the first one*, *the middle
+one*, *the last one*, with nothing drawn to tell them apart. Not hard —
+unanswerable. It was true of all 180 `foundations` problems too, and had
+been since they were imported.
 
-**This is not new and not this batch's doing.** All 180 `foundations`
-problems are in the same state and have been since they were imported. But
-it bears directly on what reviewing a picture is worth: every drawing
-decision in §2 and §3 — the ten-and-remainder split, the shape switch, the
-spread card, the shared silhouette — is currently invisible. They are
-correct against the schema and against the corpus's conventions, and no
-child has ever seen one.
+**`src/components/figures/` draws them now.** Every dimension the schema
+states is honoured and only the gaps between figures are derived, because
+`spacing` is what makes a `count-by-spread` card take up more room than
+it should, and a renderer that spread glyphs to fill their frame would
+delete the error the problem is about. The layout is checked against all
+715 pictures in the corpus, and reproduces 182 of the 202 authored prompt
+frames and all 171 choice sets to the pixel.
 
-A renderer for this schema is a piece of work in its own right and belongs
-in the roadmap rather than in an authoring pass.
+So the drawing decisions in §2 and §3 — the ten-and-remainder split, the
+shape switch, the spread card, the shared silhouette — have now been
+looked at rather than only reasoned about. They hold up: fourteen reads
+as ten and four, and the spread card is visibly the widest of the three.
+
+> One thing that only showed up in the drawing. The corpus has **three**
+> figure forms, not two: a glyph run, a bar, and a bare shape carrying
+> neither `count` nor `length`. The third is 500 of the 1,083 figures and
+> is how `compare-size`, `odd-one-out`, `pattern-abab` and
+> `match-identical` are drawn. Reading a missing `count` as zero rendered
+> those four concepts — 80 problems — as empty frames, and the layout
+> test passed anyway, because it compared the glyphs asked for against
+> the glyphs drawn and both were zero. It was caught by looking at the
+> output, which is §5.1 arriving one layer further down.
 

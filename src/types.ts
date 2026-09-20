@@ -75,6 +75,20 @@ export interface MathProblem {
     points?: [number, number][];
     formula?: string;
     derivative?: string;
+    /**
+     * An authored picture from `data/curriculum/`, and its candidate pictures.
+     *
+     * A different shape from everything above it: the fields here come from the
+     * corpus and the rest come from the generator, and the same object reaches
+     * the same component either way. Typed as `unknown` on purpose — the check
+     * that separates them is `isPicture` in `figures/figureLayout.ts`, and a
+     * structural type here would let a generator object satisfy it by accident.
+     *
+     * `choices` is parallel to `options`: the server permutes both together in
+     * `serveProblem`, so index *i* of one belongs to index *i* of the other.
+     */
+    prompt?: unknown;
+    choices?: unknown[];
   };
   options: string[];
   correctAnswer: string;

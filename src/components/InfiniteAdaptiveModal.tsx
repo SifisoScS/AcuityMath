@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { UserProfile } from '../types';
 import { MathManipulatives } from './MathManipulatives';
+import { ProblemFigure } from './figures/ProblemFigure';
+import { isPicture } from './figures/figureLayout';
 import { Scratchpad } from './Scratchpad';
 import { SocraticCoachModal } from './SocraticCoachModal';
 import { Activity, AlertCircle, ArrowRight, Bot, CheckCircle2, Clock, Flame, HelpCircle, PenTool, RotateCcw, Sparkles, Volume2, VolumeX, X, Zap } from 'lucide-react';
@@ -484,9 +486,20 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
             </div>
           </div>
 
-          {/* Manipulative Preview */}
+          {/* The picture the question is about.
+              202 authored problems — every one for ages three to seven — ask
+              about something drawn, and until now nothing drew it: the corpus
+              picture was handed to `MathManipulatives`, which reads a different
+              schema entirely and fell through to a card repeating the prompt.
+              A child was asked to count something that was never on screen. */}
           <div className="w-full">
-            <MathManipulatives problem={currentProblem} />
+            {isPicture(currentProblem.visualData?.prompt) ? (
+              <div className="w-full flex justify-center bg-white rounded-2xl p-5 border border-slate-200 text-indigo-600">
+                <ProblemFigure picture={currentProblem.visualData!.prompt} maxWidth={420} />
+              </div>
+            ) : (
+              <MathManipulatives problem={currentProblem} />
+            )}
           </div>
 
           {/* A typed answer, for the authored problems that offer no choices.
@@ -558,7 +571,23 @@ export const InfiniteAdaptiveModal: React.FC<InfiniteAdaptiveModalProps> = ({
                   disabled={isAnswerSubmitted}
                   className={`min-h-[50px] p-4 rounded-xl border-2 text-left font-medium text-base transition flex items-center justify-between cursor-pointer ${btnStyle}`}
                 >
-                  <span className="font-mono">{opt}</span>
+                  {/* A candidate picture, where the problem has one. 171 of the
+                      202 offer three to choose between, and their labels read
+                      "the first one" / "the middle one" / "the last one" — words
+                      that name nothing at all unless what they point at is
+                      drawn. `visualData.choices` is permuted with `options` by
+                      the server, so index i belongs to this button. */}
+                  {isPicture(currentProblem.visualData?.choices?.[i]) ? (
+                    <span className="flex flex-col gap-2 w-full text-indigo-600">
+                      <ProblemFigure
+                        picture={currentProblem.visualData!.choices![i]}
+                        maxWidth={260}
+                      />
+                      <span className="text-xs font-semibold text-slate-600">{opt}</span>
+                    </span>
+                  ) : (
+                    <span className="font-mono">{opt}</span>
+                  )}
                   {isAnswerSubmitted && !awaitingMark && opt === currentProblem.correctAnswer && (
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   )}

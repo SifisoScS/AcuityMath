@@ -502,6 +502,8 @@ graph TD
 ├── src/
 │   ├── App.tsx                   # Application shell and modal routing
 │   ├── components/               # Views, modals, manipulatives/, district/, lti/
+│   │   └── figures/             # Draws the corpus's `figures`/`frame` pictures —
+│   │                           #   202 problems for ages 3–7 depend on it
 │   ├── hooks/                    # usePractice, useConsent, useScreenTime, useRecordingPermission, useStepUp
 │   ├── offline/                  # IndexedDB queue and reconciler
 │   ├── data/                     # Curriculum, bilingual glossary, consent policy, avatars

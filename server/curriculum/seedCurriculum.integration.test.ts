@@ -14,6 +14,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import * as schema from '../../drizzle/schema';
 import { recordAttempt } from '../learning/recordAttempt';
+import { isPicture } from '../../src/components/figures/figureLayout';
 import { serveNextProblem } from '../learning/serveProblem';
 import { createTestDatabase, type TestDatabase } from '../test-support/database';
 import { grantConsentForAllFamilies, grantConsentForFamily } from '../test-support/consent';
@@ -208,7 +209,16 @@ describeWithDb('curriculum seed', () => {
       // Three options, not the generator's four, and a picture like the rest of
       // the early corpus — a six-year-old cannot read a prompt either.
       expect(problem.choices.length).toBe(3);
-      expect(problem.visual).toBeTruthy();
+
+      /*
+       * And the picture survives the serve path in a form the renderer accepts.
+       * `isPicture` is the same check `ProblemFigure` makes before drawing, so
+       * this is the one assertion that spans the whole distance: JSON on disk,
+       * through the seed, through `serveNextProblem`'s choice permutation, to
+       * the guard that decides whether a child sees shapes or an empty box.
+       */
+      const visual = problem.visual as { prompt?: unknown } | null;
+      expect(isPicture(visual?.prompt)).toBe(true);
     });
 
     it('leaves no age at all without something written', async () => {
