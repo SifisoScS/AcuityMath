@@ -1,7 +1,9 @@
 # F2 — the age-7 bridge
 
-> **Status: a reviewed draft. No content exists yet.** The concept set below is
-> settled; the problems are not written. Nothing here is in the corpus.
+> **Status: the concept set is settled; one of the seven is written.**
+> `counting-to-20` is authored, reviewed and in the corpus as the `bridge`
+> strand — 22 problems, `data/curriculum/bridge-curriculum.json`. The other six
+> are drafts and nothing of them exists yet.
 >
 > **Reviewer: the product owner, on the record. Not an educator.** That is
 > recorded rather than glossed, because the error types in §3 are the part most
@@ -94,8 +96,9 @@ it is the same act at a larger number.
 `count-by-spread` — all three already exist in the corpus.
 **New:** `teen-digits-reversed` (reading 14 as 41).
 
-**Drafted:** [`counting-to-20.md`](counting-to-20.md) — 22 problems, awaiting
-review. No JSON written.
+**Authored:** [`counting-to-20.md`](counting-to-20.md) — 22 problems, reviewed
+and landed in `data/curriculum/bridge-curriculum.json`. §7 of that document
+lists the five defects the review caught, none of which any gate can see.
 
 ### 3.2 `number-bonds-to-10`
 
@@ -246,11 +249,13 @@ band is a third island.
 ## 4. Which problem-type vocabulary this follows
 
 A concept declares `problem_types`; a problem carries a `problem_type`. **In
-three strands of four these are different vocabularies** — 20 declared terms are
+three strands of five these are different vocabularies** — 20 declared terms are
 carried by no problem, 4 carried terms are declared by no concept, and 388 of
-1,132 problems (34%) carry a type their own concept never mentions.
+1,154 problems (34%) carry a type their own concept never mentions.
 
-`foundations` is the only coherent strand: 0 of 180.
+`foundations` was the only coherent strand, 0 of 180. `bridge` is the second,
+0 of 22, and the builder asserts it rather than hoping: a problem carrying a
+type its concept does not declare fails the build that writes the file.
 
 **This band follows `foundations`.** Every type named in §3 is declared by its
 concept and carried by its problems, and nothing else. That is the coherent
@@ -317,19 +322,35 @@ Roughly: `place-value-to-100`, `add-subtract-within-100`, parts of
 
 ---
 
-## 7. What the build will break, on purpose
+## 7. What the build breaks, on purpose
 
-Each is a test written so somebody is told:
+Each is a test written so somebody is told. **`counting-to-20` landed first and
+broke all of them**; what follows is what each turned out to be.
 
-- `importCurriculum.test.ts` → **`it('leaves age 7 with nothing at all')`**. This
-  test failing is the deliverable.
-- the concept and problem counts (51 / 1,132) and the coverage-by-age map
+- `importCurriculum.test.ts` → `it('leaves age 7 with nothing at all')`. Its
+  failing was the deliverable. It is now
+  `it('no longer leaves age 7 with nothing at all')` and asserts **exactly one**
+  concept, not "more than none" — a lower bound would go green for the six
+  concepts still unwritten and stay green for ever.
+- the concept and problem counts, 51 / 1,132 → **52 / 1,154**, and the
+  coverage-by-age map: age 7 from 0 to 1 concept and 0 to 22 problems, age 6
+  from 6 to 7 and 120 to 142.
 - `contentCoverage.test.ts`'s age table, and `ROADMAP.md` §9, which is computed
-  from it
-- `standardsCoverage.test.ts` — seven more concepts carrying no standard, which
-  widens the **F3** gap and should be stated rather than absorbed
-- `pnpm audit:corpus` will check every new answer, and `corpus_seeds` means the
-  database must be re-seeded before the app serves any of it
+  from it. `agesLeaningOnTheGenerator()` returned `[7]` and now returns `[]`.
+- `standardsCoverage.test.ts` — one more concept carrying no standard, which
+  widens the **F3** gap. It needed no edit: it computes rather than pins, which
+  is why it stayed green while four others went red.
+- `pnpm audit:corpus` checked every new answer — 966 verified, 0 failed — and
+  the database had to be re-seeded before the app would serve any of it.
+
+**One thing on this list was wrong.** It assumed the band could be a strand of
+its own without further change. The importer refused: *"Cross-strand
+prerequisites are not supported by this import"*, and `counting-to-20` depends
+on `foundations-count-to-5`. Since a bridge band by definition has one end in
+another strand, the rule was relaxed to *"this strand or any loaded before it"*
+rather than the band being folded into `foundations`. See §2 — the alternative
+was making one strand span ages three to eight so a validation rule could stay
+true.
 
 ---
 
@@ -346,8 +367,10 @@ Each is a test written so somebody is told:
    `polygon-perimeter`, so time and money would be leaves — real for a child,
    but they do not unblock anything, and this band's job is to connect two
    disconnected halves. Worth revisiting once it does.
-3. **Whether `counting-to-20` should instead extend `foundations`.** Decided
-   against in §2, and the decision is reversible until problems are written.
+3. ~~**Whether `counting-to-20` should instead extend `foundations`.**~~
+   **Settled.** It is its own strand, `bridge`. The decision was reversible
+   until problems were written and they now are — see §7 for the importer rule
+   that had to be relaxed to keep it.
 
 ---
 

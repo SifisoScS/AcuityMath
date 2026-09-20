@@ -55,25 +55,32 @@ describe('what each age actually has', () => {
     }
   });
 
-  it('has no authored problems at all for a seven-year-old', () => {
+  it('has one authored concept for a seven-year-old, where it had none', () => {
     /*
-     * **Asserted so it cannot quietly change in either direction.** This is the
-     * only year between three and eighteen with nothing authored, and it is the
-     * single sharpest gap in the product — a seven-year-old meets three
-     * generator variants where a nine-year-old meets those plus a hundred and
-     * eighty-five written questions.
+     * **Asserted so it cannot quietly change in either direction.** This used to
+     * read `toBe(0)` three times over, and it was the single sharpest gap in the
+     * product: age seven was the only year between three and eighteen with
+     * nothing authored at all. The comment here said that when somebody authored
+     * for age seven this test would fail, and that the failure was the point.
      *
-     * When somebody authors for age seven, this test fails. That is the point:
-     * the gap stops being true, the roadmap has to be rewritten, and the failure
-     * is what makes anyone do it.
+     * It fired. `counting-to-20` is the concept, 22 problems, and the numbers
+     * below are pinned exactly rather than relaxed to `toBeGreaterThan(0)` — a
+     * lower bound would go green for the six concepts still unwritten and stay
+     * green for ever after, which is how a gap stops being measured while still
+     * being described.
+     *
+     * Three generator variants still serve this age, unchanged.
      */
-    expect(byAge.get(7)?.authoredProblems).toBe(0);
-    expect(byAge.get(7)?.conceptsWithAuthored).toBe(0);
+    expect(byAge.get(7)?.authoredProblems).toBe(22);
+    expect(byAge.get(7)?.conceptsWithAuthored).toBe(1);
     expect(byAge.get(7)?.generatedConcepts).toBe(3);
   });
 
-  it('names age seven as the only year leaning entirely on the generator', () => {
-    expect(agesLeaningOnTheGenerator()).toEqual([7]);
+  it('names no year as leaning entirely on the generator', () => {
+    // Age seven was the only one, and it no longer is. Kept as an assertion
+    // about the empty list rather than deleted: if a future band change strands
+    // a year again, this is the test that says so.
+    expect(agesLeaningOnTheGenerator()).toEqual([]);
   });
 
   it('matches the figures the roadmap publishes', () => {
@@ -83,7 +90,7 @@ describe('what each age actually has', () => {
      * read by people who have no way to check it.
      */
     const published: Record<number, number> = {
-      3: 100, 4: 180, 5: 180, 6: 120, 7: 0, 8: 65,
+      3: 100, 4: 180, 5: 180, 6: 142, 7: 22, 8: 65,
       9: 185, 10: 165, 11: 150, 12: 340, 13: 566, 14: 431,
       15: 272, 16: 168, 17: 63, 18: 21,
     };

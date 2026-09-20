@@ -1,0 +1,2215 @@
+{
+  "schema_version": "1.0.0",
+  "strand": "bridge",
+  "concepts": [
+    {
+      "id": "counting-to-20",
+      "title": "Counting to twenty",
+      "description": "Count a group past five, and read the number that names how many",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "problem_types": [
+        "count-set",
+        "match-set",
+        "count-set-interleaved",
+        "match-set-interleaved"
+      ],
+      "error_types": [
+        "off-by-one-overcount",
+        "off-by-one-undercount",
+        "count-by-spread",
+        "teen-digits-reversed"
+      ]
+    }
+  ],
+  "pathways": [
+    {
+      "id": "pathway-brg-01",
+      "concept_id": "counting-to-20",
+      "title": "Counting to twenty",
+      "entry_criteria": {
+        "mastery_below": 80
+      },
+      "exit_criteria": {
+        "mastery_at_least": 80,
+        "accuracy_at_least": 75
+      },
+      "branches": [
+        "advance"
+      ],
+      "remediation_loops": [
+        "off-by-one-overcount",
+        "off-by-one-undercount",
+        "count-by-spread",
+        "teen-digits-reversed"
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "id": "counting-to-20-01",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which one has the same number?",
+      "answer": "the first one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the middle one": "off-by-one-overcount",
+        "the last one": "count-by-spread"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "row",
+          "label": "A row of six shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 6,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 141,
+            "height": 36
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 6,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 165,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 7,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 165,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 4,
+                "spacing": 27
+              }
+            ],
+            "frame": {
+              "width": 165,
+              "height": 36
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          6,
+          7,
+          4
+        ],
+        "target": 6
+      },
+      "explanation": "Touch each thing once and say the next number. The last number you say is how many there are.",
+      "hint": "Touch each thing and count out loud, then start again at one for the next group.",
+      "expected_error_modes": [
+        "count-by-spread",
+        "off-by-one-overcount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "count-set",
+      "context": "a set of picture cards",
+      "variant_index": 1,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-02",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there? Which group matches?",
+      "answer": "the middle one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the first one": "off-by-one-overcount",
+        "the last one": "count-by-spread"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "row",
+          "label": "A row of seven shapes",
+          "figures": [
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 7,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 162,
+            "height": 36
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 8,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 184,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 7,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 184,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 5,
+                "spacing": 21
+              }
+            ],
+            "frame": {
+              "width": 184,
+              "height": 36
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          8,
+          7,
+          5
+        ],
+        "target": 7
+      },
+      "explanation": "Touch each thing once and say the next number. The last number you say is how many there are.",
+      "hint": "Touch each thing and count out loud, then start again at one for the next group.",
+      "expected_error_modes": [
+        "count-by-spread",
+        "off-by-one-overcount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "match-set",
+      "context": "a set of picture cards",
+      "variant_index": 2,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-03",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which group has just as many?",
+      "answer": "the last one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the first one": "count-by-spread",
+        "the middle one": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "row",
+          "label": "A row of eight shapes",
+          "figures": [
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 8,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 183,
+            "height": 36
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 6,
+                "spacing": 18
+              }
+            ],
+            "frame": {
+              "width": 206,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 9,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 206,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 8,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 206,
+              "height": 36
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          6,
+          9,
+          8
+        ],
+        "target": 8
+      },
+      "explanation": "Touch each thing once and say the next number. The last number you say is how many there are.",
+      "hint": "Touch each thing and count out loud, then start again at one for the next group.",
+      "expected_error_modes": [
+        "count-by-spread",
+        "off-by-one-overcount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "count-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 3,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-04",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which one has the same number?",
+      "answer": "the first one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the middle one": "count-by-spread",
+        "the last one": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "row",
+          "label": "A row of nine shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 9,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 204,
+            "height": 36
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 9,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 228,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 7,
+                "spacing": 16
+              }
+            ],
+            "frame": {
+              "width": 228,
+              "height": 36
+            }
+          },
+          {
+            "version": 1,
+            "layout": "row",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 228,
+              "height": 36
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          9,
+          7,
+          10
+        ],
+        "target": 9
+      },
+      "explanation": "Touch each thing once and say the next number. The last number you say is how many there are.",
+      "hint": "Touch each thing and count out loud, then start again at one for the next group.",
+      "expected_error_modes": [
+        "count-by-spread",
+        "off-by-one-overcount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "match-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 4,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-05",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there? Which group matches?",
+      "answer": "the middle one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the first one": "off-by-one-undercount",
+        "the last one": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of twelve shapes",
+          "figures": [
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 2,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 1,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 2,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 3,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          11,
+          12,
+          13
+        ],
+        "target": 12
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Count the full row of ten, then count on for the rest.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "count-set",
+      "context": "a set of picture cards",
+      "variant_index": 5,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-06",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which group has just as many?",
+      "answer": "the first one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the middle one": "off-by-one-overcount",
+        "the last one": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of thirteen shapes",
+          "figures": [
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 3,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 3,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 4,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 2,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          13,
+          14,
+          12
+        ],
+        "target": 13
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Count the full row of ten, then count on for the rest.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "match-set",
+      "context": "a set of picture cards",
+      "variant_index": 6,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-07",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which one has the same number?",
+      "answer": "the last one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the first one": "off-by-one-overcount",
+        "the middle one": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of fourteen shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 4,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 5,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 3,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 4,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          15,
+          13,
+          14
+        ],
+        "target": 14
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Count the full row of ten, then count on for the rest.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "count-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 7,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-08",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there? Which group matches?",
+      "answer": "the first one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the middle one": "off-by-one-overcount",
+        "the last one": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of sixteen shapes",
+          "figures": [
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 6,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 6,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 7,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 5,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          16,
+          17,
+          15
+        ],
+        "target": 16
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Count the full row of ten, then count on for the rest.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "match-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 8,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-09",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which group has just as many?",
+      "answer": "the middle one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the first one": "off-by-one-overcount",
+        "the last one": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of seventeen shapes",
+          "figures": [
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 7,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 8,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 7,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "square",
+                "size": 16,
+                "count": 6,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          18,
+          17,
+          16
+        ],
+        "target": 17
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Count the full row of ten, then count on for the rest.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "count-set",
+      "context": "a set of picture cards",
+      "variant_index": 9,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-10",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which one has the same number?",
+      "answer": "the last one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the first one": "off-by-one-undercount",
+        "the middle one": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of nineteen shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 9,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 8,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "star",
+                "size": 16,
+                "count": 9,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          18,
+          20,
+          19
+        ],
+        "target": 19
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Count the full row of ten, then count on for the rest.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "match-set",
+      "context": "a set of picture cards",
+      "variant_index": 10,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-11",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there? Which group matches?",
+      "answer": "the middle one",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "the first one",
+        "the middle one",
+        "the last one"
+      ],
+      "distractor_rationales": {
+        "the first one": "off-by-one-undercount",
+        "the last one": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of eighteen shapes",
+          "figures": [
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 8,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        },
+        "choices": [
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 7,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 8,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          },
+          {
+            "version": 1,
+            "layout": "stack",
+            "label": "A group of shapes",
+            "figures": [
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 10,
+                "spacing": 5
+              },
+              {
+                "shape": "circle",
+                "size": 16,
+                "count": 9,
+                "spacing": 5
+              }
+            ],
+            "frame": {
+              "width": 225,
+              "height": 72
+            }
+          }
+        ]
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "count",
+        "direction": "match",
+        "measures": [
+          17,
+          18,
+          19
+        ],
+        "target": 18
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Count the full row of ten, then count on for the rest.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 2,
+      "difficulty": 4,
+      "problem_type": "count-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 11,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-12",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there?",
+      "answer": "6",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "5",
+        "6",
+        "7"
+      ],
+      "distractor_rationales": {
+        "5": "off-by-one-undercount",
+        "7": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "row",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 6,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 141,
+            "height": 36
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          5,
+          6,
+          7
+        ],
+        "target": 6
+      },
+      "explanation": "Count the things first, then find the number that says the same. The number is a name for how many.",
+      "hint": "Count the things out loud, then say the last number again and look for it.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "count-set",
+      "context": "a set of picture cards",
+      "variant_index": 12,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-13",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Which number says how many?",
+      "answer": "8",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "8",
+        "9",
+        "7"
+      ],
+      "distractor_rationales": {
+        "9": "off-by-one-overcount",
+        "7": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "row",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 8,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 183,
+            "height": 36
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          8,
+          9,
+          7
+        ],
+        "target": 8
+      },
+      "explanation": "Count the things first, then find the number that says the same. The number is a name for how many.",
+      "hint": "Count the things out loud, then say the last number again and look for it.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "match-set",
+      "context": "a set of picture cards",
+      "variant_index": 13,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-14",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which number is it?",
+      "answer": "10",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "9",
+        "11",
+        "10"
+      ],
+      "distractor_rationales": {
+        "9": "off-by-one-undercount",
+        "11": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "row",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 36
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          9,
+          11,
+          10
+        ],
+        "target": 10
+      },
+      "explanation": "Count the things first, then find the number that says the same. The number is a name for how many.",
+      "hint": "Count the things out loud, then say the last number again and look for it.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "count-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 14,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-15",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there?",
+      "answer": "11",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "12",
+        "11",
+        "10"
+      ],
+      "distractor_rationales": {
+        "12": "off-by-one-overcount",
+        "10": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 1,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          12,
+          11,
+          10
+        ],
+        "target": 11
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "match-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 15,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-16",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Which number says how many?",
+      "answer": "13",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "13",
+        "14",
+        "12"
+      ],
+      "distractor_rationales": {
+        "14": "off-by-one-overcount",
+        "12": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 3,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          13,
+          14,
+          12
+        ],
+        "target": 13
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "count-set",
+      "context": "a set of picture cards",
+      "variant_index": 16,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-17",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which number is it?",
+      "answer": "14",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "15",
+        "41",
+        "14"
+      ],
+      "distractor_rationales": {
+        "15": "off-by-one-overcount",
+        "41": "teen-digits-reversed"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 4,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          15,
+          41,
+          14
+        ],
+        "target": 14
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "teen-digits-reversed"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "match-set",
+      "context": "a set of picture cards",
+      "variant_index": 17,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-18",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there?",
+      "answer": "15",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "15",
+        "16",
+        "14"
+      ],
+      "distractor_rationales": {
+        "16": "off-by-one-overcount",
+        "14": "off-by-one-undercount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 5,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          15,
+          16,
+          14
+        ],
+        "target": 15
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "count-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 18,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-19",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Which number says how many?",
+      "answer": "16",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "17",
+        "16",
+        "61"
+      ],
+      "distractor_rationales": {
+        "17": "off-by-one-overcount",
+        "61": "teen-digits-reversed"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 6,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          17,
+          16,
+          61
+        ],
+        "target": 16
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "teen-digits-reversed"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "match-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 19,
+      "interleaved": true
+    },
+    {
+      "id": "counting-to-20-20",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Count them. Which number is it?",
+      "answer": "17",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "71",
+        "18",
+        "17"
+      ],
+      "distractor_rationales": {
+        "71": "teen-digits-reversed",
+        "18": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "square",
+              "size": 16,
+              "count": 7,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          71,
+          18,
+          17
+        ],
+        "target": 17
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "teen-digits-reversed"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "count-set",
+      "context": "a set of picture cards",
+      "variant_index": 20,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-21",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "How many are there?",
+      "answer": "18",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "18",
+        "81",
+        "19"
+      ],
+      "distractor_rationales": {
+        "81": "teen-digits-reversed",
+        "19": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "star",
+              "size": 16,
+              "count": 8,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          18,
+          81,
+          19
+        ],
+        "target": 18
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "teen-digits-reversed"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "match-set",
+      "context": "a set of picture cards",
+      "variant_index": 21,
+      "interleaved": false
+    },
+    {
+      "id": "counting-to-20-22",
+      "concept_id": "counting-to-20",
+      "prerequisites": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "prompt": "Which number says how many?",
+      "answer": "20",
+      "answer_type": "multiple_choice",
+      "choices": [
+        "19",
+        "20",
+        "21"
+      ],
+      "distractor_rationales": {
+        "19": "off-by-one-undercount",
+        "21": "off-by-one-overcount"
+      },
+      "visual": {
+        "prompt": {
+          "version": 1,
+          "layout": "stack",
+          "label": "A group of shapes",
+          "figures": [
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            },
+            {
+              "shape": "circle",
+              "size": 16,
+              "count": 10,
+              "spacing": 5
+            }
+          ],
+          "frame": {
+            "width": 225,
+            "height": 72
+          }
+        }
+      },
+      "verification": {
+        "mode": "figure",
+        "measure": "numeral",
+        "direction": "match",
+        "measures": [
+          19,
+          20,
+          21
+        ],
+        "target": 20
+      },
+      "explanation": "Count the whole row of ten first, then carry on counting the ones left over. Ten and four more is fourteen.",
+      "hint": "Say \"ten\" for the full row, then count the rest on from there.",
+      "expected_error_modes": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_load_level": 3,
+      "difficulty": 5,
+      "problem_type": "count-set-interleaved",
+      "context": "a set of picture cards",
+      "variant_index": 22,
+      "interleaved": true
+    }
+  ]
+}

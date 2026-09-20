@@ -1,9 +1,9 @@
 /**
- * The mapping, run over all 1,132 real problems.
+ * The mapping, run over all 1,154 real problems.
  *
  * No database. The point is to exercise the whole corpus rather than a fixture:
  * a mapping that handles the first problem of each strand proves very little
- * about the other 1,128, and the defects worth catching here are the ones that
+ * about the other 1,150, and the defects worth catching here are the ones that
  * occur in a handful of rows.
  */
 
@@ -21,8 +21,9 @@ const conceptIds = new Set(allConcepts.map(c => c.id));
 const allHints = strands.flatMap(({ hints }) => mapHints(hints, conceptIds));
 
 describe('the corpus is the size it claims to be', () => {
-  it('maps 51 concepts', () => {
-    expect(allConcepts).toHaveLength(51);
+  it('maps 52 concepts', () => {
+    // 51, plus `counting-to-20` — the first concept of the age 6-8 bridge band.
+    expect(allConcepts).toHaveLength(52);
   });
 
   it('splits the corpus into numeric and multiple choice as the source does', () => {
@@ -30,17 +31,19 @@ describe('the corpus is the size it claims to be', () => {
       counts[problem.answerType] = (counts[problem.answerType] ?? 0) + 1;
       return counts;
     }, {});
-    expect(byType).toEqual({ numeric: 784, multiple_choice: 348 });
+    expect(byType).toEqual({ numeric: 784, multiple_choice: 370 });
   });
 
-  it('maps 1,132 problems', () => {
-    // 500 fractions-to-algebra + 252 algebra-1 + 200 geometry + 180 foundations.
-    expect(allProblems).toHaveLength(1_132);
+  it('maps 1,154 problems', () => {
+    // 500 fractions-to-algebra + 252 algebra-1 + 200 geometry + 180 foundations
+    // + 22 bridge.
+    expect(allProblems).toHaveLength(1_154);
   });
 
-  it('maps the four strands and no others', () => {
+  it('maps the five strands and no others', () => {
     expect([...new Set(allConcepts.map(c => c.strand))].sort()).toEqual([
       'algebra-1',
+      'bridge',
       'foundations',
       'fractions-to-algebra',
       'geometry',
@@ -113,7 +116,7 @@ describe('coverage, including where there is none', () => {
   it('has the coverage shape this corpus actually has', () => {
     // Pinned exactly, because the number is the point. "Ages 6-10 are thin" was
     // an impression carried over from the donor engine's own notes; this is the
-    // measurement. Age 13 has twenty-five concepts available and age 7 has none.
+    // measurement. Age 13 has twenty-five concepts available and age 7 has one.
     //
     // Changing the bands changes these numbers, which is fine — the test exists
     // so that it happens deliberately and somebody sees the new shape.
@@ -121,8 +124,8 @@ describe('coverage, including where there is none', () => {
       3: 5,
       4: 9,
       5: 9,
-      6: 6,
-      7: 0,
+      6: 7,
+      7: 1,
       8: 3,
       9: 8,
       10: 7,
@@ -137,11 +140,26 @@ describe('coverage, including where there is none', () => {
     });
   });
 
-  it('leaves age 7 with nothing at all', () => {
-    // Foundations stops at 6; the fractions strand starts at 8. A seven-year-old
-    // is served entirely by the generator until content is written for them.
-    // Called out separately from the map above so it cannot be lost in a diff.
-    expect(coverage[7]).toBe(0);
+  it('no longer leaves age 7 with nothing at all', () => {
+    /*
+     * This test used to read `expect(coverage[7]).toBe(0)` and its name was
+     * `leaves age 7 with nothing at all`. Foundations stopped at 6, the
+     * fractions strand started at 8, and a seven-year-old met the generator and
+     * nothing else. Making it fail was the stated deliverable of the age-7
+     * band — see `docs/curriculum/age-7-bridge.md` §7.
+     *
+     * It is kept rather than deleted, inverted rather than loosened, and it
+     * asserts **exactly one** concept in both directions. `toBeGreaterThan(0)`
+     * would go green for the six concepts still unauthored and stay green
+     * however many arrive, which would make the one number nobody should lose
+     * track of the one number nothing watches.
+     */
+    expect(coverage[7]).toBe(1);
+
+    const [concept] = Object.entries(CONCEPT_AGE_BANDS)
+      .filter(([, band]) => band.lowAge <= 7 && band.highAge >= 7)
+      .map(([id]) => id);
+    expect(concept).toBe('counting-to-20');
   });
 
   it('is thin either side of the middle years', () => {
@@ -165,10 +183,10 @@ describe('problems', () => {
   });
 
   it('offers the correct answer among the choices of every multiple-choice item', () => {
-    // 180 foundations + 96 algebra-1 + 72 geometry. The remaining 784 are
-    // numeric: the fractions strand is entirely so.
+    // 180 foundations + 96 algebra-1 + 72 geometry + 22 bridge. The remaining
+    // 784 are numeric: the fractions strand is entirely so.
     const choiceProblems = allProblems.filter(p => p.answerType === 'multiple_choice');
-    expect(choiceProblems).toHaveLength(348);
+    expect(choiceProblems).toHaveLength(370);
 
     for (const problem of choiceProblems) {
       expect(problem.choices, problem.externalId).not.toBeNull();
@@ -236,16 +254,48 @@ describe('problems', () => {
 });
 
 describe('prerequisites', () => {
-  it('resolves every prerequisite within its own strand', () => {
+  it('resolves every prerequisite in its own strand or an earlier one', () => {
+    const seen = new Set<string>();
     for (const { curriculum } of strands) {
-      expect(() => mapPrerequisites(curriculum)).not.toThrow();
+      expect(() => mapPrerequisites(curriculum, seen), curriculum.strand).not.toThrow();
+      for (const concept of curriculum.concepts) seen.add(concept.id);
     }
   });
 
+  it('still refuses a prerequisite no strand has defined yet', () => {
+    /*
+     * **The positive control, and it is load-ordered rather than absolute.**
+     * Relaxing the within-strand rule for the `bridge` band would be worth
+     * nothing if it had quietly become "accept anything": the check that
+     * matters is that a strand cannot reach *forwards*.
+     *
+     * `bridge` depends on `foundations`, which loads first. Asking it to resolve
+     * against an empty set is exactly the situation of a strand that had been
+     * registered before the one it needs, and it must still throw.
+     */
+    const bridge = strands.find(({ curriculum }) => curriculum.strand === 'bridge')!;
+    expect(() => mapPrerequisites(bridge.curriculum, new Set())).toThrow(
+      /requires "foundations-count-to-5", which is in neither strand/,
+    );
+
+    expect(() =>
+      mapPrerequisites({
+        ...bridge.curriculum,
+        concepts: [{ ...bridge.curriculum.concepts[0], prerequisites: ['no-such-concept'] }],
+      }),
+    ).toThrow(/no-such-concept/);
+  });
+
   it('orders a concept after everything it depends on', () => {
+    // Sort order is assigned per strand from a base of `index * 1_000`, which is
+    // what `seedCurriculum` passes, so a cross-strand prerequisite is ordered by
+    // the load order of the two strands rather than by position within a file.
+    const orderOf = new Map<string, number>();
+    strands.forEach(({ curriculum }, index) => {
+      for (const row of mapConcepts(curriculum, index * 1_000)) orderOf.set(row.id, row.sortOrder);
+    });
+
     for (const { curriculum } of strands) {
-      const rows = mapConcepts(curriculum);
-      const orderOf = new Map(rows.map(row => [row.id, row.sortOrder]));
       for (const concept of curriculum.concepts) {
         for (const prerequisite of concept.prerequisites) {
           expect(orderOf.get(prerequisite)!, `${concept.id} after ${prerequisite}`).toBeLessThan(

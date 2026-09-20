@@ -358,7 +358,7 @@ Live". E1 deleted it and re-derived the console from real queries, which is what
   a reporting step waiting on a query. It is not.
 
   E7 went looking for the audit and found that **the authored corpus carries no
-  standard codes at all** — fifty-one concepts across four strands, none of them
+  standard codes at all** — fifty-two concepts across five strands, none of them
   mapped, and `SourceConcept` has no field to put one in. The twelve concepts
   that *do* carry a code are the generator's, and they are exactly the concepts
   with no authored problems. The only part of this product aligned to a standard
@@ -389,8 +389,8 @@ until F1, which is why it is worth saying.
 | 3 | 8 | 5 | 100 |
 | 4 | 12 | 9 | 180 |
 | 5 | 12 | 9 | 180 |
-| 6 | 9 | 6 | 120 |
-| **7** | **3** | **0** | **0** |
+| 6 | 10 | 7 | 142 |
+| **7** | **4** | **1** | **22** |
 | 8 | 6 | 3 | 65 |
 | 9 | 11 | 8 | 185 |
 | 10 | 10 | 7 | 165 |
@@ -403,14 +403,17 @@ until F1, which is why it is worth saying.
 | 17 | 6 | 3 | 63 |
 | 18 | 4 | 1 | 21 |
 
-**Age 7 is the only year between 3 and 18 with no authored problems at all.** It
-is served by three generator concepts and nothing else, where a nine-year-old
-has those plus a hundred and eighty-five written questions.
+**Age 7 was the only year between 3 and 18 with no authored problems at all,
+and no longer is.** `counting-to-20` landed with the `bridge` strand — one
+concept, 22 problems — so a seven-year-old now meets one authored idea and three
+generator concepts, where a nine-year-old has eight authored concepts and a
+hundred and eighty-five written questions. The gap is narrowed, not closed: six
+more concepts are drafted in `docs/curriculum/age-7-bridge.md` and unwritten.
 
-That is **not incorrect mathematics**. Generated problems pass the same
+That was **never incorrect mathematics**. Generated problems pass the same
 integrity gate the authored corpus does — structural invariants and SymPy — so
-a seven-year-old is served correct questions. The year is *narrower*, which is a
-different and smaller complaint than the earlier wording implied.
+a seven-year-old was always served correct questions. The year is *narrower*,
+which is a different and smaller complaint than the earliest wording implied.
 
 A caution for whoever measures this next: counting `problems` rows in a
 development database says age 7 has three. Those rows are `source = 'generated'`
@@ -427,7 +430,7 @@ generator's concepts — the twelve with no authored problems.
 
 | | Concepts | With a standard code |
 | --- | --- | --- |
-| Authored corpus | 51 | **0** |
+| Authored corpus | 52 | **0** |
 | Generator concepts | 12 | 12 |
 
 **Computed, not copied**, the same way the table above is:
@@ -491,7 +494,7 @@ Track A  ···································�
                                                                   Harbor, DPA, hosting
 
 Track F  ──────────────────────────────────────────▶  (independent, start any time)
-           ages 6–10 authoring, age 7 first
+           ages 6–10 authoring; age 7 opened by counting-to-20
 ```
 
 **B2 is the gate.** Multi-tenant authorization is the one place where a mistake

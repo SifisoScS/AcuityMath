@@ -187,16 +187,43 @@ export function mapConcepts(source: SourceCurriculum, sortBase = 0): ConceptRow[
     });
 }
 
-export function mapPrerequisites(source: SourceCurriculum): PrerequisiteRow[] {
-  const known = new Set(source.concepts.map(c => c.id));
+/**
+ * Prerequisite edges.
+ *
+ * ## Why this now takes a second argument
+ *
+ * It used to refuse any prerequisite outside its own file, with the message
+ * *"Cross-strand prerequisites are not supported by this import."* That held
+ * while the four donor strands were each a self-contained progression, and it
+ * stopped holding the moment content was authored *for* this product rather
+ * than imported into it.
+ *
+ * The `bridge` band exists to connect `foundations` to the rest, and a band
+ * whose whole purpose is to be a bridge cannot have both ends inside itself.
+ * `counting-to-20` requires `foundations-count-to-5`; `place-value-to-100` will
+ * require `foundations-compare-size`. Refusing those would not keep the graph
+ * tidy — it would force every age 6-8 concept into `foundations`, making one
+ * strand span ages three to eight so that a validation rule could stay true.
+ *
+ * `earlier` is what previous strands defined. Passing nothing keeps the old
+ * behaviour exactly, so a strand still cannot reach forwards to one that has
+ * not loaded yet, and a genuinely unknown id is still an error. Load order in
+ * `sources.ts` is what makes "earlier" meaningful, which is the reason that
+ * order was already documented as deliberate.
+ */
+export function mapPrerequisites(
+  source: SourceCurriculum,
+  earlier: ReadonlySet<string> = new Set(),
+): PrerequisiteRow[] {
+  const known = new Set([...earlier, ...source.concepts.map(c => c.id)]);
   const rows: PrerequisiteRow[] = [];
 
   for (const concept of source.concepts) {
     for (const prerequisite of concept.prerequisites) {
       if (!known.has(prerequisite)) {
         throw new ImportError(
-          `Concept "${concept.id}" requires "${prerequisite}", which is not in strand "${source.strand}". ` +
-            'Cross-strand prerequisites are not supported by this import.',
+          `Concept "${concept.id}" requires "${prerequisite}", which is in neither strand ` +
+            `"${source.strand}" nor any strand loaded before it.`,
         );
       }
       rows.push({ conceptId: concept.id, prerequisiteId: prerequisite });

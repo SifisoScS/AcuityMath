@@ -23,13 +23,15 @@
  * Assigning these turns "ages 6-10 are thin" from an impression into a number.
  * Concepts available per age:
  *
- *     3:5  4:9  5:9  6:6  7:0  8:3  9:8  10:7
+ *     3:5  4:9  5:9  6:7  7:1  8:3  9:8  10:7
  *     11:6  12:14  13:25  14:20  15:13  16:8  17:3  18:1
  *
- * **Age 7 has nothing.** Foundations stops at 6 and the fractions strand starts
- * at 8. Ages 8-11 have between three and eight concepts each, against
- * twenty-five at 13. A seven-year-old is served entirely by the generator until
- * content is written for them.
+ * **Age 7 has one concept**, and had none until `counting-to-20` landed with the
+ * `bridge` strand. That is the whole of the gap closed so far: six more concepts
+ * are drafted in `docs/curriculum/age-7-bridge.md` and not yet authored, so a
+ * seven-year-old still meets one authored idea and the generator for everything
+ * else. Ages 8-11 have between three and eight concepts each, against
+ * twenty-five at 13.
  *
  * `coverageByAge()` is asserted by the import test, so this shape cannot change
  * without someone being told.
@@ -67,6 +69,9 @@ export const CONCEPT_AGE_BANDS: Readonly<Record<string, ConceptBand>> = {
   'foundations-count-to-5': { lowAge: 4, highAge: 6 },
   'foundations-match-numeral-to-5': { lowAge: 4, highAge: 6 },
   'foundations-pattern-abab': { lowAge: 4, highAge: 6 },
+
+  // --- bridge: the age 6-8 band ---------------------------------------------
+  'counting-to-20': { lowAge: 6, highAge: 7 },
 
   // --- fractions to algebra ------------------------------------------------
   'unit-fractions': { lowAge: 8, highAge: 9 },

@@ -1,7 +1,7 @@
 /**
  * The curriculum exports, read from disk.
  *
- * The four strands live in `data/curriculum/` in this repository rather than
+ * The strands live in `data/curriculum/` in this repository rather than
  * being read from a sibling checkout of the donor engine. Content is content:
  * a build that cannot produce the questions it serves without another
  * repository present is not reproducible, and CI has no sibling checkout.
@@ -23,12 +23,22 @@ export interface StrandSource {
  * Load order is import order, and it is deliberate: foundations first so the
  * youngest learners' concepts take the lowest sort positions, then the strands
  * in the order a learner meets them.
+ *
+ * `bridge` is the age 6–8 band from `docs/curriculum/age-7-bridge.md`, and it
+ * sits second for that reason. It holds one concept today; the other six are
+ * authoring work, and the strand exists now rather than later because a concept
+ * has to live in a registered strand before any gate will read it.
  */
 export const STRANDS: readonly StrandSource[] = [
   {
     strand: 'foundations',
     curriculumFile: 'foundations-curriculum.json',
     hintPoolFile: 'foundations-hint-pool.json',
+  },
+  {
+    strand: 'bridge',
+    curriculumFile: 'bridge-curriculum.json',
+    hintPoolFile: 'bridge-hint-pool.json',
   },
   {
     strand: 'fractions-to-algebra',

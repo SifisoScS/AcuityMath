@@ -431,3 +431,126 @@ describe('the position invariant, against the real corpus', () => {
     expect(POSITION_LIMIT).toBeLessThan(1);
   });
 });
+
+describe('the conventions a picture problem follows', () => {
+  /*
+   * **Three rules the review found by reading, and nothing checked.**
+   *
+   * Each one was broken by the first `counting-to-20` draft, which the gate
+   * passed 22 of 22 — because every count agreed with every target and these
+   * are not about counts. A picture can be arithmetically perfect and still
+   * hand the answer away, and that is precisely the class of defect the
+   * authoring pass exists to catch. Two of the three are corpus-wide facts
+   * with no exceptions, so they are asserted over the whole corpus rather
+   * than over the one batch that prompted them.
+   */
+  const problems = loadAllStrands().flatMap(
+    strand => (strand.curriculum.problems ?? []) as unknown as Array<Record<string, unknown>>,
+  );
+
+  type Figure = { shape?: string; count?: number; spacing?: number };
+  type Picture = { figures?: Figure[]; frame?: { width?: number; height?: number } };
+
+  const withCandidates = problems
+    .map(p => ({
+      id: String(p.id),
+      visual: p.visual as { prompt?: Picture; choices?: Picture[] } | undefined,
+      rationales: (p.distractor_rationales ?? {}) as Record<string, string>,
+      choices: (p.choices ?? []) as string[],
+    }))
+    .filter(p => (p.visual?.choices?.length ?? 0) > 1);
+
+  const drawnWidth = (picture: Picture) =>
+    Math.max(
+      ...(picture.figures ?? []).map(
+        f => (f.count ?? 0) * 16 + Math.max((f.count ?? 0) - 1, 0) * (f.spacing ?? 0),
+      ),
+    );
+
+  it('has candidate pictures to check', () => {
+    // Without this the three assertions below pass over an empty list, which is
+    // the shape every guard in this project has been caught in at least once.
+    expect(withCandidates.length).toBeGreaterThan(150);
+  });
+
+  it('gives every candidate in a problem the same frame', () => {
+    /*
+     * A card sized to its own contents makes the widest card visibly different,
+     * and a child can then answer a question about *how many* without counting.
+     */
+    const varying = withCandidates
+      .filter(p => new Set(p.visual!.choices!.map(c => JSON.stringify(c.frame))).size > 1)
+      .map(p => p.id);
+    expect(varying).toEqual([]);
+  });
+
+  it('gives every candidate in a problem the same number of figure groups', () => {
+    /*
+     * Ten draws as one row and eleven as two, so a card holding ten beside cards
+     * holding teens has a silhouette that can be picked out — or ruled out —
+     * without being counted. The consequence worth remembering: **ten and eleven
+     * cannot be candidates on the same table.**
+     */
+    const mixed = withCandidates
+      .filter(p => new Set(p.visual!.choices!.map(c => c.figures?.length)).size > 1)
+      .map(p => p.id);
+    expect(mixed).toEqual([]);
+  });
+
+  it('never draws the counting candidates in the prompt\'s own shape', () => {
+    /*
+     * Otherwise the correct card is a copy of the prompt and the item is a
+     * spot-the-difference. Asserted for the counting concepts only: elsewhere —
+     * `compare-size`, `odd-one-out` — sharing shapes across prompt and choices
+     * is the point of the question rather than a leak.
+     */
+    const counting = withCandidates.filter(p => /count|numeral/.test(p.id));
+    expect(counting.length).toBeGreaterThan(20);
+
+    const leaking = counting
+      .filter(p => {
+        const prompt = new Set((p.visual!.prompt?.figures ?? []).map(f => f.shape));
+        const cards = (p.visual!.choices ?? []).flatMap(c => (c.figures ?? []).map(f => f.shape));
+        return cards.some(shape => prompt.has(shape));
+      })
+      .map(p => p.id);
+    expect(leaking).toEqual([]);
+  });
+
+  it('puts count-by-spread on the widest card, in the counting concepts', () => {
+    /*
+     * The rationale names a child answering by how much room something takes up.
+     * If the card it sits on is not the one taking up the most room, the label
+     * describes an error that would lead somewhere else — and the draft that had
+     * it on the second-widest card verified cleanly, because a rationale is a
+     * string and nothing had ever compared one to a picture.
+     *
+     * **Scoped to the counting concepts, and the reason is a finding in itself.**
+     * `foundations-compare-quantity` uses the same error name on ten problems
+     * and satisfies neither this rule nor the obvious alternative — that the
+     * card simply has the loosest spacing. Six of its ten fail that one too, and
+     * no third reading fitted all ten either. Its question is a different one
+     * (*which group has more*, not *how many*), so a spread-judging child is
+     * being drawn somewhere else entirely, and the geometry that would make
+     * those labels true is not one this could work out from the data.
+     *
+     * Asserting a rule over those ten would mean inventing the rule to fit them.
+     * They are left alone and named here instead, which is the honest version of
+     * not knowing.
+     */
+    const spread = withCandidates.filter(
+      p => /count|numeral/.test(p.id) && Object.values(p.rationales).includes('count-by-spread'),
+    );
+    expect(spread.length).toBeGreaterThan(0);
+
+    const misplaced = spread
+      .filter(p => {
+        const at = p.choices.findIndex(c => p.rationales[c] === 'count-by-spread');
+        const widths = p.visual!.choices!.map(drawnWidth);
+        const widest = Math.max(...widths);
+        return widths[at] !== widest || widths.filter(w => w === widest).length > 1;
+      })
+      .map(p => p.id);
+    expect(misplaced).toEqual([]);
+  });
+});
