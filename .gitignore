@@ -16,3 +16,7 @@ data/generator-sample.json
 # request and specific to whoever ran the server; it is not shared state and
 # leaves with that module when the client moves to /trpc.
 data_store.json
+
+# Python bytecode from the authoring generators
+__pycache__/
+*.pyc
