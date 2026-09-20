@@ -1,6 +1,6 @@
 {
-  "problems": 1132,
-  "verified": 944,
+  "problems": 1154,
+  "verified": 966,
   "failed": 0,
   "unverifiable": 188,
   "by_tier": {
@@ -10,7 +10,7 @@
       "unverifiable": 0
     },
     "figure": {
-      "verified": 160,
+      "verified": 182,
       "failed": 0,
       "unverifiable": 20
     },

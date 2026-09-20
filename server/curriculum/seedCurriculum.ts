@@ -78,7 +78,16 @@ export async function seedCurriculum(db: Database): Promise<SeedReport> {
 
   // Prerequisites are edges with no payload, so replacing them wholesale is
   // simpler than reconciling and cannot leave a stale edge behind.
-  const prerequisiteRows = strands.flatMap(({ curriculum }) => mapPrerequisites(curriculum));
+  //
+  // Accumulated strand by strand, in load order, so a concept may depend on one
+  // any earlier strand defined — `counting-to-20` on `foundations-count-to-5` —
+  // but never on one that has not been read yet.
+  const seenConcepts = new Set<string>();
+  const prerequisiteRows = strands.flatMap(({ curriculum }) => {
+    const rows = mapPrerequisites(curriculum, seenConcepts);
+    for (const concept of curriculum.concepts) seenConcepts.add(concept.id);
+    return rows;
+  });
   await db
     .delete(schema.conceptPrerequisites)
     .where(inArray(schema.conceptPrerequisites.conceptId, [...conceptIds]));

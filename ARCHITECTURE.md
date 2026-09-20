@@ -138,7 +138,7 @@ and psychometric calibration. Implemented in
 ### 2. Elementary Explorers (Ages 6–10 | Grades 1–5)
 - **Cognitive Goal:** Conceptualizing parts-to-whole, base-ten place value, and operational fluidity.
 - **Interactive Tooling:** Dynamic Fraction Pizza Slicer with real-time denominator slider ($2 \dots 12$) and equivalent-fraction proofs ($2/4 \equiv 1/2$); Base-Ten Blocks demonstrating regrouping; Number Line Jumpers for negatives and decimals.
-- 🟡 **Content gap.** The manipulatives are built; the **authored corpus is thin here**, and age 7 has no authored problems at all. See §9 of `docs/ROADMAP.md`.
+- 🟡 **Content gap.** The manipulatives are built and the **authored corpus is thin here**. Age 7 had no authored problems at all until `counting-to-20` landed with the `bridge` strand; it now has one concept of the seven drafted for the band. See §9 of `docs/ROADMAP.md`.
 
 ### 3. Middle School Navigators (Ages 11–13 | Grades 6–8)
 - **Cognitive Goal:** Transitioning from concrete arithmetic to symbolic algebraic reasoning and proportional relationships.
@@ -490,6 +490,8 @@ graph TD
 │   ├── audit-corpus.ts           # Authored corpus gate (answers, positions, seed)
 │   ├── verify_generated.py       # SymPy, for generated problems
 │   ├── verify_authored.py        # SymPy, for the corpus's own expressions
+│   ├── authoring/                # Generators for authored content: one source
+│   │                             #   for a batch's review document and its JSON
 │   ├── seed-curriculum.ts        # Authored corpus import
 │   └── seed-demo-family.ts       # Demonstration family, with consent recorded
 │

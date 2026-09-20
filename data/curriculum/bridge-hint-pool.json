@@ -1,0 +1,220 @@
+{
+  "schema_version": "1.0.0",
+  "strand": "bridge",
+  "hint_count": 12,
+  "hints": [
+    {
+      "id": "counting-to-20-hint-01",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Touch each thing in the question picture and count out loud together: one, two, three. Do not ask for an answer yet.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-02",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Count it again, slower, and watch that each thing is touched once. Counting one thing twice, or skipping one, is where the number goes wrong.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-03",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "Say the last number again after counting. The last number you say is how many there are — it is not just the name of the last thing.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-04",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 2,
+      "content": "Move each thing aside as it is counted, if they can be moved. What is left to count gets smaller, so nothing is counted twice.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-05",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "count-by-spread"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 2,
+      "content": "Put four things close together and four things spread far apart, and count both. Taking up more room is not the same as being more.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-06",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "count-by-spread"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 1,
+      "content": "Do not choose by which picture looks biggest. Count one, say the number, then count the next.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-07",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "teen-digits-reversed"
+      ],
+      "cognitive_state": "conceptual-gap",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 2,
+      "content": "Fourteen is ten and four. Count the full row of ten first, say \"ten\", then count the rest on: eleven, twelve, thirteen, fourteen.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-08",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "teen-digits-reversed"
+      ],
+      "cognitive_state": "conviction-error",
+      "difficulty_level": 4,
+      "hint_style": "counter-example",
+      "scaffold_level": 3,
+      "content": "Fourteen says the four first but writes the one first. Point at 41 and count out that many — it is far more than the picture shows.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-09",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "teen-digits-reversed"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "symbolic-hint",
+      "scaffold_level": 2,
+      "content": "For a teen number the 1 comes first, because the ten comes first. 14 is ten and four; 41 would be four tens.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-10",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "off-by-one-overcount",
+        "off-by-one-undercount",
+        "teen-digits-reversed"
+      ],
+      "cognitive_state": "procedural-stuck",
+      "difficulty_level": 4,
+      "hint_style": "analogical-explanation",
+      "scaffold_level": 3,
+      "content": "Count the ten, then the ones left over, then say the whole name: ten and six is sixteen.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-11",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "confusion",
+      "difficulty_level": 4,
+      "hint_style": "concrete-example",
+      "scaffold_level": 1,
+      "content": "Start again at one for each new group. The count does not carry over from the picture before it.",
+      "verified": true
+    },
+    {
+      "id": "counting-to-20-hint-12",
+      "concept_id": "counting-to-20",
+      "prerequisite_knowledge_points": [
+        "foundations-count-to-5",
+        "foundations-match-numeral-to-5"
+      ],
+      "error_types": [
+        "count-by-spread",
+        "off-by-one-overcount",
+        "off-by-one-undercount"
+      ],
+      "cognitive_state": "uncertain",
+      "difficulty_level": 4,
+      "hint_style": "error-location",
+      "scaffold_level": 2,
+      "content": "Two groups can look different and still be the same number. The only way to know is to count both.",
+      "verified": true
+    }
+  ]
+}

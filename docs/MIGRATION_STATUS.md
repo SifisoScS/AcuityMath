@@ -208,10 +208,12 @@ age:
 11:6  12:14 13:25 14:20 15:13 16:8  17:3 18:1
 ```
 
-**Age 7 has nothing.** The generator covers it at runtime, so a child of seven
-gets questions; the authored corpus does not reach them, so nobody has checked
-those questions the way the 1,138 authored ones were checked. Closing the gap is
-authoring work, not code, and it is required regardless of direction.
+**Age 7 had nothing, and now has one concept.** `counting-to-20` landed with
+the `bridge` strand; the other six concepts drafted for the band are unwritten.
+The generator still covers most of the year at runtime, so a child of seven gets
+questions — but for those the corpus does not reach, nobody has checked them the
+way the authored ones were checked. Closing the rest of the gap is authoring
+work, not code, and it is required regardless of direction.
 
 > Measure this from `problems.source = 'authored'`, not from concept age bands.
 > A dev database that has served practice also holds generator-created concepts
@@ -585,7 +587,7 @@ generator integrity gate is written in them.
 | `pnpm lint` | `tsc --noEmit` |
 | `pnpm db:generate` | New migration from a schema change |
 | `pnpm db:migrate` | Apply migrations |
-| `pnpm db:seed` | Import the 1,132-problem curriculum. Idempotent |
+| `pnpm db:seed` | Import the 1,154-problem curriculum. Idempotent |
 | `pnpm db:seed:demo` | A demonstration family with real attempts. Idempotent |
 | `pnpm build` | Client bundle plus server bundle |
 
@@ -1654,6 +1656,11 @@ authored-problems-per-age table was maintained by hand. It happened to be right,
 which is the least useful way to find out. It is computed now, and asserted — so
 the moment somebody authors for age 7 the test fails, the document has to be
 rewritten, and the failure is what makes anyone do it.
+
+> It fired, in F2. `counting-to-20` moved age 7 from 0 authored problems to 22
+> and age 6 from 120 to 142, and three tests went red saying so before anybody
+> read a document. Two of them had been written as `toBe(0)` specifically to
+> break on this day.
 
 **The content picker is rendered instead of the family app, not inside it.**
 There is no router in this project and C6b did not add one — `main.tsx`

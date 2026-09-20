@@ -183,9 +183,9 @@ district must stop reaching it that afternoon.
 - **Integrated Bilingual Glossary:** Searchable compendium of mathematical vocabulary terms categorized across arithmetic, geometry, algebra, and calculus.
 
 ### 3. Verified Content, and a Generator for the Gaps
-- **63 concepts, 1,132 authored problems, 572 hints** in the authored corpus — computed from `data/curriculum/` by `server/curriculum/contentCoverage.ts`, not copied here by hand. Counting rows in a development database gives a different and wrong answer, because generator output is persisted as it is served. Every authored answer is checked by a two-part integrity gate — a structural pass and a symbolic pass using SymPy — which runs in CI and fails the build.
+- **64 concepts, 1,154 authored problems, 584 hints** in the authored corpus — computed from `data/curriculum/` by `server/curriculum/contentCoverage.ts`, not copied here by hand. Counting rows in a development database gives a different and wrong answer, because generator output is persisted as it is served. Every authored answer is checked by a two-part integrity gate — a structural pass and a symbolic pass using SymPy — which runs in CI and fails the build.
 - **The generator covers what the corpus does not**, at runtime, for ages the authored set does not reach.
-- **Known gap:** ages 6–10 are thin and **age 7 has no authored problems at all**. See `docs/MIGRATION_STATUS.md`.
+- **Known gap:** ages 6–10 are thin. Age 7 had no authored problems at all until `counting-to-20` landed, and now has one concept of the seven drafted for it. See `docs/MIGRATION_STATUS.md`.
 
 ### 4. Institutional Integration — LTI 1.3 Advantage and OneRoster
 
@@ -258,9 +258,11 @@ that corrected it went on denying them after they were built.
   authoring work tracked as F3.
 - **No PDF compliance briefing.** A console and a CSV cover what it was for; it
   should be argued for before it is built.
-- **Age 7 has no authored problems at all** — the only year between 3 and 18.
-  It is served by three generator concepts, which is correct mathematics and a
-  much narrower year. Tracked as F2.
+- **Age 7 has one authored concept**, `counting-to-20`, and had none at all
+  until it landed — it was the only year between 3 and 18 with nothing. Three
+  generator concepts still serve it alongside, which is correct mathematics and
+  a much narrower year. Six more concepts are drafted and unwritten. Tracked as
+  F2.
 - **No TLS configuration and, with one exception, no at-rest encryption.** TLS
   is expected to terminate at whatever fronts the application. The exception is
   `oneroster_providers.client_secret_sealed`, which is AES-256-GCM and which
